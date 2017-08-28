@@ -1,0 +1,17 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+LAMBDA_NAME="$1"
+
+pushd `pwd -P`
+cd $SCRIPT_DIR/../orchestrator/lambda_functions
+
+if [[ ! -f "$LAMBDA_NAME"/requirements.txt ]]; then
+    echo "Unable to find requirements.txt for '$LAMBDA_NAME'"
+    popd
+    exit 1
+fi
+
+pip install --upgrade -r "$LAMBDA_NAME"/requirements.txt
+popd
+exit 0

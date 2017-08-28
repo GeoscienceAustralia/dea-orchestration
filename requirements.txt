@@ -1,0 +1,4 @@
+pyyaml
+pytest
+-e orchestrator/dea_raijin
+-e orchestrator/dea_es

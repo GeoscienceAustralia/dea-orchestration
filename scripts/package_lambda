@@ -1,0 +1,61 @@
+#1/bin/bash
+
+# Script only works 
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+LAMBDA_TITLE="$1"
+OUTPUT_FILE="$2"
+TEMP_FOLDER="/tmp"
+TEMP_FILE="$TEMP_FOLDER/$OUTPUT_FILE"
+
+if [[ -z $LAMBDA_TITLE ]]; then
+    echo "Please provide lambda filename as the first argument"
+    exit 1
+fi
+
+if [[ -z $OUTPUT_FILE ]]; then
+    echo "Please provide an output file as the second argument"
+    exit 1
+fi
+
+pushd `pwd -P`
+
+cd "$SCRIPT_DIR/../orchestrator/lambda_functions"
+
+if [[ ! -f "$LAMBDA_TITLE/requirements.txt" ]]; then
+    echo "Please create a requirements.txt for your project"
+    popd
+    exit 1
+fi
+
+if [[ ! -f "$LAMBDA_TITLE.py" ]]; then
+    echo "'$LAMBDA_TITLE.py' not found in lambda_functions directory"
+    popd
+    exit 1
+fi
+
+
+# make a temporary virtual environment
+TEMP_ENV=`mktemp -d -p $TEMP_FOLDER`
+python3 -m venv $TEMP_ENV/venv
+source $TEMP_ENV/venv/bin/activate
+pip install -r $LAMBDA_TITLE/requirements.txt
+
+deactivate
+
+# Get handler
+zip "$TEMP_FILE" "$LAMBDA_TITLE.py"
+
+pushd `pwd -P`
+
+# zip common dependencies
+cd $TEMP_ENV/venv/lib/python3.6/site-packages
+zip -rg9 "$TEMP_FILE" .
+
+# remove the temporary install environment
+popd
+rm -rf $TEMP_ENV
+
+popd
+mv "$TEMP_FILE.zip" .
+exit 0

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PATH_TO_SSH_KEY='~/.ssh/id_rsa'
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+cd $SCRIPT_DIR # Changes home folder to be in repo
+
+ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git checkout production; git reset --hard origin/production; git pull"
