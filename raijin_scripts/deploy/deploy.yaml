@@ -1,0 +1,92 @@
+---
+- hosts: all
+  vars:
+    github_org: "{{ object_name.split('/')[0] }}"
+    github_repo: "{{ object_name.split('/')[1] }}"
+    github_branch: "{{ object_name.split('/')[2] }}"
+    github_python_version: "{{ object_name.split('/')[3] }}"
+
+    modules_path: /g/data/v10/public/modules
+    module_name: "{{ github_repo }}"
+    module_version: "{{ github_branch.split('-')[-1] }}"  # eg "develop" or "1.5.1" (not "datacube-1.5.1")
+    # tmp_dir: "{{ lookup('env', 'TMPDIR')|default('/short/u46/adh547/tmp') }}"
+    tmp_dir: "/short/u46/av8534/tmp"
+    checkout_path: "{{ tmp_dir }}/{{ module_name }}"
+    whl_path: "{{ checkout_path }}/deploy.tar.gz"
+    python_version: "3.6"
+    install_root: "{{ modules_path }}/{{ module_name }}/{{ module_version }}"
+    pip_executable: "/g/data/v10/public/modules/agdc-py3-env/20170627/bin/pip"
+    python_path: "{{ install_root }}/lib/python{{ python_version }}/site-packages/"
+
+  environment:
+    PYTHONPATH: "{{ python_path }}"
+
+  tasks:
+    - name: Print variables for debug
+      debug:
+        msg:
+          - "TMPDIR: {{ lookup('env', 'TMPDIR') }}"
+          - "checkout_path: {{ checkout_path }}"
+          - "github_org: {{ github_org }}"
+          - "github_repo: {{ github_repo }}"
+          - "github_branch: {{ github_branch }}"
+          - "github_python_version: {{ github_python_version }}"
+          - "module_name: {{ module_name }}"
+          - "module_version: {{ module_version }}"
+          - "ansible_system: {{ ansible_system }}"
+          - "ansible_machine: {{ ansible_machine }}"
+          - "tagged_version: {{ github_branch.split('-')[-1] }}"
+
+    - name: Ensure destination dir exists
+      file:
+        path: "{{ checkout_path }}"
+        state: directory
+
+    - name: Download dist from bucket to temporary path
+      s3:
+        profile: datacube-deploy
+        region: ap-southeast-2
+        bucket: "datacube-core-deployment"
+        object: "{{ object_name }}"
+        dest: "{{ whl_path }}"
+        mode: get
+        ignore_nonexistent_bucket: true  # Don't list bucket contents
+
+    - name: Ensure destination dir exists
+      file:
+        path: "{{ install_root }}"
+        state: directory
+        recurse: yes
+        mode: u+rw
+
+    - name: Install tarball package with pip
+      pip:
+        name: "file://{{ whl_path }}"
+        executable: "{{ pip_executable }}"
+        extra_args: "--prefix {{ install_root }} --no-deps --global-option=build --global-option='--executable=/usr/bin/env python'"
+        umask: "0022"
+
+    - name: Remove write permissions
+      file:
+        path: "{{ install_root }}"
+        state: directory
+        recurse: yes
+        mode: u=rX,g=rX,o=rX
+
+    - name: Clean up tarball
+     file:
+        path: "{{ whl_path }}"
+        state: absent
+
+    - name: Ensure module dir exists
+      file:
+        path: "{{modules_path}}/modulefiles/{{module_name}}"
+        state: directory
+        mode: "u-w,g-w,o-w"
+
+    - name: Create modulefile
+      template:
+        src: package_module.j2
+        dest: "{{modules_path}}/modulefiles/{{module_name}}/{{module_version}}"
+        mode: 0440
+

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# VARS
+PARENT_DIR="$(dirname "$0")"
+SCRIPT_DIR="../raijin_scripts"
+SCRIPT_NOT_FOUND_EXIT_CODE=127
+
+parts=($SSH_ORIGINAL_COMMAND)
+
+cd $PARENT_DIR # Set the current working dir to this dir
+
+# Looks for a folder the same as the first arg; runs the run file in that folder
+if [[ -d "$SCRIPT_DIR/${parts[0]}" ]]; then
+     cd $SCRIPT_DIR/${parts[0]}
+     ./run "${parts[@]:1}" # passes along all args
+     exit $? # Exit with exit code of last run script
+else
+     echo "Unable to find raijin script folder: '${parts[0]}'"
+     echo "Try running update_scripts for the latest changes"
+     exit $SCRIPT_NOT_FOUND_EXIT_CODE
+fi

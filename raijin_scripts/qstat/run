@@ -1,0 +1,17 @@
+#!/bin/bash
+
+subcommand="$1"
+shift
+
+case "$subcommand" in
+    "-wu")
+        qstat -wu "$@"
+        ;;
+    "-f")
+        qstat -f "$@"
+        ;;
+    *)
+        >&2 echo "subcommand \"$subcommand\" not supported".
+        exit 1
+esac
+exit 0
