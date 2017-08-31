@@ -90,14 +90,14 @@ class RaijinSession(object):
         logger (obj): Logging object for raijin commands
     """
 
-    def __init__(self, ssh_config=SSHConfig().from_ssm_user_path(), logger=None):
+    def __init__(self, ssh_config=None, logger=None):
         """Constructs an ssh session to raijin.
         Args:
             ssh_config: raijin_ssh.SSHConfig object that holds user, host, private_key parameters
             logger (obj): Logging Object which to descend from; raijin if unset
         """
 
-        self.ssh_config = ssh_config
+        self.ssh_config = ssh_config or SSHConfig().from_ssm_user_path()
         self.ssh_client = None
         self.__private_key = None
 
@@ -120,7 +120,6 @@ class RaijinSession(object):
             (bool): True if a connection was established else False
         """
 
-        import ipdb; ipdb.set_trace()
         if not self.ssh_client:
             with StringIO() as f:
                 f.write(self.ssh_config.private_key)
