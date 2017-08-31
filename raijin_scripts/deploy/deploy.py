@@ -13,7 +13,7 @@ import boto3
 import botocore
 
 
-modules_path = '/g/data/u46/users/hr8696'
+modules_path = '/g/data/v10/public/modules'
 temp_directory = os.environ.get("TMPDIR")
 template = str(Path(__file__).parents[0].absolute())
 src_name = 'module_template.j2'
