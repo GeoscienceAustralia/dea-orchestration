@@ -158,4 +158,3 @@ def update_template(es):
     }
 
     es.indices.put_template('nci-usage', body=usage_template)
-
