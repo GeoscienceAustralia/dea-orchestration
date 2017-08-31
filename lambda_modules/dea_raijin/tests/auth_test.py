@@ -18,7 +18,7 @@ class TestRaijinSSH(unittest.TestCase):
 
         with self.assertLogs('raijin', level='DEBUG') as cm:
             with RaijinSession() as rs:
-                ssm.assert_called_once_with(config.DEFAULT_SSM_KEY)
+                assert ssm.call_count == 3
                 rs.ssh_client.connect.assert_called_once()
                 assert rs.ssh_client is not None
 
@@ -52,7 +52,7 @@ class TestRaijinSSH(unittest.TestCase):
         # assert reuses the same connection
         assert not rs.connect()
 
-        ssm.assert_called_once_with(config.DEFAULT_SSM_KEY)
+        assert ssm.call_count == 3
         rs.ssh_client.connect.assert_called_once()
         assert rs.ssh_client is not None
 
