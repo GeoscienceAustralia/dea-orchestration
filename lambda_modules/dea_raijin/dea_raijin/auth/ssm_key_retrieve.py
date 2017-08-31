@@ -18,7 +18,7 @@ def get_ssm_parameter(name, with_decryption=True):
         str: The value of the key in the ssm
 
     Raises:
-        AttributeError: If key doesn't exist in the kms.
+        AttributeError: If key doesn't exist in the ssm.
     """
 
     response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)

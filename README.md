@@ -13,7 +13,7 @@ in the lambda_functions directory.
 * Inside the directory create the following files:
     * requirements.txt (with the python dependencies)
     * If internal modules are required base them from the lambda_functions directory (e.g. ./../dea_raijin
-    * an env_vars.yaml file which documents the environment variables required by the lambda.
+    * an env_vars.json file which documents the environment variables required by the lambda.
 * The "command" method needs to be overwritten by the subclass and is invoked to run the command.
 * The {{script_name}}.py file must include a handler method that accepts the event and context variables
   from AWS and instantiates the user defined command class and calls run.
@@ -87,7 +87,7 @@ Installs the requirements of a script into the current python env; useful to ins
 * [__./scripts/package_lambda {{script_name}} {{output_zip}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/package_lambda):
 Creates a lambda zipfile with dependencies from the scripts' requirements.txt file which can be used by lambda.
 * [__./scripts/run_lambda {{script_name}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/run_lambda):
-runs the script importing the environment variables from the env_vars.yaml file.
+runs the script importing the environment variables from the env_vars.json file.
 * [__./scripts/remote {{raijin_script}} {{args}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/remote):
 runs the script file in the raijin environment with the passed args; scripts must exist in the raijin folder
 * [__./scripts/git_pull__](/GeoscienceAustralia/orchestrator/blob/master/scripts/git_pull):

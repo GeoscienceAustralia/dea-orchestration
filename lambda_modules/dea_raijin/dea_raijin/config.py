@@ -6,6 +6,4 @@ NCI_PROJECTS = [i.strip() for i in os.environ.get('DEA_NCI_PROJECTS', 'rs0,v10,u
 
 AWS_REGION = os.environ.get('DEA_AWS_REGION', 'ap-southeast-2')
 
-RAIJIN_USER = 'av8534'
-RAIJIN_HOST = 'raijin.nci.org.au'
-DEFAULT_SSM_KEY = 'orchestrator.raijin.login.test'
+DEFAULT_SSM_USER_PATH = 'orchestrator.raijin.users.default'

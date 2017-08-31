@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from dea_raijin import BaseCommand
-from dea_raijin.auth import RaijinSession
+from dea_raijin.auth import RaijinSession, SSHConfig
 
-GIT_PULL_SSM_KEY = 'orchestrator.raijin.pull_key'
+SSM_PATH = 'orchestrator.raijin.users.git_pull'
 
 
 class GitPullCommand(BaseCommand):
@@ -16,7 +16,7 @@ class GitPullCommand(BaseCommand):
     def command(self):
         exit_code = 1
 
-        with RaijinSession(logger=self.logger, ssm_key=GIT_PULL_SSM_KEY) as raijin:
+        with RaijinSession(logger=self.logger, ssh_config=SSHConfig().from_ssm_user_path(path=SSM_PATH)) as raijin:
             stdout, err_output, exit_code = raijin.exec_command('#cmd is ignored')
 
         now = datetime.now().isoformat()
@@ -31,6 +31,3 @@ class GitPullCommand(BaseCommand):
 
 def handler(event, context):
     return GitPullCommand().run()
-
-if __name__ == '__main__':
-    handler(None, None)
