@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 # coding: utf-8
 
 import os
@@ -12,18 +12,16 @@ import stat
 import boto3
 import botocore
 
+USER = os.environ.get('USER', 'avin8534')
 
-modules_path = '/g/data/v10/public/modules'
-temp_directory = os.environ.get("TMPDIR")
-template = str(Path(__file__).parents[0].absolute())
+SCRIPT_DIR = str(Path(__file__).parents[0].absolute())
+TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
+MODULE_DIR = '/g/data/v10/public/modules'
+
 src_name = 'module_template.j2'
 bucket_name = 'datacube-core-deployment'
 pip_exe = '/g/data/v10/public/modules/agdc-py3-env/20170627/bin/pip'
 
-
-template_context = {
-    'modules_path': modules_path,
-    }
 
 def check_arg(args=None):
     parser = argparse.ArgumentParser(description = 'Pass the object of the corresponding bucket')
@@ -32,7 +30,7 @@ def check_arg(args=None):
     return result.object_name
 
 
-def path_list(obj_key):
+def generate_template_context(obj_key):
     '''
     Derive the module_path, install root and the checkout path from the object key
     :param obj_key: object ket of S3 bucket
@@ -43,15 +41,15 @@ def path_list(obj_key):
     module_version = name[2]
     python_version = name[3]
     file_name = name[4]
-    install_root = os.path.join(modules_path, module_name, module_version)
-    checkout_path = os.path.join(temp_directory, module_name)
+    install_root = os.path.join(MODULE_DIR, module_name, module_version)
+    checkout_path = os.path.join(TEMP_DIR, module_name)
     whl_path = os.path.join(checkout_path, file_name)
     python_path = os.path.join(install_root, 'lib', 'python' + python_version, 'site-packages')
-    module_dest = os.path.join(modules_path, 'modulefiles', module_name)
+    module_dest = os.path.join(MODULE_DIR, 'modulefiles', module_name)
     module_dest_file = os.path.join(module_dest, module_version)
 
-    new_template_context = template_context
-    new_template_context.update({
+    template_context = {
+        'modules_path': MODULE_DIR,
         'module_name': module_name,
         'module_version': module_version,
         'install_root': install_root,
@@ -60,11 +58,12 @@ def path_list(obj_key):
         'whl_path': whl_path,
         'module_dest': module_dest,
         'module_dest_file': module_dest_file,
-    })
-    return new_template_context
+    }
+
+    return template_context
 
 
-def deploypackage(get_path, obj_key):
+def deploy_package(get_path, obj_key):
 # get all the paths as a local variable
     install_root = get_path.get('install_root')
     checkout_path = get_path.get('checkout_path')
@@ -120,18 +119,13 @@ def deploypackage(get_path, obj_key):
     return 'success'
 
 
-def load_template(name):
-    if name == 'index.html':
-        return '...'
-
-
-def run(template, template_context):
+def run(template_directory, template_context):
 
     module_dest = template_context.get('module_dest')
     module_dest_file = template_context.get('module_dest_file')
 
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(template))
+        loader=jinja2.FileSystemLoader(template_directory))
     if not os.path.isdir(module_dest):
         os.makedirs(module_dest)
     tmpl = env.get_template(src_name)
@@ -143,6 +137,6 @@ def run(template, template_context):
 
 if __name__ == '__main__':
     key = check_arg(sys.argv[1:])
-    template_context = path_list(key)
-    deploypackage(template_context, key)
-    run(template, template_context)
+    template_context = generate_template_context(key)
+    deploy_package(template_context, key)
+    run(SCRIPT_DIR, template_context)
