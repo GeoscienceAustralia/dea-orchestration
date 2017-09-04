@@ -12,8 +12,10 @@ import stat
 import boto3
 import botocore
 
+USER = os.environ.get('USER', 'avin8534')
+
 SCRIPT_DIR = str(Path(__file__).parents[0].absolute())
-TEMP_DIR = os.environ.get('TMPDIR', SCRIPT_DIR + '/tmp')
+TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
 MODULE_DIR = '/g/data/v10/public/modules'
 
 src_name = 'module_template.j2'
