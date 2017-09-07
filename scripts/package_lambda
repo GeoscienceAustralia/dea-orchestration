@@ -1,4 +1,4 @@
-#1/bin/bash
+#!/bin/bash
 
 # Script only works 
 
@@ -8,19 +8,19 @@ OUTPUT_FILE="$2"
 TEMP_FOLDER="/tmp"
 TEMP_FILE="$TEMP_FOLDER/$OUTPUT_FILE"
 
-if [[ -z $LAMBDA_TITLE ]]; then
+if [ -z $LAMBDA_TITLE ]; then
     echo "Please provide lambda filename as the first argument"
     exit 1
 fi
 
-if [[ -z $OUTPUT_FILE ]]; then
+if [ -z $OUTPUT_FILE ]; then
     echo "Please provide an output file as the second argument"
     exit 1
 fi
 
 pushd `pwd -P`
 
-cd "$SCRIPT_DIR/../orchestrator/lambda_functions"
+cd "$SCRIPT_DIR/../lambda_functions"
 
 if [[ ! -f "$LAMBDA_TITLE/requirements.txt" ]]; then
     echo "Please create a requirements.txt for your project"
@@ -34,11 +34,11 @@ if [[ ! -f "$LAMBDA_TITLE.py" ]]; then
     exit 1
 fi
 
-
 # make a temporary virtual environment
 TEMP_ENV=`mktemp -d -p $TEMP_FOLDER`
-python3 -m venv $TEMP_ENV/venv
+python3.6 -m venv $TEMP_ENV/venv
 source $TEMP_ENV/venv/bin/activate
+
 pip install -r $LAMBDA_TITLE/requirements.txt
 
 deactivate

@@ -86,7 +86,7 @@ class JobMonitorCommand(BaseCommand):
         rows = stdout.split('\n')
 
         if len(rows) < first_data_row:
-            self.loger.info('No jobs found to log')
+            self.logger.info('No jobs found to log')
             raise NoJobInfoException('No user jobs')
 
         # Get Headers
