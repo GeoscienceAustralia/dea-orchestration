@@ -5,7 +5,7 @@ and NCI's raijin facilities; and a collection of scripts that can be triggered w
 ## Lambda Functions
 
 To create a new lambda function create a class that inherits from one of the
-[command classes](/GeoscienceAustralia/dea-orchestration/blob/master/orchestrator/dea_raijin/dea_raijin/lambda_commands.py)
+[command classes](/lambda_modules/dea_raijin/dea_raijin/lambda_commands.py)
 in the lambda_functions directory.
 
 ##### To Create a new Lambda Function
@@ -13,7 +13,7 @@ in the lambda_functions directory.
 * Inside the directory create the following files:
     * requirements.txt (with the python dependencies)
     * If internal modules are required base them from the lambda_functions directory (e.g. ./../dea_raijin
-    * an env_vars.yaml file which documents the environment variables required by the lambda.
+    * an env_vars.json file which documents the environment variables required by the lambda.
 * The "command" method needs to be overwritten by the subclass and is invoked to run the command.
 * The {{script_name}}.py file must include a handler method that accepts the event and context variables
   from AWS and instantiates the user defined command class and calls run.
@@ -22,13 +22,17 @@ in the lambda_functions directory.
   zipfile; this will need to be uploaded into AWS Lambda with the corresponding IAM roles and access to
   ec2 parameter store
     * Make sure the private keys are stored in [aws ssm](http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-walk.html)
-      and are properly referenced in [dea_raijin.config](/GeoscienceAustralia/orchestrator/blob/master/dea_raijin/dea_raijin/config.py)
+    * By default the user credentials will be retrieved from the ssm parameters:
+        * User: `orchestrator.raijin.users.default.user`
+        * Host: `orchestrator.raijin.users.default.host`
+        * Private Key: `orchestrator.raijin.users.default.pkey`
+        * The prefix `orchestrator.raijin.users.default` can be overriden with the `DEA_RAIJIN_USER_PATH` environment variable.
     * When the lambda is configured it will need an associated role with policy permissions to access
       the ssm to retrieve parameters and the [kms](http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html) decryption key.
 Installs the requirements of a script into the current python env; useful to install internal modules.
 
 An
-[example lambda class](/GeoscienceAustralia/dea-orchestration/blob/master/orchestrator/lambda_functions/example.py)
+[example lambda class](/lambda_functions/example.py)
 is available to use a template.
 
 ##### Writing a new Lambda function
@@ -82,15 +86,15 @@ execute arbitrary code in our environment.
 
 ## Repo Script Reference
 
-* [__./scripts/install_script {{script_name}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/install_script):
+* [__./scripts/install_script {{script_name}}__](/scripts/install_script):
 Installs the requirements of a script into the current python env; useful to install internal modules.
-* [__./scripts/package_lambda {{script_name}} {{output_zip}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/package_lambda):
+* [__./scripts/package_lambda {{script_name}} {{output_zip}}__](/scripts/package_lambda):
 Creates a lambda zipfile with dependencies from the scripts' requirements.txt file which can be used by lambda.
-* [__./scripts/run_lambda {{script_name}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/run_lambda):
-runs the script importing the environment variables from the env_vars.yaml file.
-* [__./scripts/remote {{raijin_script}} {{args}}__](/GeoscienceAustralia/orchestrator/blob/master/scripts/remote):
+* [__./scripts/run_lambda {{script_name}}__](/scripts/run_lambda):
+runs the script importing the environment variables from the env_vars.json file.
+* [__./scripts/remote {{raijin_script}} {{args}}__](/scripts/remote):
 runs the script file in the raijin environment with the passed args; scripts must exist in the raijin folder
-* [__./scripts/git_pull__](/GeoscienceAustralia/orchestrator/blob/master/scripts/git_pull):
+* [__./scripts/git_pull__](/scripts/git_pull):
 script to update the repository from the current production branch
 
 ## Collection Installation on Raijin
@@ -102,8 +106,6 @@ In order to set up this library on Raijin the user is required to generate 3 ssh
 
 The first 2 keys should be appended to the users ~/.ssh/authorized_keys file.
 The ssh key for remote should be prepended with
-command="{{directory_location/scripts/remote",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Running of scripts under NCI
+command="{{directory_location}}/scripts/remote",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Running of scripts under NCI
 The ssh key for git pull should be prepended with
-command="{{directory_location/scripts/git_pull",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Automated deployment of dea-orchestration
-
-
+command="{{directory_location}}/scripts/git_pull",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Automated deployment of dea-orchestration

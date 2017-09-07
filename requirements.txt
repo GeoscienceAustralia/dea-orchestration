@@ -1,4 +1,5 @@
-pyyaml
 pytest
--e orchestrator/dea_raijin
--e orchestrator/dea_es
+pep8
+pylint
+-e lambda_modules/dea_raijin
+-e lambda_modules/dea_es

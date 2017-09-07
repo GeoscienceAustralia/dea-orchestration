@@ -1,3 +1,0 @@
-./../dea_raijin
-./../dea_es
-elasticsearch

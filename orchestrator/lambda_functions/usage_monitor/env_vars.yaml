@@ -1,5 +1,0 @@
-default:
-    DEA_NCI_PROJECTS: rs0, v10, u46, fk4, r78
-    DEA_AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
-    DEA_AWS_ES_ACCESS_KEY: AKIAJHZWL7MN75UZB4QA
-    DEA_AWS_ES_PRIVATE_KEY: orchestrator.lambda.es_private_key
