@@ -7,7 +7,7 @@ SCRIPT_NOT_FOUND_EXIT_CODE=127
 
 # if executed over ssh use ssh args; otherwise use supplied args
 if [ -z $SSH_ORIGINAL_COMMAND ]; then
-    parts=$@
+    parts=("$@")
 else
     parts=($SSH_ORIGINAL_COMMAND)
 fi
