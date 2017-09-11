@@ -6,8 +6,8 @@ SCRIPT_DIR="../raijin_scripts"
 SCRIPT_NOT_FOUND_EXIT_CODE=127
 
 # if executed over ssh use ssh args; otherwise use supplied args
-if [ -z $SSH_ORIGINAL_COMMAND ]; then
-    parts=("$@")
+if [ -z "$SSH_ORIGINAL_COMMAND" ]; then
+    parts=( "$@" )
 else
     parts=($SSH_ORIGINAL_COMMAND)
 fi
