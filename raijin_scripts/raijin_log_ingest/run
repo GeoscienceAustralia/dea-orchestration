@@ -1,0 +1,1 @@
+aws s3 sync --region ap-southeast-2 --only-show-errors /g/data/v10/work s3://dea-raijin-logs/run-ingest
