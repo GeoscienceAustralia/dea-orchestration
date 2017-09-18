@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch, call
 import datetime
 import io
 
-from raijin_log_extractor2 import ESHandler, handler
+from raijin_log_extractor import ESHandler, handler
 
 
 class test_eshandler(unittest.TestCase):
@@ -56,8 +56,8 @@ class test_handler(unittest.TestCase):
         'log_type': 'test.log'
     }
 
-    @patch('raijin_log_extractor2.ESHandler')
-    @patch('raijin_log_extractor2.S3Handler')
+    @patch('raijin_log_extractor.ESHandler')
+    @patch('raijin_log_extractor.S3Handler')
     def test_simple_message(self, mock_s3, mock_es):
 
         test_data = io.StringIO('''\
@@ -94,8 +94,8 @@ TIMESTAMP: 2017-06-12T12:00:00 Hello, world!\
 
         mock_es_obj.submit_logs.assert_called_once()
 
-    @patch('raijin_log_extractor2.ESHandler')
-    @patch('raijin_log_extractor2.S3Handler')
+    @patch('raijin_log_extractor.ESHandler')
+    @patch('raijin_log_extractor.S3Handler')
     def test_consolidated_message(self, mock_s3, mock_es):
         test_data = io.StringIO('''\
 TIMESTAMP: 2017-10-24T23:00:00 Something went wrong

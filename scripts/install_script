@@ -8,7 +8,7 @@ cd $SCRIPT_DIR/..
 
 case $LAMBDA_NAME in
     all)
-        find . -name "requirements.txt" | sort -r | sed -e 's/^/-r /' | xargs pip install ;;
+        find . -name "requirements.txt" | sort -r | sed -e 's/^/-r /' | xargs python3 -m pip install ;;
     *)
         if [[ ! -f "./lambda_functions/$LAMBDA_NAME"/requirements.txt ]]; then
             echo "Unable to find requirements.txt for '$LAMBDA_NAME'"
@@ -16,7 +16,7 @@ case $LAMBDA_NAME in
             exit 1
         fi
 
-        pip install --upgrade -r "./lambda_functions/$LAMBDA_NAME"/requirements.txt;;
+        python3 -m pip install --upgrade -r "./lambda_functions/$LAMBDA_NAME"/requirements.txt;;
 esac
 
 popd
