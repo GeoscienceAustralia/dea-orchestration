@@ -1,6 +1,10 @@
 dist: trusty
 sudo: false
 
+env:
+  global:
+    - DEA_ENVIRONMENT='test'
+
 git:
   depth: 99999
 
