@@ -12,7 +12,7 @@ _AWS_ES_ACCESS_KEY = os.environ.get('DEA_AWS_ES_ACCESS_KEY')
 if _AWS_ES_ACCESS_KEY:
     # Run if the environment parameter is set
     _AWS_PRIVATE_KEY = get_ssm_parameter(os.environ.get('DEA_AWS_ES_PRIVATE_KEY'))
-else if not _AWS_ES_ACCESS_KEY and DEA_ENVIRONMENT == 'dev':
+elif not _AWS_ES_ACCESS_KEY and DEA_ENVIRONMENT == 'dev':
     # Allow users to test with their local aws credentials
     import logging
     logger = logging.getLogger(__name__)
