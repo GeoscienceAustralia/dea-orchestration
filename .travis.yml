@@ -1,0 +1,20 @@
+dist: trusty
+sudo: false
+
+git:
+  depth: 99999
+
+language: python
+python:
+# tests primarily focused on lambda component
+  - "3.6"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  - ./scripts/install_script all
+
+script:
+  - ./scripts/check-code.sh

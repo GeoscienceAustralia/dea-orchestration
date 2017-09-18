@@ -8,7 +8,7 @@ class ExampleCommand(RaijinCommand):
     def __init__(self):
         super().__init__(self)
 
-    def command(self):
+    def command(self, *args, **kwargs):
         stdout, stderr, exit_code = self.raijin.exec_command('example')
         if exit_code == 0:
             self.logger.info('SUCCESS:')

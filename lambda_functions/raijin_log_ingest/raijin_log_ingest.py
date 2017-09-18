@@ -11,10 +11,11 @@ class RaijinLogIngestCommand(RaijinCommand):
     def __init__(self):
         super().__init__(self)
 
-    def command(self):
+    def command(self, *args, **kwargs):
         stdout, stderr, exit_code = self.raijin.exec_command('raijin_log_ingest')
 
         return stdout
+
 
 def handler(event, context):
     return RaijinLogIngestCommand().run()

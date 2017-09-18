@@ -18,14 +18,14 @@ SCRIPT_DIR = str(Path(__file__).parents[0].absolute())
 TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
 MODULE_DIR = '/g/data/v10/public/modules'
 
-src_name = 'module_template.j2'
-bucket_name = 'datacube-core-deployment'
-pip_exe = '/g/data/v10/public/modules/agdc-py3-env/20170627/bin/pip'
+SRC_NAME = 'module_template.j2'
+BUCKET_NAME = 'datacube-core-deployment'
+PIP_EXE = '/g/data/v10/public/modules/agdc-py3-env/20170627/bin/pip'
 
 
 def check_arg(args=None):
-    parser = argparse.ArgumentParser(description = 'Pass the object of the corresponding bucket')
-    parser.add_argument('object_name', help = 'object path/ object key')
+    parser = argparse.ArgumentParser(description='Pass the object of the corresponding bucket')
+    parser.add_argument('object_name', help='object path/object key')
     result = parser.parse_args(args)
     return result.object_name
 
@@ -64,7 +64,8 @@ def generate_template_context(obj_key):
 
 
 def deploy_package(get_path, obj_key):
-# get all the paths as a local variable
+    # get all the paths as a local variable
+
     install_root = get_path.get('install_root')
     checkout_path = get_path.get('checkout_path')
     python_path = get_path.get('python_path')
@@ -85,7 +86,7 @@ def deploy_package(get_path, obj_key):
     s3_client = boto3.client('s3')
 
     try:
-        s3_client.download_file(bucket_name, obj_key, whl_path)
+        s3_client.download_file(BUCKET_NAME, obj_key, whl_path)
         print("Requested file saved at : %s" % whl_path)
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
@@ -103,8 +104,11 @@ def deploy_package(get_path, obj_key):
         os.makedirs(python_path)
 
 # install tarball package with pip
-    package = (pip_exe +" install file://" + whl_path + " --prefix " +install_root+ " --no-deps --global-option=build" +
-               " --global-option='--executable=/usr/bin/env python'")
+    package = (
+        PIP_EXE + " install file://" + whl_path + " --prefix " +
+        install_root + " --no-deps --global-option=build" +
+        " --global-option='--executable=/usr/bin/env python'"
+    )
     subprocess.run(package, shell=True)
 
 # Remove write permissions
@@ -128,7 +132,7 @@ def run(template_directory, template_context):
         loader=jinja2.FileSystemLoader(template_directory))
     if not os.path.isdir(module_dest):
         os.makedirs(module_dest)
-    tmpl = env.get_template(src_name)
+    tmpl = env.get_template(SRC_NAME)
     with open(module_dest_file, 'w') as fd:
         fd.write(tmpl.render(**template_context))
     os.chmod(module_dest_file, 0o660)
@@ -136,7 +140,7 @@ def run(template_directory, template_context):
 
 
 if __name__ == '__main__':
-    key = check_arg(sys.argv[1:])
-    template_context = generate_template_context(key)
-    deploy_package(template_context, key)
-    run(SCRIPT_DIR, template_context)
+    KEY = check_arg(sys.argv[1:])
+    TEMPLATE_CONTEXT = generate_template_context(KEY)
+    deploy_package(TEMPLATE_CONTEXT, KEY)
+    run(SCRIPT_DIR, TEMPLATE_CONTEXT)

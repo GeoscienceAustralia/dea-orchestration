@@ -1,1 +1,1 @@
-./../dea_raijin
+./lambda_modules/dea_raijin
