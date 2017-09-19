@@ -1,0 +1,25 @@
+dist: trusty
+sudo: false
+
+env:
+  global:
+    - DEA_ENVIRONMENT='test'
+
+git:
+  depth: 99999
+
+language: python
+python:
+# tests primarily focused on lambda component
+  - "3.6"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  - python3 -m pip install -r requirements.txt
+  - ./scripts/install_script all
+
+script:
+  - ./scripts/check-code.sh

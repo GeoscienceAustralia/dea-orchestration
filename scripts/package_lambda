@@ -20,16 +20,16 @@ fi
 
 pushd `pwd -P`
 
-cd "$SCRIPT_DIR/../lambda_functions"
+cd "$SCRIPT_DIR/.."
 
-if [[ ! -f "$LAMBDA_TITLE/requirements.txt" ]]; then
-    echo "Please create a requirements.txt for your project"
+if [[ ! -f "./lambda_functions/$LAMBDA_TITLE/requirements.txt" ]]; then
+    echo "Please create a requirements.txt for your function"
     popd
     exit 1
 fi
 
-if [[ ! -f "$LAMBDA_TITLE.py" ]]; then
-    echo "'$LAMBDA_TITLE.py' not found in lambda_functions directory"
+if [[ ! -f "./lambda_functions/$LAMBDA_TITLE/$LAMBDA_TITLE.py" ]]; then
+    echo "'$LAMBDA_TITLE.py' not found in lambda_functions/$LAMBDA_TITLE directory"
     popd
     exit 1
 fi
@@ -39,12 +39,15 @@ TEMP_ENV=`mktemp -d -p $TEMP_FOLDER`
 python3.6 -m venv $TEMP_ENV/venv
 source $TEMP_ENV/venv/bin/activate
 
-pip install -r $LAMBDA_TITLE/requirements.txt
+pip install -r ./lambda_functions/$LAMBDA_TITLE/requirements.txt
 
 deactivate
 
 # Get handler
+pushd `pwd -P`
+cd "./lambda_functions/$LAMBDA_TITLE"
 zip "$TEMP_FILE" "$LAMBDA_TITLE.py"
+popd
 
 pushd `pwd -P`
 

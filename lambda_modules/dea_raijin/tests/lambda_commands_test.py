@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch
 
+import dea_raijin
 from dea_raijin.lambda_commands import BaseCommand, RaijinCommand
 
 
@@ -29,11 +31,13 @@ class TestBaseCommand(unittest.TestCase):
 
 class TestRaijinCommand(unittest.TestCase):
 
-    def test_logger(self):
+    @patch('dea_raijin.lambda_commands.RaijinSession')
+    def test_logger(self, raijin_session):
         rc = RC()
         assert rc.logger is not None
 
-    def test_command_error(self):
+    @patch('dea_raijin.lambda_commands.RaijinSession')
+    def test_command_error(self, raijin_session):
         rc = RC()
         with self.assertRaises(NotImplementedError):
             rc.run()

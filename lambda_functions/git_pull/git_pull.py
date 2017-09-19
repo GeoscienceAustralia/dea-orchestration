@@ -13,7 +13,7 @@ class GitPullCommand(BaseCommand):
     def __init__(self):
         super().__init__(self, self)
 
-    def command(self):
+    def command(self, *args, **kwargs):
         exit_code = 1
 
         with RaijinSession(logger=self.logger, ssh_config=SSHConfig().from_ssm_user_path(path=SSM_PATH)) as raijin:
