@@ -4,7 +4,7 @@
 set -eu
 set -x
 {
-    LINT_ARGS="$(find raijin_scripts/. lambda_modules/. lambda_functions/. -iname '*.py')"
+    LINT_ARGS="lambda_modules/*/* $(find raijin_scripts/. lambda_functions/. -iname '*.py')"
 } &> /dev/null
 
 python3 -m pep8 $LINT_ARGS 
