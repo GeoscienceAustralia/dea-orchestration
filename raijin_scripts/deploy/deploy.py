@@ -75,7 +75,7 @@ def deploy_package(get_path, obj_key):
     whl_path = get_path.get('whl_path')
     numpy_path = get_path.get('numpy_path')
 
-# Temporarily change the Pythonpath to numpy installed path and revert back
+    # Temporarily change the Pythonpath to numpy installed path and revert back
     os.environ['PYTHONPATH'] = numpy_path
 
     try:
@@ -85,10 +85,10 @@ def deploy_package(get_path, obj_key):
 
     os.makedirs(checkout_path)
 
-# change directory to temp directory
+    # change directory to temp directory
     os.chdir(checkout_path)
 
-# Download tarzip file from s3
+    # Download tarzip file from s3
     s3_client = boto3.client('s3')
 
     try:
@@ -100,16 +100,17 @@ def deploy_package(get_path, obj_key):
         else:
             raise
 
-# Ensure the destination directory exists
+    # Ensure the destination directory exists
     if not os.path.isdir(install_root):
         os.makedirs(install_root)
-# change the permission to user rwx
+
+    # change the permission to user rwx
     os.chmod(install_root, 0o700)
 
     if not os.path.isdir(python_path):
         os.makedirs(python_path)
 
-# Install numpy in a temporary location for the fc setup
+    # Install numpy in a temporary location for the fc setup
     subprocess.run(PIP_EXE + " install numpy --prefix " + INSTALL_NUMPY_PATH, shell=True)
 
     # install tarball package with pip
@@ -120,13 +121,13 @@ def deploy_package(get_path, obj_key):
     )
     subprocess.run(package, shell=True)
 
-# Remove write permissions
+    # Remove write permissions
     os.chmod(install_root, 0o555)
 
-# Change the PYTHONPATH to destination folder path
+    # Change the PYTHONPATH to destination folder path
     os.environ['PYTHONPATH'] = python_path
 
-# cleanup_tarball
+    # cleanup_tarball
     try:
         shutil.rmtree(checkout_path)
     except FileNotFoundError:
