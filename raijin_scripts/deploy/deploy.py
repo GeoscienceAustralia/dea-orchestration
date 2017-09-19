@@ -110,7 +110,7 @@ def deploy_package(get_path, obj_key):
         os.makedirs(python_path)
 
 # Install numpy in a temporary location for the fc setup
-    subprocess.run(pip_exe + " install numpy --prefix " + INSTALL_NUMPY_PATH, shell=True)
+    subprocess.run(PIP_EXE + " install numpy --prefix " + INSTALL_NUMPY_PATH, shell=True)
 
     # install tarball package with pip
     package = (
