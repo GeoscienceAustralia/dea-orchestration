@@ -3,10 +3,13 @@
 
 set -eu
 set -x
+{
+    LINT_ARGS="$(find raijin_scripts/. lambda_modules/. lambda_functions/. -iname '*.py')"
+} &> /dev/null
 
-python3 -m pep8 lambda_functions lambda_modules raijin_scripts --max-line-length 120
+python3 -m pep8 $LINT_ARGS 
 
-python3 -m pylint -j 2 --reports no lambda_modules lambda_functions raijin_scripts
+python3 -m pylint -j 2 --reports no $LINT_ARGS 
 
 # Run tests, taking coverage.
 # Users can specify extra folders as arguments.

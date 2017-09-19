@@ -6,7 +6,7 @@ import io
 from raijin_log_extractor import ESHandler, handler
 
 
-class test_eshandler(unittest.TestCase):
+class TestESHandler(unittest.TestCase):
 
     metadata = {
         'pbs_job_id': 'test-job-id',
@@ -48,7 +48,7 @@ class test_eshandler(unittest.TestCase):
         assert len(es.log_data['unstructured']) == 1
 
 
-class test_handler(unittest.TestCase):
+class TestHandler(unittest.TestCase):
 
     METADATA = {
         'pbs_job_id': 'test-job-id',

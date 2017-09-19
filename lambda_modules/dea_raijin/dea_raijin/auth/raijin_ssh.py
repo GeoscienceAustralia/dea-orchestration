@@ -168,6 +168,7 @@ class RaijinSession(object):
             (int): Exit code of the command
 
         """
+        # pylint: disable=broad-except
         if not self.ssh_client:
             self.connect()
         stdin, stdout, stderr, exit_code = None, None, None, None

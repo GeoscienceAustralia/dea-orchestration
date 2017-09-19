@@ -160,6 +160,7 @@ class S3Handler(object):
         return self
 
     def __next__(self):
+        # pylint: disable=unsubscriptable-object
         if self.curr >= len(self.s3_objects):
             raise StopIteration
 
