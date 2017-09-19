@@ -105,11 +105,6 @@ class S3Handler(object):
 
     def __init__(self, event_info):
         self.s3_objects = map(self._extract_event_info, event_info['Records'])
-        self.s3_objects = [{
-            'Bucket': 'dea-raijin-logs',
-            'Key': 'test/one/two/008/out.log'
-        }]
-
         self.curr = 0
 
     @staticmethod
