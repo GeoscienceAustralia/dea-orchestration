@@ -11,7 +11,7 @@ class DeployCommand(RaijinCommand):
         super().__init__(self)
         self.event = event
 
-    def command(self):
+    def command(self, *args, **kwargs):
         new_objects = [urllib.parse.unquote(record['s3']['object']['key']) for record in self.event['Records']]
         self.logger.info('Deploying objects: ' + ' '.join(new_objects))
 

@@ -1,3 +1,6 @@
 ./lambda_modules/dea_raijin
 ./lambda_modules/dea_es
+python-dateutil
+boto3
+pyyaml
 elasticsearch

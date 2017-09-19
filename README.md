@@ -9,10 +9,10 @@ To create a new lambda function create a class that inherits from one of the
 in the lambda_functions directory.
 
 ##### To Create a new Lambda Function
-* A file must be created called {{script_name}}.py, and a correspond {{script_name}} directory.
-* Inside the directory create the following files:
+* A script directory named {{script_name}} must be created in [lambda_functions](/lambda_functions) directory and inside must appear a {{script_name}}.py file.
+* Inside the directory create the following additional files:
     * requirements.txt (with the python dependencies)
-    * If internal modules are required base them from the lambda_functions directory (e.g. ./../dea_raijin
+    * If internal modules are required base them from the base directory i.e. (./lambda_modules/dea_raijin)
     * an env_vars.json file which documents the environment variables required by the lambda.
 * The "command" method needs to be overwritten by the subclass and is invoked to run the command.
 * The {{script_name}}.py file must include a handler method that accepts the event and context variables
@@ -32,7 +32,7 @@ in the lambda_functions directory.
 Installs the requirements of a script into the current python env; useful to install internal modules.
 
 An
-[example lambda class](/lambda_functions/example.py)
+[example lambda class](/lambda_functions/example/example.py)
 is available to use a template.
 
 ##### Writing a new Lambda function

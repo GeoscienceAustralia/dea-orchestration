@@ -30,7 +30,7 @@ class UsageMonitorCommand(RaijinCommand):
     def __init__(self):
         super().__init__(self)
 
-    def command(self):
+    def command(self, *args, **kwargs):
         for project in NCI_PROJECTS:
             self.monitor_project(project)
 

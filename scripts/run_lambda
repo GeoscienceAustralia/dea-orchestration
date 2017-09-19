@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     _set_vars(env_dict)
 
-    sys.path.append('lambda_functions')
+    sys.path.append('lambda_functions/{}'.format(script_name))
     script_file = __import__('{}'.format(script_name))
 
     script_file.handler(None, None)

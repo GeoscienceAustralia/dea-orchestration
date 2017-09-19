@@ -30,7 +30,7 @@ class JobMonitorCommand(BaseCommand):
         self.raijin = RaijinSession(logger=self.logger)
         self.raijin.connect()
 
-    def command(self):
+    def command(self, *args, **kwargs):
         users = self._find_users_in_groups(NCI_PROJECTS)
         jobs = self._find_user_jobs(users)
         running_jobs = filter(lambda j: j['s'] == 'R', jobs)
