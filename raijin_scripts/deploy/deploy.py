@@ -15,6 +15,7 @@ import botocore
 USER = os.environ.get('USER', 'avin8534')
 
 SCRIPT_DIR = str(Path(__file__).parents[0].absolute())
+INSTALL_NUMPY_PATH = os.path.join(SCRIPT_DIR, 'venv')
 TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
 MODULE_DIR = '/g/data/v10/public/modules'
 
@@ -47,6 +48,7 @@ def generate_template_context(obj_key):
     python_path = os.path.join(install_root, 'lib', 'python' + python_version, 'site-packages')
     module_dest = os.path.join(MODULE_DIR, 'modulefiles', module_name)
     module_dest_file = os.path.join(module_dest, module_version)
+    numpy_pythonpath = os.path.join(INSTALL_NUMPY_PATH, 'lib', 'python' + python_version, 'site-packages')
 
     template_context = {
         'modules_path': MODULE_DIR,
@@ -58,6 +60,7 @@ def generate_template_context(obj_key):
         'whl_path': whl_path,
         'module_dest': module_dest,
         'module_dest_file': module_dest_file,
+        'numpy_path': numpy_pythonpath,
     }
 
     return template_context
@@ -70,8 +73,11 @@ def deploy_package(get_path, obj_key):
     checkout_path = get_path.get('checkout_path')
     python_path = get_path.get('python_path')
     whl_path = get_path.get('whl_path')
+    numpy_path = get_path.get('numpy_path')
 
-    os.environ['PYTHONPATH'] = python_path
+# Temporarily change the Pythonpath to numpy installed path and revert back
+    os.environ['PYTHONPATH'] = numpy_path
+
     try:
         shutil.rmtree(checkout_path)
     except FileNotFoundError:
@@ -103,7 +109,10 @@ def deploy_package(get_path, obj_key):
     if not os.path.isdir(python_path):
         os.makedirs(python_path)
 
-# install tarball package with pip
+# Install numpy in a temporary location for the fc setup
+    subprocess.run(PIP_EXE + " install numpy --prefix " + INSTALL_NUMPY_PATH, shell=True)
+
+    # install tarball package with pip
     package = (
         PIP_EXE + " install file://" + whl_path + " --prefix " +
         install_root + " --no-deps --global-option=build" +
@@ -113,6 +122,9 @@ def deploy_package(get_path, obj_key):
 
 # Remove write permissions
     os.chmod(install_root, 0o555)
+
+# Change the PYTHONPATH to destination folder path
+    os.environ['PYTHONPATH'] = python_path
 
 # cleanup_tarball
     try:
