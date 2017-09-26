@@ -99,13 +99,13 @@ script to update the repository from the current production branch
 
 ## Collection Installation on Raijin
 
-In order to set up this library on Raijin the user is required to generate 3 ssh keys.
+In order to set up this library on Raijin the user is required to generate 2 ssh keys.
+
     * One to be able to access the remote script
     * One to be able to access the git_pull script (to limit how this is triggered)
-    * One to be able to read from the code repository.
 
-The first 2 keys should be appended to the users ~/.ssh/authorized_keys file.
-The ssh key for remote should be prepended with
+The ssh key for the remote script should be prepended with
 command="{{directory_location}}/scripts/remote",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Running of scripts under NCI
-The ssh key for git pull should be prepended with
+
+The ssh key for git_pull script should be prepended with
 command="{{directory_location}}/scripts/git_pull",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Automated deployment of dea-orchestration
