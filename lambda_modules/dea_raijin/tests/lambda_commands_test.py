@@ -5,6 +5,7 @@ import dea_raijin
 from dea_raijin.lambda_commands import BaseCommand, RaijinCommand
 
 
+# pylint: disable=abstract-method
 class BC(BaseCommand):
     '''Blank class to test default behaviour'''
     def __init__(self):
