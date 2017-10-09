@@ -1,0 +1,25 @@
+#!/bin/bash
+
+
+YEAR=$2
+APP_CONFIG=$3
+TAG=$4
+
+
+module use /g/data/v10/public/modules/modulefiles
+module load agdc-py3-prod/1.5.2
+module load agdc-fc/1.1.3
+
+cd /g/data/somehwere/logs/directory #FIXME
+
+# Hard coded parameters
+PROJECT=v10
+QUEUE=normal
+
+# TODO: Generate save-tasks filename and location, based on tag
+
+TASKS_FILE=asdlfkjasdf
+
+datacube-fc submit --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --save-tasks ${TASKS_FILE} --tag ${TAG}
+
+# TODO: what's happening with the logging
