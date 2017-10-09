@@ -37,9 +37,11 @@ def generate_template_context(obj_key):
     :param obj_key: object ket of S3 bucket
     :return: lists of path needed for execution
     '''
+
+    # name is of the format: opendatacube/datacube-core/datacube-1.5.1/3.6/datacube-1.5.1.tar.gz
     name = (str(obj_key)).split('/')
     module_name = name[1]
-    module_version = name[2]
+    module_version = name[2].split('-')[-1]
     python_version = name[3]
     file_name = name[4]
     install_root = os.path.join(MODULE_DIR, module_name, module_version)
@@ -145,10 +147,12 @@ def run(template_directory, template_context):
         loader=jinja2.FileSystemLoader(template_directory))
     if not os.path.isdir(module_dest):
         os.makedirs(module_dest)
+    if os.path.exists(module_dest_file):
+        os.chmod(module_dest_file, 0o640)
     tmpl = env.get_template(SRC_NAME)
     with open(module_dest_file, 'w') as fd:
         fd.write(tmpl.render(**template_context))
-    os.chmod(module_dest_file, 0o660)
+    os.chmod(module_dest_file, 0o440)
     return True
 
 
