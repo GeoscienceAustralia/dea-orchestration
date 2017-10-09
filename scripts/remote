@@ -6,10 +6,10 @@ SCRIPT_DIR="../raijin_scripts"
 SCRIPT_NOT_FOUND_EXIT_CODE=127
 
 # if executed over ssh use ssh args; otherwise use supplied args
-if [ -z "$SSH_ORIGINAL_COMMAND" ]; then
+if [ -z "${SSH_ORIGINAL_COMMAND}" ]; then
     parts=( "$@" )
 else
-    parts=($SSH_ORIGINAL_COMMAND)
+    parts=(${SSH_ORIGINAL_COMMAND})
 fi
 
 cd "$PARENT_DIR" || exit 1  # Set the current working dir to this dir
@@ -22,5 +22,5 @@ if [ -d "$SCRIPT_DIR/${parts[0]}" ]; then
 else
      echo "Unable to find raijin script folder: '${parts[0]}'"
      echo "Try running update_scripts for the latest changes"
-     exit $SCRIPT_NOT_FOUND_EXIT_CODE
+     exit ${SCRIPT_NOT_FOUND_EXIT_CODE}
 fi
