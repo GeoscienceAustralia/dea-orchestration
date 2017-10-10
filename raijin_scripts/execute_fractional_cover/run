@@ -1,25 +1,39 @@
 #!/bin/bash
 
+set -eu
+
 
 YEAR=$2
-APP_CONFIG=$3
+OUTPUT_PRODUCT=$3
 TAG=$4
+
+FC_MODULE_VERSION=agdc-fc/fc-1.2.0-20-g3aaa2a8
+AGDC_MODULE=agdc-py3-prod/1.5.2
+DEA_MODULE=dea-prod/20171010
 
 
 module use /g/data/v10/public/modules/modulefiles
-module load agdc-py3-prod/1.5.2
-module load agdc-fc/1.1.3
+module use /g/data/v10/private/modules/modulefiles
 
-cd /g/data/somehwere/logs/directory #FIXME
+module load ${AGDC_MODULE}
+module load ${FC_MODULE_VERSION}
+module load ${DEA_MODULE}
+
+TASK_DIR=/g/data/v10/work/fc/${OUTPUT_PRODUCT}/${TAG}
+
+APP_CONFIG=/g/data/v10/public/modules/${FC_MODULE_VERSION}/config/${OUTPUT_PRODUCT}.yaml
+
+
+mkdir -p ${TASK_DIR}
+cd ${TASK_DIR} || exit 1
 
 # Hard coded parameters
 PROJECT=v10
 QUEUE=normal
 
-# TODO: Generate save-tasks filename and location, based on tag
 
-TASKS_FILE=asdlfkjasdf
+TASKS_FILE=${TASK_DIR}/taskfile.pickle
 
 datacube-fc submit --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --save-tasks ${TASKS_FILE} --tag ${TAG}
 
-# TODO: what's happening with the logging
+# TODO: what's happening with the logging??
