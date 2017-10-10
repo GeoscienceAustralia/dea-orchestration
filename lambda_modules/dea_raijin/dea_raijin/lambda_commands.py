@@ -65,7 +65,7 @@ class RaijinCommand(BaseCommand):
             self.raijin = raijin
             return self.command(*args, **kwargs)
 
-    def command(self, *args, **kwargs):
+    def command(self):
         """
         Raises:
             NotImplementedError: Method should be overwritten by inheriting class.
