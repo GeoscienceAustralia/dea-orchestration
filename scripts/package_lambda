@@ -4,7 +4,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 LAMBDA_TITLE="$1"
-OUTPUT_FILE="$2"
+OUTPUT_FILE="${2%.zip}"  # remove zip extension if provided
 TEMP_FOLDER="/tmp"
 TEMP_FILE="$TEMP_FOLDER/$OUTPUT_FILE"
 
