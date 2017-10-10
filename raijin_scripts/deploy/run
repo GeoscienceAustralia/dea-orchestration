@@ -1,8 +1,8 @@
 #!/bin/bash
 
-args=$@
+args=( "$@" )
 
 echo "Deploying ${args[0]}"
 module load python3/3.5.2
 source venv/bin/activate
-python deploy.py ${args[0]}
+python deploy.py "${args[0]}"

@@ -1,5 +1,13 @@
 dist: trusty
+# tests primarily focused on lambda component
+language: python
+python:
+  - "3.6"
 sudo: false
+addons:
+  apt:
+    packages:
+      - shellcheck
 
 env:
   global:
@@ -8,10 +16,6 @@ env:
 git:
   depth: 99999
 
-language: python
-python:
-# tests primarily focused on lambda component
-  - "3.6"
 
 cache:
   directories:
