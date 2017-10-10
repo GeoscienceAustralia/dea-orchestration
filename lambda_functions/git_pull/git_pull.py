@@ -22,7 +22,7 @@ class GitPullCommand(BaseCommand):
         now = datetime.now().isoformat()
 
         if exit_code:
-            self.logger.error('Unable to update producion: %s', now)
+            self.logger.error('Unable to update production: %s', now)
             return 1
 
         self.logger.info('Successfully updated production: %s', now)
