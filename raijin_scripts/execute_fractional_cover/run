@@ -24,16 +24,16 @@ TASK_DIR=/g/data/v10/work/fc/${OUTPUT_PRODUCT}/${TAG}
 APP_CONFIG=/g/data/v10/public/modules/${FC_MODULE_VERSION}/config/${OUTPUT_PRODUCT}.yaml
 
 
-mkdir -p ${TASK_DIR}
-cd ${TASK_DIR} || exit 1
+mkdir -p "${TASK_DIR}"
+cd "${TASK_DIR}" || exit 1
 
 # Hard coded parameters
 PROJECT=v10
 QUEUE=normal
 
 
-TASKS_FILE=${TASK_DIR}/taskfile.pickle
+TASKS_FILE="${TASK_DIR}/taskfile.pickle"
 
-datacube-fc submit --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --save-tasks ${TASKS_FILE} --tag ${TAG}
+datacube-fc submit --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --save-tasks "${TASKS_FILE}" --tag "${TAG}"
 
 # TODO: what's happening with the logging??
