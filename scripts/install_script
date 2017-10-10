@@ -3,8 +3,8 @@
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 LAMBDA_NAME="$1"
 
-pushd `pwd -P`
-cd $SCRIPT_DIR/..
+pushd "$(pwd -P)"
+cd "$SCRIPT_DIR/.." || exit 1
 
 case $LAMBDA_NAME in
     all)
