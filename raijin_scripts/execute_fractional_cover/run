@@ -7,7 +7,7 @@ YEAR=$1
 OUTPUT_PRODUCT=$2
 TAG=$3
 
-FC_MODULE_VERSION=agdc-fc/fc-1.2.0-20-g3aaa2a8
+FC_MODULE_VERSION=fc/master
 AGDC_MODULE=agdc-py3-prod/1.5.2
 DEA_MODULE=dea-prod/20171010
 
