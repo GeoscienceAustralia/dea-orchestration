@@ -1,6 +1,9 @@
 .. role:: bash(code)
    :language: bash
 
+.. role:: py(code)
+   :language: python
+
 ###############
 Collection Aims
 ###############
@@ -19,15 +22,15 @@ To create a new lambda function create a class that inherits from one of the
 To Create a new Lambda Function
 -------------------------------
 
-- A script directory named {{script_name}} must be created in [lambda_functions](/lambda_functions) directory and inside must appear a {{script_name}}.py file.
+- A script directory called :bash:`{{script_name}}` must be created in [lambda_functions](/lambda_functions) directory and inside must appear a :bash:`{{script_name}}.py` file.
 - Inside the directory create the following additional files:
 
   - requirements.txt (with the python dependencies)
-  - If internal modules are required base them from the base directory i.e. (./lambda_modules/dea_raijin)
-  - an env_vars.json file which documents the environment variables required by the lambda.
+  - If internal modules are required base the url path from the base directory i.e. (:bash:`./lambda_modules/dea_raijin`)
+  - an :bash:`env_vars.json` file which documents the environment variables required by the lambda.
 
 - The "command" method needs to be overwritten by the subclass and is invoked to run the command.
-- The {{script_name}}.py file must include a handler method that accepts the event and context variables
+- The :bash:`{{script_name}}.py` file must include a handler method that accepts the event and context variables
   from AWS and instantiates the user defined command class and calls run.
 - The command must have a class variable "COMMAND_NAME" which is used to identify the command when logging.
 - To create a new function use :bash:`./scripts/package_lambda {{script_name}} {{zipfile_name}}` to create a packaged
@@ -52,15 +55,14 @@ An `example lambda class`_ is available to use a template.
 Writing a new Lambda function
 -----------------------------
 
-- For scripts that inherit from the BaseCommand/RaijinCommand logging
-  is available with self.logger.{{level}}('{{message}}')
+- For scripts that inherit from the :python:`BaseCommand`/:python:`RaijinCommand` logging
+  is available with :python:`self.logger.{{level}}('{{message}}')`
 - For RaijinCommands/BaseCommands the constructor must pass itself into the super constructor
   to provide the command name.
-- For RaijinCommands the ssh_client can be accessed directly by using self.raijin.ssh_client
-- Use the inbuilt exec_command of self.raijin to use default logging behaviour and have the stdout, stderr, and
+- For RaijinCommands the ssh_client can be accessed directly by using :python:`self.raijin.ssh_client`
+- Use the inbuilt:python:`self.raijin.exec_command()` for standard behaviour and have the stdout, stderr, and
   exit_code decoded and returned for processing.
-- BaseCommands can manage the connection themselves by importing and using the RaijinSession object from
-  dea_raijin.auth
+- BaseCommands can manage the connection themselves by importing and using :python:`dea_raijin.auth.RaijinSession`
 
 To test run a Lambda function
 -----------------------------
@@ -91,16 +93,16 @@ To Create a new Raijin script
 - If there is work required to install the command, please create an install.sh file in this directory
   which is where the code will be executed from following approval.
 - stderr, stdout and exit_code is returned to the lambda function by default
-- An exit code of 127 (command not found) is returned if remote cannot find the command requested.
+- An exit code of :bash:`127 (command not found)` is returned if remote cannot find the command requested.
 
 Running a Raijin Command
 ------------------------
 
-- The entry point to raijin is the ./scripts/remote executable.
+- The entry point to raijin is the :bash:`./scripts/remote` executable.
 - If you wish to test raijin commands it can be done from this entry point.
 
   - copy the repository into your NCI environment and from the base folder run
-    ./scripts/remote {{raijin_script_name}} {{args}}
+    :bash:`./scripts/remote {{raijin_script_name}} {{args}}`
 
 =========================
 Updating internal modules
@@ -132,14 +134,16 @@ Collection Installation on Raijin
 
 In order to set up this library on Raijin the user is required to generate 2 ssh keys.
 
-  - One to be able to access the remote script
-  - One to be able to access the git_pull script (to limit how this is triggered)
+  - One to be able to access the :bash:`remote` script
+  - Another to be able to access the :bash:`git_pull` script (to limit how this is triggered)
 
-The ssh key for the remote script should be prepended with
-command="{{directory_location}}/scripts/remote",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Running of scripts under NCI
+When adding these keys to :bash:`~/.ssh/authorized_keys`:
 
-The ssh key for git_pull script should be prepended with
-command="{{directory_location}}/scripts/git_pull",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Automated deployment of dea-orchestration
+The ssh key for the remote script should be prepended with:
+:bash:`command="{{directory_location}}/scripts/remote",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Running of scripts under NCI`
+
+The ssh key for git_pull script should be prepended with:
+:bash:`command="{{directory_location}}/scripts/git_pull",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-rsa AA3tEnxs/...E4S+UGaYQ== Automated deployment of dea-orchestration`
 
 .. _command classes: ./lambda_modules/dea_raijin/dea_raijin/lambda_commands.py
 .. _aws ssm: http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-walk.html
