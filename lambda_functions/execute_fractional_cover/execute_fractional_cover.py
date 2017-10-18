@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from dea_raijin import RaijinCommand
 
@@ -15,7 +16,13 @@ class ExecuteFractionalCoverCommand(RaijinCommand):
         super().__init__(self)
 
     def command(self, output_product, year, tag):
-        stdout, stderr, exit_code = self.raijin.exec_command(f'execute_fractional_cover {year} {output_product} {tag}')
+        agdc_module = os.environ['AGDC_MODULE']
+        fc_module = os.environ['FC_MODULE']
+        dea_module = os.environ['DEA_MODULE']
+        stdout, stderr, exit_code = self.raijin.exec_command(f'execute_fractional_cover --year {year} '
+                                                             f'--output-product {output_product} --tag {tag}'
+                                                             f'--agdc-module {agdc_module} --fc-module {fc_module}'
+                                                             f'--dea-module {dea_module}')
 
         return stdout
 

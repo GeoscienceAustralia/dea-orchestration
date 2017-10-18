@@ -2,6 +2,37 @@
 
 set -eu
 
+
+while [ "$1" != "" ]; do
+    case $1 in
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        --output-product )      shift
+                                OUTPUT_PRODUCT=$1
+                                ;;
+        --tag )                 shift
+                                TAG=$1
+                                ;;
+        --agdc-module )         shift
+                                AGDC_MODULE=$1
+                                ;;
+        --fc-module )           shift
+                                FC_MODULE=$1
+                                ;;
+        --dea-module )          shift
+                                DEA_MODULE=$1
+                                ;;
+#        -h | --help )           usage
+#                                exit
+#                                ;;
+        * )                     usage
+                                exit 1
+    esac
+    shift
+done
+
+
 YEAR=$1
 OUTPUT_PRODUCT=$2
 TAG=$3
