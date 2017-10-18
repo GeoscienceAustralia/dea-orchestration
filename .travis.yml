@@ -1,3 +1,4 @@
+---
 dist: trusty
 # tests primarily focused on lambda component
 language: python

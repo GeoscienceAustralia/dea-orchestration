@@ -6,15 +6,15 @@ YEAR=$1
 OUTPUT_PRODUCT=$2
 TAG=$3
 
-echo Executing fractional cover for ${YEAR} ${OUTPUT_PRODUCT} with tag ${TAG}
-echo Loading modules ${AGDC_MODULE}, ${FC_MODULE} and ${DEA_MODULE}
+echo Executing fractional cover for "${YEAR}" "${OUTPUT_PRODUCT}" with tag "${TAG}"
+echo Loading modules "${AGDC_MODULE}", "${FC_MODULE}" and "${DEA_MODULE}"
 
 module use /g/data/v10/public/modules/modulefiles
 module use /g/data/v10/private/modules/modulefiles
 
-module load ${AGDC_MODULE}
-module load ${FC_MODULE}
-module load ${DEA_MODULE}
+module load "${AGDC_MODULE}"
+module load "${FC_MODULE}"
+module load "${DEA_MODULE}"
 
 
 APP_CONFIG=/g/data/v10/public/modules/${FC_MODULE}/config/${OUTPUT_PRODUCT}.yaml
