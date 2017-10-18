@@ -24,6 +24,12 @@ while [[ $# -gt 0 ]]; do
         --dea-module )          shift
                                 DEA_MODULE=$1
                                 ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
         * )                     exit 1
     esac
     shift
