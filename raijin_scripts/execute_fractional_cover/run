@@ -3,8 +3,9 @@
 set -eu
 
 
-while [ "$1" != "" ]; do
-    case $1 in
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
         --year )                shift
                                 YEAR=$1
                                 ;;
@@ -23,19 +24,11 @@ while [ "$1" != "" ]; do
         --dea-module )          shift
                                 DEA_MODULE=$1
                                 ;;
-#        -h | --help )           usage
-#                                exit
-#                                ;;
-        * )                     usage
-                                exit 1
+        * )                     exit 1
     esac
     shift
 done
 
-
-YEAR=$1
-OUTPUT_PRODUCT=$2
-TAG=$3
 
 echo Executing fractional cover for "${YEAR}" "${OUTPUT_PRODUCT}" with tag "${TAG}"
 echo Loading modules "${AGDC_MODULE}", "${FC_MODULE}" and "${DEA_MODULE}"
