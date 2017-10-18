@@ -19,10 +19,16 @@ class ExecuteFractionalCoverCommand(RaijinCommand):
         agdc_module = os.environ['AGDC_MODULE']
         fc_module = os.environ['FC_MODULE']
         dea_module = os.environ['DEA_MODULE']
-        stdout, stderr, exit_code = self.raijin.exec_command(f'execute_fractional_cover --year {year} '
-                                                             f'--output-product {output_product} --tag {tag}'
-                                                             f'--agdc-module {agdc_module} --fc-module {fc_module}'
-                                                             f'--dea-module {dea_module}')
+        project = os.environ['PROJECT']
+        queue = os.environ['QUEUE']
+        stdout, stderr, exit_code = self.raijin.exec_command(f'execute_fractional_cover --year {year}'
+                                                             f' --output-product {output_product}'
+                                                             f' --tag {tag}'
+                                                             f' --agdc-module {agdc_module}'
+                                                             f' --fc-module {fc_module}'
+                                                             f' --dea-module {dea_module}'
+                                                             f' --queue {queue}'
+                                                             f' --project {project}')
 
         return stdout
 
