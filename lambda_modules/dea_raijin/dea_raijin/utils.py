@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 
 def timestr_to_seconds(time_str):
     if not time_str:

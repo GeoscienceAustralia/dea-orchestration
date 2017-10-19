@@ -180,8 +180,8 @@ class RaijinSession(object):
             script_output = stdout.read().decode('ascii')
             script_error = stderr.read().decode('ascii')
         except Exception as e:
-            self.logger.error('%s', e.message)
-            return None, None, exit_code
+            self.logger.error(str(e))
+            raise e
         finally:
             if stdin:
                 stdin.close()
@@ -189,15 +189,15 @@ class RaijinSession(object):
                 stderr.close()
 
         if exit_code != 0:
-            self.logger.error('%s: EXIT_CODE: %s', command, str(exit_code))
-            if stderr:
+            self.logger.error('%s: EXIT_CODE: %s', command, exit_code)
+            if script_error:
                 self.logger.error('%s: %s', command, script_error)
         else:
-            if stderr:
-                # command exits successfully; treat messages as warnings
+            if script_error:
+                # command exited successfully; treat messages as warnings
                 self.logger.warning('%s: %s', command, script_error)
 
-        if stdout:
+        if script_output:
             self.logger.debug('%s: %s', command, script_output)
 
         return script_output, script_error, exit_code

@@ -72,3 +72,13 @@ class RaijinCommand(BaseCommand):
         """
 
         raise NotImplementedError('Command must override the command method')
+
+
+class OrchestratorException(Exception):
+    """Exception running an Orchestration command, probably on raijin"""
+
+    def __init__(self, message, stdout, stderr, exit_code, *args):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.exit_code = exit_code
+        super().__init__(message + f"exit_code: {exit_code}\nstdout: {stdout}\nstderr: {stderr}")
