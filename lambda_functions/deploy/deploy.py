@@ -1,10 +1,9 @@
 import urllib
 
-from dea_raijin import RaijinCommand
+from dea_raijin import RaijinCommand, OrchestratorException
 
 
 class DeployCommand(RaijinCommand):
-
     COMMAND_NAME = 'DeployCommand'
 
     def __init__(self, event):
@@ -19,8 +18,17 @@ class DeployCommand(RaijinCommand):
             stdout, stderr, exit_code = self.raijin.exec_command('deploy ' + obj)
             if exit_code != 0:
                 self.logger.error('Error: exit code %s.', str(exit_code))
+                raise OrchestratorException("Error deploying %s" % obj,
+                                            stdout=stdout,
+                                            stderr=stderr,
+                                            exit_code=exit_code)
             else:
                 self.logger.info('Done')
+
+        return {
+            'result': 'Success',
+            'deployed_objects': new_objects
+        }
 
 
 def handler(event, context):
