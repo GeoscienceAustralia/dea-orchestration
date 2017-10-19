@@ -17,8 +17,8 @@ USER = os.environ['USER']
 
 SCRIPT_DIR = Path(__file__).parent.absolute()
 INSTALL_NUMPY_PATH = SCRIPT_DIR / 'venv'
-TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
-MODULE_DIR = '/g/data/v10/public/modules'
+TEMP_DIR = Path(os.environ.get('TMPDIR', f'/short/v10/{USER}/tmp'))
+MODULE_DIR = Path('/g/data/v10/public/modules')
 
 SRC_NAME = 'module_template.j2'
 BUCKET_NAME = 'datacube-core-deployment'
@@ -46,13 +46,13 @@ def generate_template_context(s3_object):
     module_version = name[2].split('-')[-1]
     python_version = name[3]
     file_name = name[4]
-    install_root = os.path.join(MODULE_DIR, module_name, module_version)
-    checkout_path = os.path.join(TEMP_DIR, module_name)
-    whl_path = os.path.join(checkout_path, file_name)
-    python_path = os.path.join(install_root, 'lib', 'python' + python_version, 'site-packages')
-    module_dest = os.path.join(MODULE_DIR, 'modulefiles', module_name)
-    module_dest_file = os.path.join(module_dest, module_version)
-    numpy_pythonpath = os.path.join(INSTALL_NUMPY_PATH, 'lib', 'python' + python_version, 'site-packages')
+    install_root = MODULE_DIR / module_name / module_version
+    checkout_path = TEMP_DIR / module_name
+    whl_path = checkout_path / file_name
+    python_path = install_root / 'lib' / ('python' + python_version) / 'site-packages'
+    module_dest = MODULE_DIR / 'modulefiles' / module_name
+    module_dest_file = module_dest / module_version
+    numpy_pythonpath = INSTALL_NUMPY_PATH / 'lib' / ('python' + python_version) / 'site-packages'
 
     template_context = {
         'modules_path': MODULE_DIR,
@@ -81,7 +81,7 @@ def deploy_package(template_context, s3_object):
 
     # Temporarily change the Pythonpath to numpy installed path and revert back
     # Some packages won't install unless numpy is already installed
-    os.environ['PYTHONPATH'] = numpy_path
+    os.environ['PYTHONPATH'] = str(numpy_path)
 
     try:
         shutil.rmtree(checkout_path)
@@ -97,8 +97,8 @@ def deploy_package(template_context, s3_object):
     s3_client = boto3.client('s3')
 
     try:
-        s3_client.download_file(BUCKET_NAME, s3_object, whl_path)
-        print("Requested file saved at : %s" % whl_path)
+        s3_client.download_file(BUCKET_NAME, s3_object, str(whl_path))
+        print(f"Requested file saved at : {whl_path}")
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             print("The object does not exist.")
@@ -116,13 +116,13 @@ def deploy_package(template_context, s3_object):
         os.makedirs(python_path)
 
     # Install numpy in a temporary location for the fc setup
-    subprocess.run(PIP_EXE + " install numpy --prefix " + INSTALL_NUMPY_PATH, shell=True)
+    subprocess.run(f"{PIP_EXE} install numpy --prefix {INSTALL_NUMPY_PATH}", shell=True)
 
     # install tarball package with pip
     package = (
-        PIP_EXE + " install file://" + whl_path + " --prefix " +
-        install_root + " --no-deps --global-option=build" +
-        " --global-option='--executable=/usr/bin/env python'"
+        f"{PIP_EXE} install file://{whl_path} --prefix {install_root}"
+        f" --no-deps --global-option=build" +
+        f" --global-option='--executable=/usr/bin/env python'"
     )
     subprocess.run(package, shell=True)
 
@@ -142,8 +142,8 @@ def deploy_package(template_context, s3_object):
 
 
 def run(template_directory, template_context):
-    module_dest = template_context.get('module_dest')
-    module_dest_file = template_context.get('module_dest_file')
+    module_dest = template_context['module_dest']
+    module_dest_file = template_context['module_dest_file']
 
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(str(template_directory)))
