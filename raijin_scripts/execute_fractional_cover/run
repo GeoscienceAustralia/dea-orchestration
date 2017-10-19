@@ -15,9 +15,6 @@ while [[ $# -gt 0 ]]; do
         --tag )                 shift
                                 TAG=$1
                                 ;;
-        --agdc-module )         shift
-                                AGDC_MODULE=$1
-                                ;;
         --fc-module )           shift
                                 FC_MODULE=$1
                                 ;;
@@ -37,17 +34,16 @@ done
 
 
 echo Executing fractional cover for "${YEAR}" "${OUTPUT_PRODUCT}" with tag "${TAG}"
-echo Loading modules "${AGDC_MODULE}", "${FC_MODULE}" and "${DEA_MODULE}"
+echo Loading modules "${DEA_MODULE}" and "${FC_MODULE}"
 
 module use /g/data/v10/public/modules/modulefiles
 module use /g/data/v10/private/modules/modulefiles
 
-module load "${AGDC_MODULE}"
-module load "${FC_MODULE}"
 module load "${DEA_MODULE}"
+module load "${FC_MODULE}"
 
 
-APP_CONFIG=/g/data/v10/public/modules/${FC_MODULE}/config/${OUTPUT_PRODUCT}.yaml
+APP_CONFIG=$(datacube-fc list | grep "${OUTPUT_PRODUCT}")
 
 
 
