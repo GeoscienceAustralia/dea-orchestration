@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+import argparse
+import json
 import os
 import shutil
-import sys
-import argparse
-from pathlib import Path
 import subprocess
-import jinja2
-import stat
+import sys
+from pathlib import Path
+
 import boto3
 import botocore
+import jinja2
 
-USER = os.environ.get('USER', 'avin8534')
+USER = os.environ['USER']
 
-SCRIPT_DIR = str(Path(__file__).parents[0].absolute())
-INSTALL_NUMPY_PATH = os.path.join(SCRIPT_DIR, 'venv')
+SCRIPT_DIR = Path(__file__).parent.absolute()
+INSTALL_NUMPY_PATH = SCRIPT_DIR / 'venv'
 TEMP_DIR = os.environ.get('TMPDIR', '/short/v10/{}/tmp'.format(USER))
 MODULE_DIR = '/g/data/v10/public/modules'
 
 SRC_NAME = 'module_template.j2'
 BUCKET_NAME = 'datacube-core-deployment'
-PIP_EXE = '/g/data/v10/public/modules/agdc-py3-env/20170627/bin/pip'
+PIP_EXE = 'python -m pip'
 
 
 def check_arg(args=None):
@@ -31,15 +32,16 @@ def check_arg(args=None):
     return result.object_name
 
 
-def generate_template_context(obj_key):
-    '''
+def generate_template_context(s3_object):
+    """
     Derive the module_path, install root and the checkout path from the object key
-    :param obj_key: object ket of S3 bucket
+    :param s3_object: object key of S3 bucket
     :return: lists of path needed for execution
-    '''
+    """
 
     # name is of the format: opendatacube/datacube-core/datacube-1.5.1/3.6/datacube-1.5.1.tar.gz
-    name = (str(obj_key)).split('/')
+    # <ignored>/{module_name}/<ignored>-{module_version}/{python-version}/{file_name}
+    name = (str(s3_object)).split('/')
     module_name = name[1]
     module_version = name[2].split('-')[-1]
     python_version = name[3]
@@ -65,19 +67,20 @@ def generate_template_context(obj_key):
         'numpy_path': numpy_pythonpath,
     }
 
+    print(json.dumps(template_context))
+
     return template_context
 
 
-def deploy_package(get_path, obj_key):
-    # get all the paths as a local variable
-
-    install_root = get_path.get('install_root')
-    checkout_path = get_path.get('checkout_path')
-    python_path = get_path.get('python_path')
-    whl_path = get_path.get('whl_path')
-    numpy_path = get_path.get('numpy_path')
+def deploy_package(template_context, s3_object):
+    install_root = template_context.get('install_root')
+    checkout_path = template_context.get('checkout_path')
+    python_path = template_context.get('python_path')
+    whl_path = template_context.get('whl_path')
+    numpy_path = template_context.get('numpy_path')
 
     # Temporarily change the Pythonpath to numpy installed path and revert back
+    # Some packages won't install unless numpy is already installed
     os.environ['PYTHONPATH'] = numpy_path
 
     try:
@@ -94,7 +97,7 @@ def deploy_package(get_path, obj_key):
     s3_client = boto3.client('s3')
 
     try:
-        s3_client.download_file(BUCKET_NAME, obj_key, whl_path)
+        s3_client.download_file(BUCKET_NAME, s3_object, whl_path)
         print("Requested file saved at : %s" % whl_path)
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
@@ -139,25 +142,28 @@ def deploy_package(get_path, obj_key):
 
 
 def run(template_directory, template_context):
-
     module_dest = template_context.get('module_dest')
     module_dest_file = template_context.get('module_dest_file')
 
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(template_directory))
+        loader=jinja2.FileSystemLoader(str(template_directory)))
     if not os.path.isdir(module_dest):
         os.makedirs(module_dest)
     if os.path.exists(module_dest_file):
         os.chmod(module_dest_file, 0o640)
-    tmpl = env.get_template(SRC_NAME)
+    template = env.get_template(SRC_NAME)
     with open(module_dest_file, 'w') as fd:
-        fd.write(tmpl.render(**template_context))
+        fd.write(template.render(**template_context))
     os.chmod(module_dest_file, 0o440)
     return True
 
 
+def main():
+    s3_object = check_arg(sys.argv[1:])
+    template_context = generate_template_context(s3_object)
+    deploy_package(template_context, s3_object)
+    run(SCRIPT_DIR, template_context)
+
+
 if __name__ == '__main__':
-    KEY = check_arg(sys.argv[1:])
-    TEMPLATE_CONTEXT = generate_template_context(KEY)
-    deploy_package(TEMPLATE_CONTEXT, KEY)
-    run(SCRIPT_DIR, TEMPLATE_CONTEXT)
+    main()
