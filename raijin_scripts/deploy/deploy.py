@@ -67,7 +67,7 @@ def generate_template_context(s3_object):
         'numpy_path': numpy_pythonpath,
     }
 
-    print(json.dumps(template_context))
+    print(json.dumps({k: str(v) for k, v in template_context.items()}))
 
     return template_context
 
