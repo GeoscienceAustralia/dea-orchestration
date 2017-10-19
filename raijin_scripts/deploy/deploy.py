@@ -40,7 +40,7 @@ def generate_template_context(s3_object):
     """
 
     # name is of the format: opendatacube/datacube-core/datacube-1.5.1/3.6/datacube-1.5.1.tar.gz
-    # <ignored>/{module_name}/<ignored>-{module_version}/{python-version}/{file_name}
+    # <repo>/{module_name}/<ignored>-{module_version}/{python-version}/{file_name}
     name = (str(s3_object)).split('/')
     module_name = name[1]
     module_version = name[2].split('-')[-1]
@@ -130,7 +130,7 @@ def deploy_package(template_context, s3_object):
     os.chmod(install_root, 0o555)
 
     # Change the PYTHONPATH to destination folder path
-    os.environ['PYTHONPATH'] = python_path
+    os.environ['PYTHONPATH'] = str(python_path)
 
     # cleanup_tarball
     try:
