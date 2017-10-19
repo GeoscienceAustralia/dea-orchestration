@@ -19,7 +19,7 @@ def _get_environment_variables(filename, environment):
                 print('export {}="{}"'.format(k, v))
         else:
             print('Environment "{}" not in {}'.format(environment, filename))
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         print('File "{}" not found'.format(filename))
         sys.exit(1)
 
@@ -44,7 +44,9 @@ def _create_argparser():
     return parser
 
 
-if __name__ == '__main__':
+def run():
+    script_name = None
+    environment = None
 
     args = _create_argparser().parse_args()
     locals().update(vars(args))
@@ -61,3 +63,7 @@ if __name__ == '__main__':
     script_file = __import__('{}'.format(script_name))
 
     script_file.handler(None, None)
+
+
+if __name__ == '__main__':
+    run()
