@@ -5,7 +5,7 @@ set -e
 RESTORE_FILE="$1"
 RESTORE_PROCESSES=2
 
-SCRIPT_RESTORE_OPTIONS=( "-O" "--exit-on-error" "--no-tablespaces" "--no-acl" "--verbose" )
+SCRIPT_RESTORE_OPTIONS=( "-O" "--exit-on-error" "--no-tablespaces" "--no-acl" "--verbose" "--schema=agdc" )
 
 PRIMARY_TABLES_IDENTIFIER=" metadata_type"
 TERTIARY_TABLES_IDENTIFIER="\( dataset_location \| dataset_source \)"
