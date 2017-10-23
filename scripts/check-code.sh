@@ -4,7 +4,7 @@
 set -eu
 set -x
 {
-    LINT_ARGS=(lambda_modules/*/* $(find raijin_scripts/. lambda_functions/. -iname '*.py'))
+    LINT_ARGS=(lambda_modules/*/* $(find raijin_scripts/ lambda_functions/ -iname '*.py'))
 } &> /dev/null
 
 export PYTHONPATH=$PWD/lambda_modules/dea_es:$PWD/lambda_modules/dea_raijin${PYTHONPATH:+:${PYTHONPATH}}
@@ -14,10 +14,8 @@ python3 -m pep8 "${LINT_ARGS[@]}"
 
 python3 -m pylint -j 2 --reports no "${LINT_ARGS[@]}"
 
-# Shell linting
-shellcheck -e SC1071,SC1090,SC1091 scripts/*
-shellcheck -e SC1071,SC1090,SC1091 raijin_scripts/*/run
-shellcheck -e SC1071,SC1090,SC1091 raijin_scripts/*/*.sh
+# Finds shell scripts based on #!
+find . -type f -exec file {} \; | grep "Bourne-Again shell" | cut -d: -f1 | xargs -n 1 shellcheck -e SC1071,SC1090,SC1091
 
 # Run tests, taking coverage.
 # Users can specify extra folders as arguments.
