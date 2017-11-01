@@ -46,7 +46,4 @@ module load "${FC_MODULE}"
 APP_CONFIG=$(datacube-fc list | grep "${OUTPUT_PRODUCT}")
 
 
-
-datacube-fc submit --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
-
-# TODO: what's happening with the logging??
+datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
