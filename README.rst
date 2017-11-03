@@ -8,6 +8,9 @@
 Collection Aims
 ###############
 
+.. image:: https://travis-ci.org/GeoscienceAustralia/dea-orchestration.svg?branch=master
+    :target: https://travis-ci.org/GeoscienceAustralia/dea-orchestration
+
 This repo contains a collection of wrapper and helper libraries for communicating between
 AWS' lambda and NCI's raijin facilities; and a collection of scripts that can be triggered 
 within the raijin environment.
