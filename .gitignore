@@ -4,4 +4,6 @@ venv
 *.egg-info*
 .cache*
 .idea
-dist/
+dist
+.terraform
+terraform.tfstate*
