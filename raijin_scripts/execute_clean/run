@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -eu
+
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --min-trash-age-hours ) shift
+                                MIN_TRASH_AGE=$1
+                                ;;
+        --search-string )       shift
+                                SEARCH_STRING=$1
+                                ;;
+        --dea-module )          shift
+                                DEA_MODULE=$1
+                                ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
+        * )                     exit 1
+    esac
+    shift
+done
+
+
+echo Executing dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
+echo Loading module "${DEA_MODULE}"
+
+module use /g/data/v10/public/modules/modulefiles
+module use /g/data/v10/private/modules/modulefiles
+
+module load "${DEA_MODULE}"
+
+dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
