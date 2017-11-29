@@ -27,12 +27,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-echo Executing dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
 echo Loading module "${DEA_MODULE}"
+echo Submitting PBS job to run dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
 
 module use /g/data/v10/public/modules/modulefiles
 module use /g/data/v10/private/modules/modulefiles
 
 module load "${DEA_MODULE}"
 
-dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
+qsub -V -N dea-clean -q "${QUEUE}" -l wd,walltime=5:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -- dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
