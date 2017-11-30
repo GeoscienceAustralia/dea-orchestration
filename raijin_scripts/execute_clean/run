@@ -35,4 +35,7 @@ module use /g/data/v10/private/modules/modulefiles
 
 module load "${DEA_MODULE}"
 
-qsub -V -N dea-clean -q "${QUEUE}" -l wd,walltime=5:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -- dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
+mkdir -p /g/data/v10/work/clean_pbs_logs/
+cd /g/data/v10/work/clean_pbs_logs/
+
+qsub -V -N dea-clean -q "${QUEUE}" -W umask=33 -l wd,walltime=5:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -- dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
