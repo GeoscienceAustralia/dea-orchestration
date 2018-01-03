@@ -141,7 +141,7 @@ def deploy_package(template_context, s3_object):
     return 'success'
 
 
-def run(template_directory, template_context):
+def create_modulefile(template_directory, template_context):
     module_dest = template_context['module_dest']
     module_dest_file = template_context['module_dest_file']
 
@@ -150,11 +150,11 @@ def run(template_directory, template_context):
     if not os.path.isdir(module_dest):
         os.makedirs(module_dest)
     if os.path.exists(module_dest_file):
-        os.chmod(module_dest_file, 0o640)
+        os.chmod(module_dest_file, 0o644)
     template = env.get_template(SRC_NAME)
     with open(module_dest_file, 'w') as fd:
         fd.write(template.render(**template_context))
-    os.chmod(module_dest_file, 0o440)
+    os.chmod(module_dest_file, 0o444)
     return True
 
 
@@ -162,7 +162,7 @@ def main():
     s3_object = check_arg(sys.argv[1:])
     template_context = generate_template_context(s3_object)
     deploy_package(template_context, s3_object)
-    run(SCRIPT_DIR, template_context)
+    create_modulefile(SCRIPT_DIR, template_context)
 
 
 if __name__ == '__main__':
