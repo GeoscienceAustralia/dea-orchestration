@@ -65,14 +65,6 @@ class RaijinCommand(BaseCommand):
             self.raijin = raijin
             return self.command(*args, **kwargs)
 
-    def command(self):
-        """
-        Raises:
-            NotImplementedError: Method should be overwritten by inheriting class.
-        """
-
-        raise NotImplementedError('Command must override the command method')
-
 
 class OrchestratorException(Exception):
     """Exception running an Orchestration command, probably on raijin"""
