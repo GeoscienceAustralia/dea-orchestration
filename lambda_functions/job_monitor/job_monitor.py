@@ -1,15 +1,13 @@
-import os
 import re
 from datetime import datetime
 
 from elasticsearch import helpers
 
-from dea_raijin import BaseCommand
-from dea_raijin.config import NCI_PROJECTS, AWS_REGION
-from dea_raijin.utils import human2bytes, timestr_to_seconds
-from dea_raijin.auth import get_ssm_parameter, RaijinSession
-
 from dea_es import ES_CONNECTION as ES
+from dea_raijin import BaseCommand
+from dea_raijin.auth import RaijinSession
+from dea_raijin.config import NCI_PROJECTS
+from dea_raijin.utils import human2bytes, timestr_to_seconds
 
 GET_USER_CMD = 'getent group {}'
 GET_USERJOBS_CMD = 'qstat -wu {}'
@@ -22,7 +20,6 @@ class NoJobInfoException(Exception):
 
 
 class JobMonitorCommand(BaseCommand):
-
     COMMAND_NAME = 'JobMonitorCommand'
 
     def __init__(self):
@@ -33,7 +30,7 @@ class JobMonitorCommand(BaseCommand):
     def command(self, *args, **kwargs):
         users = self._find_users_in_groups(NCI_PROJECTS)
         jobs = self._find_user_jobs(users)
-        running_jobs = list(filter(lambda j: j['s'] == 'R', jobs))
+        running_jobs = [job for job in jobs if j['s'] == 'R']
         extra_info = self._find_detailed_job_info([j['job_id'] for j in running_jobs])
 
         for ei in extra_info:
