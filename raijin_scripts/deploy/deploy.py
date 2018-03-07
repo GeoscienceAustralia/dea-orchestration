@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-# coding: utf-8
+"""
+Deploy a new version of a python package from github, into a module on the NCI
 
+"""
 import argparse
 import json
 import os
