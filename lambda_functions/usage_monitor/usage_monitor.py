@@ -11,7 +11,7 @@ from dea_raijin.utils import human2bytes
 from dea_es import ES_CONNECTION as ES
 
 CODE_BUCKET = 'datacube-core-deployment'
-NCI_STORAGE = ['gdata1', 'gdata2', 'gdata3', 'short', 'massdata']
+NCI_STORAGE = ['gdata1', 'gdata1a', 'gdata1b', 'gdata2', 'gdata3', 'short', 'massdata']
 CLOUDWATCH_NAMESPACE = 'nci_metrics'
 CLOUDWATCH_MAX_SEND = 20
 
