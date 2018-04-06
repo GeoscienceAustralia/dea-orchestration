@@ -1,16 +1,3 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 service: ncimonitoring
 
 # You can pin your service to only deploy with a specific Serverless version
@@ -22,6 +9,7 @@ service: ncimonitoring
 
 plugins:
   - serverless-python-requirements
+  - serverless-pseudo-parameters
 
 custom:
   pythonRequirements:
@@ -38,6 +26,7 @@ provider:
   stackTags:
     repo: dea-orchestration
     author: damien.ayers@ga.gov.au
+    purpose: nci-monitoring
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
@@ -62,7 +51,7 @@ provider:
 
 functions:
   checkQuotas:
-    handler: ncimonitoring.hello
+    handler: handler.hello
     events:
       - schedule: rate(1 hour)
 #  jobMonitor:
