@@ -1,4 +1,3 @@
----
 dist: trusty
 # tests primarily focused on lambda component
 language: python
@@ -27,4 +26,14 @@ install:
   - ./scripts/install_script all
 
 script:
+  - npm install -g serverless
   - ./scripts/check-code.sh
+
+
+
+deploy:
+ - provider: script
+   script: scripts/aws-lambda-deploy.js hello-world production
+   skip_cleanup: true
+   on:
+     branch: master
