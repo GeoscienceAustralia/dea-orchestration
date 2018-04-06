@@ -1,0 +1,47 @@
+# serverless.yml
+service: orchestration
+
+provider:
+  name: aws
+  stage: prod
+  region: ap-southeast-2
+  deploymentBucket:
+    name: dea-lambda
+  stackTags: # Optional CF stack tags
+    Owner: tom.butler@ga.gov.au
+    Purpose: dea-orchestration
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "es:*"
+      Resource: "arn:aws:es:ap-southeast-2:538673716275:domain/digitalearthaustralia/*"
+      # you must specify the full ARN  of the AWS ES Domain
+
+
+
+functions:
+  es-cleanup-lambda:
+    handler: es-cleanup.lambda_handler
+    name: es-cleanup-lambda
+    description: ES old index removal
+    runtime: python2.7
+    memorySize: "128"
+    timeout: 300
+    package:
+      exclude:
+        - ./**
+      include:
+        - es-cleanup.py
+        - LICENSE.md
+        - AUTHORS.md
+    environment:
+      es_endpoint: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
+      index: dea-nci
+      delete_after: "100"
+      index_format: "%Y.%m.%d"
+    events:
+      # Invoke Lambda function every night at 01.00 AM
+      - schedule: cron(0 1 * * ? *)
+
+resources:
+  Description: "AWS Lambda: Elasticsearch Index Cleanup"      
