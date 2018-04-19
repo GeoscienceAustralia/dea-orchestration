@@ -1,4 +1,11 @@
 #!/bin/bash
+# Entry point for automated remote access via SSH
+#
+# This script is responsible for ensuring that only a restricted set of commands
+# are available.
+#
+# The available commands are the names of directories in the `raijin_scripts` dir.
+# Defers execution to the `run` executable in the named directory.
 
 # VARS
 PARENT_DIR="$(dirname "$0")"
