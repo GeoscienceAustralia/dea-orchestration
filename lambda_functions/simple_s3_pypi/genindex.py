@@ -1,0 +1,74 @@
+import logging
+import urllib
+from os import path
+
+import boto3
+
+s3 = boto3.resource('s3')
+
+
+def generate_listing(event, context):
+    new_objects = [(record['s3']['bucket']['name'], urllib.parse.unquote(record['s3']['object']['key'])) for record in
+                   event['Records']]
+
+    tasks = set()
+    for bucket, obj in new_objects:
+        if obj.endswith('index.html'):
+            logging.log("index.html: skipping")
+            return
+
+        currdir = path.dirname(obj)
+
+        parent_dir = path.normpath(currdir + "/..")
+
+        if currdir == ".":
+            logging.log("root directory: skipping")
+            return
+
+        tasks.append((bucket, obj))
+
+    for bucket, directory in tasks:
+        process_directory(bucket, directory)
+
+
+def process_directory(bucket, directory):
+    s3client = boto3.client('s3')
+    response = s3client.list_objects_v2(Bucket=bucket, Prefix=directory, Delimiter='/')
+
+    files = [content['Key'] for content in response.get('Contents', [])]
+    folders = [prefix['Prefix'] for prefix in response.get('CommonPrefixes', [])]
+
+    index_path = path.join(directory, 'index.html')
+    index_contents = generate_index_html(files)
+    bucket.put_object(Key=index_path, Body=index_contents, ContentType="text/html",
+                      ACL='public-read', CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
+
+
+def generate_index_html(objs):
+    basename_only = [path.basename(obj) for obj in objs]
+    no_index = [obj for obj in basename_only if obj != 'index.html']
+    links = "\n".join(f'    <a href="{obj}">{obj}</a><br>' for obj in no_index)
+    index_contents = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Package Index</title>
+</head>
+<body>
+    {links}
+</body>
+</html>
+"""
+    return index_contents
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("bucket")
+    parser.add_argument("directory")
+    args = parser.parse_args()
+
+    process_directory(args.bucket, args.directory)
