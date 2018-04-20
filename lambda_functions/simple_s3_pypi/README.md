@@ -19,3 +19,19 @@ deployment tools.
 
 We can follow [PEP 503 - Simple Repository API](https://www.python.org/dev/peps/pep-0503/)
 and maybe eventually include extra niceties like checksum hashes.
+
+## Installation Instructions
+
+1) Deploy using serverless
+
+```bash
+    sls deploy
+```
+
+2) Add a policy to the target bucket if public read access is required
+
+3) Add an Event to the bucket to call the lambda function
+
+
+*Need to switch to SNS with a fanout, since can't double up on
+Events on the same bucket*
