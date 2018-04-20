@@ -57,6 +57,9 @@ def prep(config_path):
     os.environ['LC_ALL'] = 'en_AU.utf8'
     os.environ['LANG'] = 'C.UTF-8'
 
+    # make sure no ~/.local stuff interferes with the install
+    os.environ['PYTHONNOUSERSITE'] = 'true'
+
 
 def date(date_format="%Y%m%d") -> str:
     return datetime.datetime.now().strftime(date_format)
@@ -69,8 +72,6 @@ def run(cmd: str):
 
 def install_conda_packages(env_file, variables):
     LOG.debug('Installing conda packages from %s', env_file)
-    # make sure no ~/.local stuff interferes with the install
-    os.environ['PYTHONNOUSERSITE'] = "1"
 
     env_name = variables['module_name']
     conda_path = variables['conda_path']
