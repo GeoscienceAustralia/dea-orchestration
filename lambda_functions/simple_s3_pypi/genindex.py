@@ -5,16 +5,18 @@ from os import path
 import boto3
 
 s3 = boto3.resource('s3')
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 
 def generate_listing(event, context):
     new_objects = [(record['s3']['bucket']['name'], urllib.parse.unquote(record['s3']['object']['key'])) for record in
                    event['Records']]
-
+    log.info("Changed/new objects: " + str(new_objects))
     tasks = set()
     for bucket, obj in new_objects:
         if obj.endswith('index.html'):
-            logging.log("index.html: skipping")
+            log.info("index.html: skipping")
             return
 
         currdir = path.dirname(obj)
@@ -22,26 +24,29 @@ def generate_listing(event, context):
         parent_dir = path.normpath(currdir + "/..")
 
         if currdir == ".":
-            logging.log("root directory: skipping")
+            log.info("root directory: skipping")
             return
 
-        tasks.append((bucket, obj))
+        tasks.add((bucket, currdir))
 
     for bucket, directory in tasks:
         process_directory(bucket, directory)
 
 
 def process_directory(bucket, directory):
+    log.info(f"Processing s3://{bucket}/{directory}")
     s3client = boto3.client('s3')
-    response = s3client.list_objects_v2(Bucket=bucket, Prefix=directory, Delimiter='/')
+    response = s3client.list_objects_v2(Bucket=bucket, Prefix=f"{directory}/", Delimiter='/')
 
     files = [content['Key'] for content in response.get('Contents', [])]
     folders = [prefix['Prefix'] for prefix in response.get('CommonPrefixes', [])]
 
     index_path = path.join(directory, 'index.html')
+    log.info(f"Found {len(files)} in {directory}. Updating '{index_path}'.")
+
     index_contents = generate_index_html(files)
-    bucket.put_object(Key=index_path, Body=index_contents, ContentType="text/html",
-                      ACL='public-read', CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
+    s3client.put_object(Bucket=bucket, Key=index_path, Body=index_contents, ContentType="text/html",
+                        CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
 
 
 def generate_index_html(objs):

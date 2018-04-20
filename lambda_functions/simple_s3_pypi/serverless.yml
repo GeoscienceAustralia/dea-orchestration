@@ -1,10 +1,10 @@
 service: s3-directory-list
 
 plugins:
-  - serverless-external-s3-event
+  - serverless-plugin-existing-s3
 
 custom:
-  bucketName: ${file(custom.yml):bucketName}
+  bucketName: datacube-core-deployment
 
 provider:
   name: aws
@@ -13,7 +13,6 @@ provider:
 
   stage: dev
   region: ap-southeast-2
-  profile: serverless
 
 
   iamRoleStatements:
@@ -39,14 +38,10 @@ provider:
        - "s3:GetObject"
        - "s3:PutObject"
      Resource: "arn:aws:s3:::${self:custom.bucketName}/*"
-
    - Effect: "Allow"
      Action:
       - "s3:PutBucketNotification"
-     Resource:
-      Fn::Join:
-        - ""
-        - - "arn:aws:s3:::${self:custom.bucketName}"
+     Resource: "arn:aws:s3:::${self:custom.bucketName}"
 
 functions:
   generateListing:
