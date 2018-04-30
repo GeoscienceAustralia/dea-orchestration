@@ -33,5 +33,8 @@ and maybe eventually include extra niceties like checksum hashes.
 3) Add an Event to the bucket to call the lambda function
 
 
-*Need to switch to SNS with a fanout, since can't double up on
-Events on the same bucket*
+## Problems
+
+ * _Need to
+ * _Need to switch to SNS with a fanout, since can't double up on
+Events on the same bucket_
