@@ -15,7 +15,7 @@ pycodestyle "${LINT_ARGS[@]}"
 #pylint -j 2 --reports no "${LINT_ARGS[@]}"
 
 # Finds shell scripts based on #!
-find . -type f -exec file {} \; | grep "Bourne-Again shell" | cut -d: -f1 | xargs -n 1 shellcheck -e SC1071,SC1090,SC1091
+find scripts raijin_scripts -type f -exec file {} \; | grep "Bourne-Again shell" | cut -d: -f1 | xargs -n 1 shellcheck -e SC1071,SC1090,SC1091
 
 # Run tests, taking coverage.
 # Users can specify extra folders as arguments.
