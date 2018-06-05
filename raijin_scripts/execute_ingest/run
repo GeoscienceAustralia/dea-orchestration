@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -eu
+
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        --product )             shift
+                                PRODUCT=$1
+                                ;;
+        --dea-module )          shift
+                                DEA_MODULE=$1
+                                ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
+        * )                     exit 1
+    esac
+    shift
+done
+
+
+echo Executing ingest for "${YEAR}" "${PRODUCT}"
+echo Loading module "${DEA_MODULE}"
+
+module use /g/data/v10/public/modules/modulefiles
+
+module load "${DEA_MODULE}"
+
+
+SUBMISSION_LOG=/g/data/v10/work/ingest/ingest-submission-${PRODUCT}-`date '+%F-%T'`.log
+JOB_NAME=${YEAR}_${PRODUCT}
+
+echo Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}
+
+# Launch the submission in the background, outputting results to a log file
+nohup $SHELL > $SUBMISSION_LOG 2>&1 <<EOF &
+yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name ${JOB_NAME} ${PRODUCT} "${YEAR}"
+EOF
