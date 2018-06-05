@@ -35,12 +35,12 @@ module use /g/data/v10/public/modules/modulefiles
 module load "${DEA_MODULE}"
 
 
-SUBMISSION_LOG=/g/data/v10/work/ingest/ingest-submission-${PRODUCT}-`date '+%F-%T'`.log
-JOB_NAME=${YEAR}_${PRODUCT}
+SUBMISSION_LOG=/g/data/v10/work/ingest/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
+JOB_NAME="${YEAR}_${PRODUCT}"
 
-echo Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 
 # Launch the submission in the background, outputting results to a log file
-nohup $SHELL > $SUBMISSION_LOG 2>&1 <<EOF &
-yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name ${JOB_NAME} ${PRODUCT} "${YEAR}"
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
