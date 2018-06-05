@@ -4,7 +4,7 @@
 set -eu
 set -x
 {
-    LINT_ARGS=(lambda_modules/*/* $(find raijin_scripts/ lambda_functions/ -iname '*.py'))
+    LINT_ARGS=(lambda_modules/*/* $(find raijin_scripts lambda_functions ! -path '*node_modules*' -name '*.py'))
 } &> /dev/null
 
 export PYTHONPATH=$PWD/lambda_modules/dea_es:$PWD/lambda_modules/dea_raijin${PYTHONPATH:+:${PYTHONPATH}}
@@ -12,7 +12,7 @@ export PYTHONPATH=$PWD/lambda_modules/dea_es:$PWD/lambda_modules/dea_raijin${PYT
 # Python linting
 pycodestyle "${LINT_ARGS[@]}"
 
-pylint -j 2 --reports no "${LINT_ARGS[@]}"
+#pylint -j 2 --reports no "${LINT_ARGS[@]}"
 
 # Finds shell scripts based on #!
 find . -type f -exec file {} \; | grep "Bourne-Again shell" | cut -d: -f1 | xargs -n 1 shellcheck -e SC1071,SC1090,SC1091
