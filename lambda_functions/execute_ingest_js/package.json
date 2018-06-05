@@ -1,0 +1,16 @@
+{
+  "name": "execute_ingest_js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "dependencies": {
+    "simple-ssh": "^1.0.0",
+    "serverless-pseudo-parameters": "^1.6.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
