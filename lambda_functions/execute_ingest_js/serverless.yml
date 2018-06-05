@@ -1,0 +1,47 @@
+# Welcome to Serverless!
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: execute-ingest # NOTE: update this with your service name
+
+plugins:
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  environment:
+    DEA_MODULE: dea/20180515
+    PROJECT: v10
+    QUEUE: normal
+  region: ap-southeast-2
+  stackTags:
+    repo: dea-orchestration
+    author: damien.ayers@ga.gov.au
+    purpose: nci-automation
+# you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'ssm:GetParameters'
+        - 'ssm:DescribeParameters'
+      Resource:
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/pipeline.*"
+    - Effect: 'Allow'
+      Action: 'kms:Decrypt'
+      Resource:
+        - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/efba9b4c-8e64-430c-86c9-f00eaf69e582"
+
+functions:
+  execute_ingest:
+    handler: handler.execute_ingest
+    events:
+      - schedule:
+          rate: cron(0 14 * * ? *) # Run daily, at midnight Canberra time
+          input:
+            year: 2018
+            product: ls8_nbar_albers
