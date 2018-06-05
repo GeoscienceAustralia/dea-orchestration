@@ -23,7 +23,7 @@ def handler(event, context):
                                                         f' --queue {queue}'
                                                         f' --project {project}')
         if exit_code != 0:
-            raise OrchestratorException(f"Error executing fractional cover for {year} {app_config_file}",
+            raise OrchestratorException(f"Error executing stacker for {year} {app_config_file}",
                                         stdout=stdout, stderr=stderr, exit_code=exit_code)
 
     return dict(stdout=stdout, stderr=stderr, exit_code=exit_code)
