@@ -4,8 +4,9 @@
   "description": "",
   "main": "handler.js",
   "dependencies": {
-    "simple-ssh": "^1.0.0",
-    "serverless-pseudo-parameters": "^1.6.0"
+    "lodash": "^4.17.10",
+    "serverless-pseudo-parameters": "^1.6.0",
+    "simple-ssh": "^1.0.0"
   },
   "devDependencies": {},
   "scripts": {
