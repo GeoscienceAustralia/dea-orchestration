@@ -7,6 +7,8 @@ _DEFAULT_DEA_ES = 'search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-so
 
 HOST = os.environ.get('DEA_AWS_ES_HOST', _DEFAULT_DEA_ES)
 
+AWS_REGION = 'ap-southeast-2'
+
 _AWS_ES_ACCESS_KEY = os.environ.get('DEA_AWS_ES_ACCESS_KEY')
 _AWS_PRIVATE_KEY = None
 
