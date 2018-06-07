@@ -33,7 +33,7 @@ class JobMonitorCommand(BaseCommand):
     def command(self, *args, **kwargs):
         users = self._find_users_in_groups(NCI_PROJECTS)
         jobs = self._find_user_jobs(users)
-        running_jobs = filter(lambda j: j['s'] == 'R', jobs)
+        running_jobs = list(filter(lambda j: j['s'] == 'R', jobs))
         extra_info = self._find_detailed_job_info([j['job_id'] for j in running_jobs])
 
         for ei in extra_info:

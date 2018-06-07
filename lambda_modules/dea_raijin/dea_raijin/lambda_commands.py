@@ -15,7 +15,7 @@ class BaseCommand(object):
 
     COMMAND_NAME = 'UNDEFINED'
 
-    def __init__(self, command_instance=None, *args, **kwargs):
+    def __init__(self, *args, command_instance=None, **kwargs):
         self.logger = logging.getLogger(".".join([config.LOGGING_PREFIX, command_instance.COMMAND_NAME]))
 
     def command(self, *args, **kwargs):

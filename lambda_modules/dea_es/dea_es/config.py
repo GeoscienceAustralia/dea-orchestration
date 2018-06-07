@@ -1,7 +1,7 @@
 import os
 
-from dea_raijin.config import LOGGING_PREFIX, AWS_REGION, DEA_ENVIRONMENT
 from dea_raijin.auth import get_ssm_parameter
+from dea_raijin.config import DEA_ENVIRONMENT
 
 _DEFAULT_DEA_ES = 'search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com'
 
@@ -16,6 +16,7 @@ if _AWS_ES_ACCESS_KEY:
 elif not _AWS_ES_ACCESS_KEY and DEA_ENVIRONMENT == 'dev':
     # Allow users to test with their local aws credentials
     import logging
+
     LOGGER = logging.getLogger(__name__)
     LOGGER.warning('WARNING: Using local aws access credentials, please set environment variables on lambda function')
 

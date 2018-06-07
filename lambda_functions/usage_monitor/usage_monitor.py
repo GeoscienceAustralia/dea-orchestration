@@ -140,6 +140,8 @@ def human2decimal(s):
         return int(val * 1000)
     elif unit == 'M':
         return int(val * 1000000)
+    else:
+        raise ValueError('Error parsing "%s" into integer.' % s)
 
 
 def update_template(es):

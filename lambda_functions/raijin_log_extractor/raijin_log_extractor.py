@@ -104,7 +104,7 @@ class S3Handler(object):
     SUBMISSION_INFO_FN = 'subbmission-info.yaml'
 
     def __init__(self, event_info):
-        self.s3_objects = map(self._extract_event_info, event_info['Records'])
+        self.s3_objects = list(map(self._extract_event_info, event_info['Records']))
         self.curr = 0
 
     @staticmethod
