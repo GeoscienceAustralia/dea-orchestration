@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script only works 
+# Script only works in linux, for installing the correct binary python deps
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 LAMBDA_TITLE="$1"
@@ -18,19 +18,19 @@ if [ -z "$OUTPUT_FILE" ]; then
     exit 1
 fi
 
-pushd "$(pwd -P)"
+pushd "$(pwd -P)" || exit 1
 
 cd "$SCRIPT_DIR/.." || exit 1
 
 if [[ ! -f "./lambda_functions/$LAMBDA_TITLE/requirements.txt" ]]; then
     echo "Please create a requirements.txt for your function"
-    popd
+    popd || exit 1
     exit 1
 fi
 
 if [[ ! -f "./lambda_functions/$LAMBDA_TITLE/$LAMBDA_TITLE.py" ]]; then
     echo "'$LAMBDA_TITLE.py' not found in lambda_functions/$LAMBDA_TITLE directory"
-    popd
+    popd || exit 1
     exit 1
 fi
 
@@ -44,21 +44,21 @@ pip install -r "./lambda_functions/$LAMBDA_TITLE/requirements.txt"
 deactivate
 
 # Get handler
-pushd "$(pwd -P)"
+pushd "$(pwd -P)" || exit 1
 cd "./lambda_functions/$LAMBDA_TITLE" || exit 1
 zip "$TEMP_FILE" "$LAMBDA_TITLE.py"
-popd
+popd || exit 1
 
-pushd "$(pwd -P)"
+pushd "$(pwd -P)" || exit 1
 
 # zip common dependencies
 cd "$TEMP_ENV/venv/lib/python3.6/site-packages" || exit 1
 zip -rg9 "$TEMP_FILE" .
 
 # remove the temporary install environment
-popd
+popd || exit 1
 rm -rf "$TEMP_ENV"
 
-popd
+popd || exit 1
 mv "$TEMP_FILE.zip" .
 exit 0
