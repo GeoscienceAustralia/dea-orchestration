@@ -16,12 +16,13 @@ SCRIPT_NOT_FOUND_EXIT_CODE=127
 if [ -z "${SSH_ORIGINAL_COMMAND}" ]; then
     parts=( "$@" )
 else
-    parts=(${SSH_ORIGINAL_COMMAND})
+#    parts=(${SSH_ORIGINAL_COMMAND})
+    IFS=" " read -r -a parts <<< "$SSH_ORIGINAL_COMMAND"
 fi
 
 cd "$PARENT_DIR" || exit 1  # Set the current working dir to this dir
 
-# Looks for a folder the same as the first arg; runs the run file in that folder
+# Looks for a folder the same as the first arg; runs the `run` file in that folder
 if [ -d "$SCRIPT_DIR/${parts[0]}" ]; then
      cd "$SCRIPT_DIR/${parts[0]}" || exit 1
      ./run "${parts[@]:1}" # passes along all args
