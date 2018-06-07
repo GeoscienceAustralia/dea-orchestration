@@ -4,19 +4,19 @@ from os import path
 
 import boto3
 
-s3 = boto3.resource('s3')
-log = logging.getLogger()
-log.setLevel(logging.INFO)
+S3 = boto3.resource('s3')
+LOG = logging.getLogger()
+LOG.setLevel(logging.INFO)
 
 
 def generate_listing(event, context):
     new_objects = [(record['s3']['bucket']['name'], urllib.parse.unquote(record['s3']['object']['key'])) for record in
                    event['Records']]
-    log.info("Changed/new objects: " + str(new_objects))
+    LOG.info("Changed/new objects: %s", str(new_objects))
     tasks = set()
     for bucket, obj in new_objects:
         if obj.endswith('index.html'):
-            log.info("index.html: skipping")
+            LOG.info("index.html: skipping")
             return
 
         currdir = path.dirname(obj)
@@ -24,7 +24,7 @@ def generate_listing(event, context):
         parent_dir = path.normpath(currdir + "/..")
 
         if currdir == ".":
-            log.info("root directory: skipping")
+            LOG.info("root directory: skipping")
             return
 
         tasks.add((bucket, currdir))
@@ -34,7 +34,7 @@ def generate_listing(event, context):
 
 
 def process_directory(bucket, directory):
-    log.info(f"Processing s3://{bucket}/{directory}")
+    LOG.info(f"Processing s3://{bucket}/{directory}")
     s3client = boto3.client('s3')
     response = s3client.list_objects_v2(Bucket=bucket, Prefix=f"{directory}/", Delimiter='/')
 
@@ -42,7 +42,7 @@ def process_directory(bucket, directory):
     folders = [prefix['Prefix'] for prefix in response.get('CommonPrefixes', [])]
 
     index_path = path.join(directory, 'index.html')
-    log.info(f"Found {len(files)} in {directory}. Updating '{index_path}'.")
+    LOG.info(f"Found {len(files)} in {directory}. Updating '{index_path}'.")
 
     index_contents = generate_index_html(files)
     s3client.put_object(Bucket=bucket, Key=index_path, Body=index_contents, ContentType="text/html",
@@ -68,7 +68,7 @@ def generate_index_html(objs):
     return index_contents
 
 
-if __name__ == '__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -77,3 +77,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     process_directory(args.bucket, args.directory)
+
+
+if __name__ == '__main__':
+    main()
