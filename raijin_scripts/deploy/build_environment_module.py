@@ -38,6 +38,7 @@ MODULE_DIR = '/g/data/v10/public/modules'
 
 LOG = logging.getLogger('environment_module_builder')
 
+
 def pre_check(config):
     LOG.debug('Performing pre-check before installing module')
     if "PYTHONPATH" in os.environ:
@@ -144,7 +145,7 @@ def fix_module_permissions(module_path):
 def install_pip_packages(pip_conf, variables):
     fill_templates_from_variables(pip_conf, variables)
     pip = pip_conf['pip_cmd']
-    prefix = pip_conf.get('prefix',pip_conf.get('dest'))  # 'dest' for backwards compatibility
+    prefix = pip_conf.get('prefix', pip_conf.get('dest'))  # 'dest' for backwards compatibility
     target = pip_conf.get('target')
     requirements = pip_conf['requirements']
     if prefix and target is None:
@@ -162,7 +163,10 @@ def install_pip_packages(pip_conf, variables):
 
 def find_default_version(module_name):
     cmd = f"module --terse avail {module_name}"
-    output = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='ascii')
+    output = subprocess.run(cmd, shell=True, check=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            encoding='ascii')
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
     if default_version:
@@ -172,10 +176,12 @@ def find_default_version(module_name):
     else:
         raise Exception('No version of module %s is available.' % module_name)
 
+
 def run_final_commands_on_module(commands, module_name):
     for command in commands:
         command = f'module load {module_name}; {command}'
         run(command)
+
 
 def include_stable_module_dep_versions(config):
     stable_module_deps = config.get('stable_module_deps', [])
@@ -183,6 +189,7 @@ def include_stable_module_dep_versions(config):
         default_version = find_default_version(dep)
         dep = dep.replace('-', '_')
         config['variables'][f'fixed_{dep}'] = default_version
+
 
 def main(config_path):
     logging.basicConfig(level=logging.DEBUG)
@@ -197,9 +204,6 @@ def main(config_path):
     pre_check(config)
     prep(config_path)
 
-    if 'install_conda' in config:
-        install_conda(config['install_conda'], variables)
-
     if 'install_conda_packages' in config:
         install_conda_packages(config['install_conda_packages'], variables)
 
@@ -213,9 +217,8 @@ def main(config_path):
         module_name_and_version = variables['module_name'] + '/' + variables['module_version']
         run_final_commands_on_module(config['finalise_commands'], module_name_and_version)
 
-
-
     fix_module_permissions(variables['module_path'])
+
 
 if __name__ == '__main__':
     main(Path(sys.argv[1]))
