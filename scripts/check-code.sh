@@ -29,6 +29,7 @@ set +x
 if command -v yamllint;
 then
     set -x
-    yamllint "$(find . \( -iname '*.yaml' -o -iname '*.yml' \) )"
+    readarray -t YAML_FILES < <(find . \( -iname '*.yaml' -o -iname '*.yml' \) ! -path '*node_modules*' )
+    yamllint "${YAML_FILES[@]}"
     set +x
 fi

@@ -19,7 +19,7 @@ provider:
    - Effect: "Allow"
      Action:
        - "s3:ListBucket"
-     Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+     Resource: {"Fn::Join": ["", ["arn:aws:s3:::", {"Ref": "ServerlessDeploymentBucket"}]]}
    - Effect: "Allow"
      Action:
        - "s3:PutObject"
@@ -27,7 +27,7 @@ provider:
        Fn::Join:
          - ""
          - - "arn:aws:s3:::"
-           - "Ref" : "ServerlessDeploymentBucket"
+           - "Ref": "ServerlessDeploymentBucket"
            - "/*"
    - Effect: "Allow"
      Action:
@@ -52,8 +52,3 @@ functions:
           events:
             - s3:ObjectCreated:*
             - s3:ObjectRemoved:*
-      # - s3:
-      #     bucket: ${self:custom.bucketName}
-      #     events:
-      #       - s3:ObjectCreated:*
-      #       - s3:ObjectRemoved:*

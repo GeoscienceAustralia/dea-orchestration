@@ -5,7 +5,7 @@
 #
 # Happy Coding!
 
-service: execute-ingest # NOTE: update this with your service name
+service: execute-ingest  # NOTE: update this with your service name
 
 plugins:
   - serverless-pseudo-parameters
@@ -22,7 +22,7 @@ provider:
     repo: dea-orchestration
     author: damien.ayers@ga.gov.au
     purpose: nci-automation
-# you can add statements to the Lambda function's IAM Role here
+  # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
@@ -41,7 +41,7 @@ functions:
     handler: handler.execute_ingest
     events:
       - schedule:
-          rate: cron(0 14 * * ? *) # Run daily, at midnight Canberra time
+          rate: cron(0 14 * * ? *)  # Run daily, at midnight Canberra time
           input:
             year: 2018
             product: ls8_nbar_albers
