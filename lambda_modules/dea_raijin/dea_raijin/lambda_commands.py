@@ -18,14 +18,6 @@ class BaseCommand(object):
     def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger(".".join([config.LOGGING_PREFIX, self.COMMAND_NAME]))
 
-    def command(self, *args, **kwargs):
-        """
-        Raises:
-            NotImplementedError: Method should be overwritten by inheriting class.
-        """
-
-        raise NotImplementedError('Command must override the command method')
-
     def run(self, *args, **kwargs):
         """Runs self.command
         Parameters:
@@ -51,6 +43,14 @@ class RaijinCommand(BaseCommand):
     def __init__(self, command_instance, *args, **kwargs):
         super().__init__(command_instance, args, kwargs)
         self.raijin = None
+
+    def command(self, *args, **kwargs):
+        """
+        Raises:
+            NotImplementedError: Method should be overwritten by inheriting class.
+        """
+
+        raise NotImplementedError('Command must override the command method')
 
     def run(self, *args, **kwargs):
         """Executes subclassed commands
