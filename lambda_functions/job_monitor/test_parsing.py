@@ -1,7 +1,5 @@
 
-
-
-nqstat_output = """
+NQSTAT_OUTPUT = """
     Job     User Project      %CPU  WallTime  Time Lim       vmem       mem    memlim   cpus
 
 express open&run =============================
@@ -23,7 +21,7 @@ copyq open =============================
 
 
 def test_parse_nqstat():
-    lines = nqstat_output.split('\n')[2:]
+    lines = NQSTAT_OUTPUT.split('\n')[2:]
     current_queue = None
     jobs = []
     for line in lines:

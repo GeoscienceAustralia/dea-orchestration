@@ -21,7 +21,7 @@ else:
     from urllib import quote
 
 
-class ES_Exception(Exception):
+class ESException(Exception):
     """Exception capturing status_code from Client Request"""
     status_code = 0
     payload = ""
@@ -34,7 +34,7 @@ class ES_Exception(Exception):
                                status_code, payload))
 
 
-class ES_Cleanup(object):
+class ESCleanup(object):
 
     name = "lambda_es_cleanup"
 
@@ -75,7 +75,7 @@ class ES_Cleanup(object):
         """
         return self.event.get(key_param, os.environ.get(key_param, default_param))
 
-    def send_to_es(self, path, method="GET", payload={}):
+    def send_to_es(self, path, method="GET", payload=None):
         """Low-level POST data to Amazon Elasticsearch Service generating a Sigv4 signed request
 
         Args:
@@ -90,6 +90,9 @@ class ES_Cleanup(object):
             #: Error during ES communication
             ES_Exception: Description
         """
+        if payload is None:
+            payload = {}
+
         if not path.startswith("/"):
             path = "/" + path
 
@@ -121,9 +124,9 @@ class ES_Cleanup(object):
                     # print("%s %s" % (res.status_code, res.content))
                     return json.loads(res.content)
                 else:
-                    raise ES_Exception(res.status_code, res._content)
+                    raise ESException(res.status_code, res.content)
 
-            except ES_Exception as e:
+            except ESException as e:
                 if (e.status_code >= 500) and (e.status_code <= 599):
                     retries += 1  # Candidate for retry
                 else:
@@ -173,7 +176,7 @@ def lambda_handler(event, context):
     Returns:
         None
     """
-    es = ES_Cleanup(event, context)
+    es = ESCleanup(event, context)
     # Index cutoff definition, remove older than this date
     earliest_to_keep = datetime.date.today() - datetime.timedelta(
         days=int(es.cfg["delete_after"]))
@@ -193,7 +196,7 @@ def lambda_handler(event, context):
                 es.delete_index(index["index"])
 
 
-if __name__ == '__main__':
+def main():
     event = {
         'account': '123456789012',
         'region': 'eu-west-1',
@@ -203,6 +206,10 @@ if __name__ == '__main__':
         'time': '1970-01-01T00:00:00Z',
         'id': 'cdc73f9d-aea9-11e3-9d5a-835b769c0d9c',
         'resources':
-        ['arn:aws:events:us-east-1:123456789012:rule/my-schedule']
+            ['arn:aws:events:us-east-1:123456789012:rule/my-schedule']
     }
     lambda_handler(event, "")
+
+
+if __name__ == '__main__':
+    main()
