@@ -7,7 +7,7 @@ provider:
   region: ap-southeast-2
   deploymentBucket:
     name: dea-lambda
-  stackTags: # Optional CF stack tags
+  stackTags:  # Optional CF stack tags
     Owner: tom.butler@ga.gov.au
     Purpose: dea-orchestration
   iamRoleStatements:
@@ -16,7 +16,6 @@ provider:
         - "es:*"
       Resource: "arn:aws:es:ap-southeast-2:538673716275:domain/digitalearthaustralia/*"
       # you must specify the full ARN  of the AWS ES Domain
-
 
 
 functions:
@@ -44,4 +43,4 @@ functions:
       - schedule: cron(0 1 * * ? *)
 
 resources:
-  Description: "AWS Lambda: Elasticsearch Index Cleanup"      
+  Description: "AWS Lambda: Elasticsearch Index Cleanup"
