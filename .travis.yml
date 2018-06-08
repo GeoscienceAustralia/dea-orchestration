@@ -30,7 +30,6 @@ script:
   - ./scripts/check-code.sh
 
 
-
 deploy:
  - provider: script
    script: scripts/aws-lambda-deploy.js hello-world production
