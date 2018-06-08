@@ -1,23 +1,35 @@
 'use strict';
 const SSH = require('simple-ssh');
-
+const _ = require('lodash');
 const AWS = require("aws-sdk");
 AWS.config.update({region: 'ap-southeast-2'});
 
 const ssm = new AWS.SSM();
 
-let hostkey = 'orchestrator.raijin.users.default.host';
-let userkey = 'orchestrator.raijin.users.default.user';
-let pkey = 'orchestrator.raijin.users.default.pkey';
+const hostkey = process.env.hostkey;
+const userkey = process.env.userkey;
+const pkey = process.env.pkey;
+const dea_module = process.env.DEA_MODULE;
+const project = process.env.PROJECT;
+const queue = process.env.QUEUE;
 
+let req = {
+    Names: [hostkey, userkey, pkey],
+    WithDecryption: true
+};
+let keys = ssm.getParameters(req).promise();
+
+function create_execution_string(event) {
+    let args = _(event.args)
+        .transform((r, v, k) => r['--' + k.replace('_', '-')] = `'${v}'`)
+        .toPairs().flatten().join(' ');
+    return event.command + ' ' + args;
+}
 // See https://hackernoon.com/you-should-use-ssm-parameter-store-over-lambda-env-variables-5197fc6ea45b
-// For a more advanced way of loading data from SSM using KSM
+// For a more rigorous way of loading data from SSM using KSM
 // Or look at https://github.com/n1ru4l/ssm-parameter-env
 
 module.exports.execute_ingest = (event, context, callback) => {
-    let dea_module = process.env.DEA_MODULE;
-    let project = process.env.PROJECT;
-    let queue = process.env.QUEUE;
     let product = event['product'];
     let year = event['year'];
 
@@ -28,12 +40,7 @@ module.exports.execute_ingest = (event, context, callback) => {
         return callback('Product not specified');
     }
 
-    let req = {
-        Names: [hostkey, userkey, pkey],
-        WithDecryption: true
-    };
-    ssm.getParameters(req, function(err, data) {
-
+    keys.then((data) => {
         let params = {};
         for (let p of data.Parameters) {
             params[p.Name] = p.Value;
@@ -57,7 +64,6 @@ module.exports.execute_ingest = (event, context, callback) => {
                 callback(`SSH Failed ${stderr}`);
             }
         }).start();
-
     });
 
 };

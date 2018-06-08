@@ -17,6 +17,9 @@ provider:
     DEA_MODULE: dea/20180515
     PROJECT: v10
     QUEUE: normal
+    hostkey: 'orchestrator.raijin.users.default.host'
+    userkey: 'orchestrator.raijin.users.default.user'
+    pkey: 'orchestrator.raijin.users.default.pkey'
   region: ap-southeast-2
   stackTags:
     repo: dea-orchestration
@@ -45,3 +48,15 @@ functions:
           input:
             year: 2018
             product: ls8_nbar_albers
+  execute_clean:
+    handler: handler.execute
+    events:
+      - schedule:
+          rate: cron(0 14 * * ? *)  # Run daily, at midnight Canberra time
+          input:
+            year: 2018
+            product: ls8_nbar_albers
+  git_pull_prod:
+    handler: handler.execute
+    environment:
+      pkey: 'orchestrator.raijin.users.default.pkey'
