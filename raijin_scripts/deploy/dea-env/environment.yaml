@@ -38,6 +38,7 @@ dependencies:
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
 - jupyterlab
+- keras
 - line_profiler
 - luigi
 - matplotlib
@@ -64,9 +65,12 @@ dependencies:
 - pytest-cov
 - pyyaml
 - python = 3.6
+- qgis >= 3
 - rasterio >= 1.0a12  # required for zip reading
+- rasterstats
 - redis
 - redis-py
+- rios
 - rsgislib
 - rtree
 - scikit-image
