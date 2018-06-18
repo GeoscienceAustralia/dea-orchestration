@@ -41,11 +41,15 @@ provider:
 
 functions:
   execute_ingest:
-    handler: handler.execute_ingest
+    handler: handler.execute_ssh_command
     events:
       - schedule:
           rate: cron(0 14 * * ? *)  # Run daily, at midnight Canberra time
           input:
+            command: execute_ingest
+            dea-module: ${env:DEA_MODULE}
+            project: ${env:PROJECT}
+            queue: ${env:QUEUE}
             year: 2018
             product: ls8_nbar_albers
   execute_clean:
