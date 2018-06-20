@@ -1,0 +1,20 @@
+{
+  "name": "execute-ingest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "dependencies": {
+    "lodash": "^4.17.10",
+    "serverless-pseudo-parameters": "^1.6.0",
+    "simple-ssh": "^1.0.0"
+  },
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^1.6.0",
+    "simple-ssh": "^1.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
