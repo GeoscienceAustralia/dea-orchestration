@@ -58,11 +58,21 @@ provider:
         - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/eb628cf2-33db-4909-8581-d9c0626ac8ec"
 
 functions:
+  execute_sync:
+    handler: handler.execute_sync
+    events:
+      - schedule:
+          rate: cron(05 02 * * ? *) # Run daily, at 02:05:00 am UTC time
+          input:
+            command: execute_sync
+            dea-module: ${self:provider.environment.DEA_MODULE}
+            project: ${self:provider.environment.PROJECT}
+            queue: ${self:provider.environment.QUEUE}
   execute_ingest:
     handler: handler.execute_ingest
     events:
       - schedule:
-          rate: cron(0 14 * * ? *) # Run daily, at midnight Canberra time
+          rate: cron(35 02 * * ? *) # Run daily, at 02:35:00 am UTC time
           input:
             command: execute_ingest
             dea-module: ${self:provider.environment.DEA_MODULE}
@@ -70,15 +80,3 @@ functions:
             queue: ${self:provider.environment.QUEUE}
             year: 2018
             product: ls8_nbar_albers
-  execute_clean:
-    handler: handler.execute
-    events:
-      - schedule:
-          rate: cron(0 14 * * ? *)  # Run daily, at midnight Canberra time
-          input:
-            year: 2018
-            product: ls8_nbar_albers
-  git_pull_prod:
-    handler: handler.execute
-    environment:
-      pkey: 'orchestrator.raijin.users.default.pkey'
