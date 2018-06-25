@@ -7,7 +7,7 @@
 #
 # Happy Coding!
 
-service: execute-ingest
+service: execute-sync
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -32,12 +32,11 @@ provider:
   runtime: nodejs6.10
   environment:
     DEA_MODULE: "dea/20180515"
-    PROJECT: "v10"
+    PROJECT: "u46"
     QUEUE: "normal"
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    pphrase: 'orchestrator.raijin.users.default.pphrase'
   region: ap-southeast-2
   stackTags:
     repo: dea-orchestration
@@ -62,21 +61,8 @@ functions:
     handler: handler.execute_sync
     events:
       - schedule:
-          rate: cron(05 02 * * ? *) # Run daily, at 02:05:00 am UTC time
+          rate: cron(18 00 * * ? *) # Run daily, at 00:15:00 pm UTC time
           input:
-            command: execute_sync
             dea-module: ${self:provider.environment.DEA_MODULE}
             project: ${self:provider.environment.PROJECT}
             queue: ${self:provider.environment.QUEUE}
-  execute_ingest:
-    handler: handler.execute_ingest
-    events:
-      - schedule:
-          rate: cron(35 02 * * ? *) # Run daily, at 02:35:00 am UTC time
-          input:
-            command: execute_ingest
-            dea-module: ${self:provider.environment.DEA_MODULE}
-            project: ${self:provider.environment.PROJECT}
-            queue: ${self:provider.environment.QUEUE}
-            year: 2018
-            product: ls8_nbar_albers
