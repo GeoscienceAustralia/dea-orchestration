@@ -1,0 +1,23 @@
+{
+  "name": "execute-sync",
+  "version": "1.0.0",
+  "description": "Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you need to setup the `node_modules` by running:",
+  "main": "handler.js",
+  "dependencies": {
+    "commander": "^2.15.1",
+    "lodash": "^4.17.10",
+    "node-sshclient": "^0.2.0",
+    "simple-ssh": "^1.0.0"
+  },
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^1.6.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "bin": {
+    "execute_sync": "./handler.js"
+  }
+}
