@@ -1,7 +1,7 @@
 {
-  "name": "execute-ingest",
+  "name": "execute-stacker",
   "version": "1.0.0",
-  "description": "",
+  "description": "Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you need to setup the `node_modules` by running: npm install",
   "main": "handler.js",
   "dependencies": {
     "lodash": "^4.17.10",
@@ -14,5 +14,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bin": {
+    "execute_stacker": "./handler.js"
+  }
 }

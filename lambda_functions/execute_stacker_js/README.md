@@ -24,6 +24,17 @@ Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you nee
     1) npm install serverless-pseudo-parameters --save-dev
     2) npm install simple-ssh --save-dev
     3) serverless --version
+    4) Ensure that ssh private and public keys are generated on the Raijin system.
+    5) Private key is copied to aws ssm parameter using the following aws command line:
+           aws ssm put-parameter --name "orchestrator.raijin.users.default.pkey" --type "SecureString" --value "-----FAKE SSH KEY-----
+            MIIJJgIBAAKCAgEA3lkvu08KVjA7hWyFnKo+0Eb/S1SCZxIgwlfDAjlJexdQdh1y
+            ..........
+            MT7OOmFZxUVThbi1Hl6VLzA+cIImOVVrfvtfDlgvG9mNWVvONIVDeIma
+            -----END RSA PRIVATE KEY-----" --overwrite
+    6) Public key is copied to authorized_keys file
+        Note: Check if any temporary keys (if any) are there by firing the following command,
+                  ls -al ~/.ssh
+              If there are, then remove the temporary files.
 
 ## Deploy
 
@@ -31,3 +42,6 @@ In order to deploy the endpoint, simply run:
 
     1) npm install
     2) serverless deploy --stage <dev or production> -v
+    
+    Note: `dea-stacker submit` command only works from Raijin system and not VDI system.
+
