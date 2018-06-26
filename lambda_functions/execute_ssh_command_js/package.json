@@ -1,14 +1,15 @@
 {
-  "name": "execute_ingest_js",
+  "name": "execute-on",
   "version": "1.0.0",
-  "description": "",
+  "description": "Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you need to setup the `node_modules` by running: npm install",
   "main": "handler.js",
   "dependencies": {
     "lodash": "^4.17.10",
-    "serverless-pseudo-parameters": "^1.6.0",
     "simple-ssh": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^1.6.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

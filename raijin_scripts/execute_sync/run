@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -eu
+
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --dea-module )          shift
+                                DEA_MODULE=$1
+                                ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        --product )             shift
+                                PRODUCT=$1
+                                ;;
+        * )                     exit 1
+    esac
+    shift
+done
+
+SYNC_LOGS=/g/data/v10/work/sync
+SYNC_CACHE="${SYNC_LOGS}"/"${PRODUCT}"/cache/
+
+echo Loading module "${DEA_MODULE}"
+echo Submitting PBS job to run dea-sync -vvv --cache-folder "${SYNC_CACHE}"
+
+module use /g/data/v10/public/modules/modulefiles
+
+module load "${DEA_MODULE}"
+
+[ -d "${SYNC_CACHE}" ] && mkdir -p "${SYNC_CACHE}"
+cd "${SYNC_LOGS}"
+
+SUBMISSION_LOG="${SYNC_LOGS}"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
+JOB_NAME="${YEAR}_${PRODUCT}"
+
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=5:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -- dea-sync -vvv --cache-folder "${SYNC_CACHE}"
