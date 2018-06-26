@@ -26,13 +26,23 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-
+STACKDIR=/g/data/v10/work/stacker
 echo Executing stacker for "${YEAR}" "${APP_CONFIG_FILE}"
 echo Loading module "${DEA_MODULE}"
 
 module use /g/data/v10/public/modules/modulefiles
-module use /g/data/v10/private/modules/modulefiles
 
 module load "${DEA_MODULE}"
 
-dea-stacker submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG_FILE}"
+[ -d "${STACKDIR}" ] && mkdir -p "${STACKDIR}"
+cd "${STACKDIR}"
+
+SUBMISSION_LOG="${STACKDIR}"/stacker-submission-$(date '+%F-%T').log
+JOB_NAME="${YEAR}_${APP_CONFIG_FILE}"
+
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+
+# Launch the submission in the background, outputting results to a log file
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+yes Y | dea-stacker submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG_FILE}"
+EOF
