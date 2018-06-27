@@ -3,9 +3,9 @@
 Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you need to setup the `node_modules` by running:
 
     1) Follow nvm installation guide as mentioned in https://github.com/creationix/nvm. 
-    2) Source to ~/.bashrc, or ~/.profile, or ~/.zshrc file:
+    2) cd to the folder where nvm.sh is installed and run the following command to source to ~/.bashrc, or ~/.profile, or ~/.zshrc file:
           `. nvm.sh`
-    3) Run the following shell commands:
+    3) Run the following shell commands (to check if installation is completed):
         a) `nvm --version`
         b) `nvm install node`
         c) `nvm use node`
@@ -18,7 +18,7 @@ Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you nee
 
 ## Installation before deployment
 
-    1) Run the following shell commands:
+    1) Run the following shell commands (to install dependencies):
         a) `npm install serverless-pseudo-parameters --save-dev`
         b) `npm install simple-ssh --save-dev`
         c) `serverless --version`
@@ -59,13 +59,14 @@ Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you nee
 
 In order to deploy the endpoint, simply run:
 
-    1) `npm install`
-    2) `serverless deploy --stage <dev or production> -v`
+    1) cd to the folder where we have handler.js script, package.json and serverless.yml files.
+    2) `npm install`
+    3) `serverless deploy -v`
     
     Note: `dea-stacker submit` command only works from Raijin system and not VDI system.
     
 ## Invoke
 
-In order to run the script (before an event is triggered):
+In order to run the script (before an event is triggered), simply run:
 
      1) `serverless invoke -f execute_ingest -l -d '{"command": "execute_ingest", "year": "2017", "product": "ls8_nbar_albers", "dea-module": "dea/20180515", "project":"u46", "queue":"express"}'`
