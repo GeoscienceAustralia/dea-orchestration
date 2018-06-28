@@ -17,9 +17,13 @@ plugins:
   # install serverless pseudo parameters using the following:
   #   1) $ npm install serverless-pseudo-parameters --save-dev
   - serverless-pseudo-parameters
-  # Add simple-ssh as part of plugins so that serverless function shall package this module and deploy to aws
-  - simple-ssh
-  - lodash
+
+custom:
+  Stage: ${opt:stage, self:provider.stage}
+  CustEnv:
+    s3Bucket:
+      prod: "This is production environment"
+      dev: "dea-lambdas-dev"
 
 provider:
   name: aws
@@ -32,7 +36,7 @@ provider:
     PROJECT: v10
     QUEUE: express
   region: ap-southeast-2
-  deploymentBucket: "dea-public-data-dev"
+  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
     repo: dea-orchestration
     author: santosh.mohan@ga.gov.au
@@ -49,65 +53,155 @@ provider:
     - Effect: 'Allow'
       Action: 'kms:Decrypt'
       Resource:
-        - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/eb628cf2-33db-4909-8581-d9c0626ac8ec"
+        - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
 
 functions:
   execute_sync:
     handler: handler.raijin_ssh_command
     environment:
-      command: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
-                             --queue ${self:provider.environment.QUEUE}
-                             --project ${self:provider.environment.PROJECT}
-                             --year <%= year %>!
-                             --product <%= product %>!'
+      cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
+                         --queue ${self:provider.environment.QUEUE}
+                         --project ${self:provider.environment.PROJECT}
+                         --year <%= year %>
+                         --product <%= product %>'
     events:
       - schedule:
-          rate: cron(05 00 * * ? *) # Run daily, at 00:05:00 am UTC time
+          rate: cron(55 01 * * ? *) # Run daily, at 01:55:00 am UTC time
           enabled: true
           input:
             year: 2017
             product: ls8_nbar_albers
+      - schedule:
+          rate: cron(58 01 * * ? *) # Run daily, at 01:58:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbart_albers
+      - schedule:
+          rate: cron(00 02 * * ? *) # Run daily, at 02:00:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_pq_albers
+      - schedule:
+          rate: cron(15 02 * * ? *) # Run daily, at 02:15:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbar_oli_albers
+      - schedule:
+          rate: cron(30 02 * * ? *) # Run daily, at 02:30:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbart_oli_albers
+      - schedule:
+          rate: cron(45 02 * * ? *) # Run daily, at 02:45:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_pq_oli_albers
   execute_ingest:
     handler: handler.raijin_ssh_command
     environment:
-      command: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
-                               --queue ${self:provider.environment.QUEUE}
-                               --project ${self:provider.environment.PROJECT}
-                               --year <%= year %>!
-                               --product <%= product %>!'
+      cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
+                           --queue ${self:provider.environment.QUEUE}
+                           --project ${self:provider.environment.PROJECT}
+                           --year <%= year %>
+                           --product <%= product %>'
     events:
       - schedule:
-          rate: cron(35 00 * * ? *) # Run daily, at 00:35:00 am UTC time
+          rate: cron(00 03 * * ? *) # Run daily, at 03:00:00 am UTC time
           enabled: true
           input:
             year: 2017
             product: ls8_nbar_albers
+      - schedule:
+          rate: cron(15 03 * * ? *) # Run daily, at 03:15:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbart_albers
+      - schedule:
+          rate: cron(30 03 * * ? *) # Run daily, at 03:30:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_pq_albers
+      - schedule:
+          rate: cron(45 03 * * ? *) # Run daily, at 03:45:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbar_oli_albers
+      - schedule:
+          rate: cron(00 04 * * ? *) # Run daily, at 04:00:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_nbart_oli_albers
+      - schedule:
+          rate: cron(15 04 * * ? *) # Run daily, at 04:15:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            product: ls8_pq_oli_albers
   execute_stacker:
     handler: handler.raijin_ssh_command
     environment:
-      command: 'execute_stacker --dea-module ${self:provider.environment.DEA_MODULE}
-                                --queue ${self:provider.environment.QUEUE}
-                                --project ${self:provider.environment.PROJECT}
-                                --year <%= year %>!
-                                --app-config-file <%= appconfig %>!'
+      cmd: 'execute_stacker --dea-module ${self:provider.environment.DEA_MODULE}
+                            --queue ${self:provider.environment.QUEUE}
+                            --project ${self:provider.environment.PROJECT}
+                            --year <%= year %>
+                            --app-config <%= appconfig %>'
     events:
       - schedule:
-          rate: cron(55 00 * * ? *) # Run daily, at 00:55:00 am UTC time
+          rate: cron(30 04 * * ? *) # Run daily, at 04:30:00 am UTC time
           enabled: true
           input:
             year: 2017
             appconfig: ls8_nbar_albers.yaml
+      - schedule:
+          rate: cron(45 04 * * ? *) # Run daily, at 04:45:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            appconfig: ls8_nbart_albers.yaml
+      - schedule:
+          rate: cron(00 05 * * ? *) # Run daily, at 05:00:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            appconfig: ls8_pq_albers.yaml
+      - schedule:
+          rate: cron(15 05 * * ? *) # Run daily, at 05:15:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            appconfig: ls8_nbar_oli_albers.yaml
+      - schedule:
+          rate: cron(30 05 * * ? *) # Run daily, at 05:30:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            appconfig: ls8_nbart_oli_albers.yaml
+      - schedule:
+          rate: cron(45 05 * * ? *) # Run daily, at 05:45:00 am UTC time
+          enabled: true
+          input:
+            year: 2017
+            appconfig: ls8_pq_oli_albers.yaml
   execute_clean:
     handler: handler.raijin_ssh_command
     environment:
-      command: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
-                              --queue ${self:provider.environment.QUEUE}
-                              --project ${self:provider.environment.PROJECT}
-                              --min-trash-age-hours <%= mintrashage %>!
-                              --search-string <%= searchstr %>!'
+      cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
+                          --queue ${self:provider.environment.QUEUE}
+                          --project ${self:provider.environment.PROJECT}
+                          --min-trash-age-hours <%= mintrashage %>
+                          --search-string <%= searchstr %>'
     events:
       - schedule:
-          rate: cron(00 03 * * ? *)  # Run daily, at 03:00:00 am UTC time
+          rate: cron(00 06 * * ? *)  # Run daily, at 06:00:00 am UTC time
           input:
             mintrashage: 10
             searchstr: ls8_nbar_albers
