@@ -14,22 +14,17 @@ Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you nee
         f) `npm --version`
         g) `npm install -g serverless`
         h) `serverless --version`
-        i) `serverless config credentials --provider aws --key <AWS key> --secret <AWS Secret key>`
+    4) Configure AWD configuration values such as AWS Access Key Id and AWS Secret Access Key using aws configure command.
+        i) aws configure [--profile profile-name]
+            
+        Ref: https://docs.aws.amazon.com/cli/latest/reference/configure/index.html
 
 ## Installation before deployment
 
-    1) Run the following shell commands (to install dependencies):
-        a) `npm install serverless-pseudo-parameters --save-dev`
-        b) `npm install simple-ssh --save-dev`
-        c) `serverless --version`
-    2) Ensure that ssh private and public keys are generated on the Raijin system.
-    3) Private key is copied to aws ssm parameter using the following aws command line:
-           aws ssm put-parameter --name "orchestrator.raijin.users.default.pkey" --type "SecureString" --value "-----BEGIN RSA PRIVATE KEY-----
-            MIIJJgIBAAKCAgEA3lkvu08KVjA7hWyFnKo+0Eb/S1SCZxIgwlfDAjlJexdQdh1y
-            ..........
-            MT7OOmFZxUVThbi1Hl6VLzA+cIImOVVrfvtfDlgvG9mNWVvONIVDeIma
-            -----END RSA PRIVATE KEY-----" --overwrite
-    4) Public key is copied to authorized_keys file
+    1) Ensure that ssh private and public keys are generated on the Raijin system.
+    2) Private key is copied to aws ssm parameter using the following aws command line:
+           aws ssm put-parameter --name "orchestrator.raijin.users.default.pkey" --type "SecureString" --value file://~/.ssh/my_private_key_file --overwrite
+    3) Public key is copied to authorized_keys file
         Note: Check if any temporary keys (if any) are there by firing the following command,
                   `ls -al ~/.ssh`
               If there are, then remove the temporary files.
