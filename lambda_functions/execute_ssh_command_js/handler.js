@@ -11,28 +11,22 @@ const hostkey = process.env.hostkey;
 const userkey = process.env.userkey;
 const pkey = process.env.pkey;
 
-function create_execution_string(event, context) {
-    /* Turn an event into an ssh execution string.
+/**
+ * Turn an event into an ssh execution string.
+ *
+ * Excepts event['command'] to be the command name,
+ * and all other elements to be named cli arguments. eg:
+ *
+ * let event = { command: 'mycommand', arg1: 'myarg' };
+ *
+ * Will result in a command of:
+ * 'mycommand --arg1 myarg'
+ */
+function create_execution_string(event) {
+    var compiled = _.template(process.env.cmd);
+    return compiled(event);
+}
 
-      Excepts event['command'] to be the command name,
-      and all other elements to be named cli arguments. eg:
-
-      let event = { command: 'mycommand', arg1: 'myarg' };
-
-      Will result in a command of:
-      'mycommand --arg1 myarg'
-     */
-    let command_name = event['command'];
-    delete event['command'];
-    let args = _(event)
-        .transform((r, v, k) => r['--' + k.replace('_', '-')] = `'${v}'`)
-        .toPairs().flatten().join(' ');
-    return command_name + ' ' + args;
-};
-
-// See https://hackernoon.com/you-should-use-ssm-parameter-store-over-lambda-env-variables-5197fc6ea45b
-// For a more advanced way of loading data from SSM using KSM
-// Or look at https://github.com/n1ru4l/ssm-parameter-env
 exports.raijin_ssh_command = (event, context, callback) => {
         let req = {
                    Names: [hostkey, userkey, pkey],
@@ -67,11 +61,8 @@ exports.raijin_ssh_command = (event, context, callback) => {
                         console.log(`STDERR: ${stderr}`);
                      }
                    })
-               .exec('exit 69', {
-                       exit: console.log
-                   })
                .start({
-                   success: () => console.log('Successfully connected to Raijin system.'),
+                   success: () => console.log(`Successfully connected to ${params[hostkey]} system.`),
                    fail: (err) => console.log(`Failed to connect to Raijin system: ${err}`)
                });
         });
