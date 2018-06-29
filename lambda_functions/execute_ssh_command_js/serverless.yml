@@ -57,7 +57,7 @@ provider:
 
 functions:
   execute_sync:
-    handler: handler.raijin_ssh_command
+    handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -66,13 +66,13 @@ functions:
                          --product <%= product %>'
     events:
       - schedule:
-          rate: cron(55 01 * * ? *) # Run daily, at 01:55:00 am UTC time
+          rate: cron(35 00 * * ? *) # Run daily, at 00:35:00 am UTC time
           enabled: true
           input:
             year: 2017
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(58 01 * * ? *) # Run daily, at 01:58:00 am UTC time
+          rate: cron(50 00 * * ? *) # Run daily, at 00:50:00 am UTC time
           enabled: true
           input:
             year: 2017
@@ -102,7 +102,7 @@ functions:
             year: 2017
             product: ls8_pq_oli_albers
   execute_ingest:
-    handler: handler.raijin_ssh_command
+    handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
                            --queue ${self:provider.environment.QUEUE}
@@ -147,7 +147,7 @@ functions:
             year: 2017
             product: ls8_pq_oli_albers
   execute_stacker:
-    handler: handler.raijin_ssh_command
+    handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_stacker --dea-module ${self:provider.environment.DEA_MODULE}
                             --queue ${self:provider.environment.QUEUE}
@@ -192,7 +192,7 @@ functions:
             year: 2017
             appconfig: ls8_pq_oli_albers.yaml
   execute_clean:
-    handler: handler.raijin_ssh_command
+    handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
                           --queue ${self:provider.environment.QUEUE}
@@ -206,6 +206,6 @@ functions:
             mintrashage: 10
             searchstr: ls8_nbar_albers
   git_pull_prod:
-    handler: handler.raijin_ssh_command
+    handler: handler.execute_ssh_command
     environment:
       pkey: 'orchestrator.raijin.users.default.pkey'
