@@ -22,7 +22,6 @@ echo "
 echo ""
 
 CONFIGFILE="$HOMEDIR"/datacube_config.conf
-DCCONF="datacube_config.conf"
 
 # Copy yaml files from repo
 sh dea_testscripts/copy_yaml_files.sh "$HOMEDIR"

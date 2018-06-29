@@ -75,6 +75,7 @@ exports.execute_ssh_command = (event, context, callback) => {
                         } else {
                                    console.log(`Executing: ${command}`);
                                    console.log(`STDOUT: ${stdout}`);
+                                   console.log(`SSH returncode: ${code}`);
                                    const response = { statusCode: 0, body: 'SSH command executed.' };
                                    // Return success with information back to the caller
                                    callback(null, response);
