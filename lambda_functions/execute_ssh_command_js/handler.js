@@ -14,20 +14,25 @@ const pkey = process.env.pkey;
 /**
  * Turn an event into an ssh execution string.
  *
- * Excepts event['command'] to be the command name,
- * and all other elements to be named cli arguments. eg:
+ * Compiles JavaScript templates into functions that can
+ * can interpolate values, using <%= .. %>.
  *
- * let event = { command: 'mycommand', arg1: 'myarg' };
+ * Template object (event) is interpolated within the
+ * template string (environment variable "cmd")
  *
- * Will result in a command of:
- * 'mycommand --arg1 myarg'
+ * Eg.
+ *     templateString: 'mycommand --arg1 <%= code %>'
+ *     templateObject: 'code: myarg'
+ *
+ *   Will result in a string of:
+ *      'mycommand --arg1 myarg'
  */
 function create_execution_string(event) {
     var compiled = _.template(process.env.cmd);
     return compiled(event);
 }
 
-exports.raijin_ssh_command = (event, context, callback) => {
+exports.execute_ssh_command = (event, context, callback) => {
         let req = {
                    Names: [hostkey, userkey, pkey],
                    WithDecryption: true
@@ -36,7 +41,9 @@ exports.raijin_ssh_command = (event, context, callback) => {
 
         keys.catch(function(err) {
             console.log(err);
+            callback(`Error loading SSM keys: ${err}`);
         });
+
         keys.then((data) => {
             let params = {};
             for (let p of data.Parameters) {
@@ -53,17 +60,26 @@ exports.raijin_ssh_command = (event, context, callback) => {
             console.log(`User key: ${params[userkey]}`);
 
             let command = create_execution_string(event);
+
             console.log(`Executing: ${command}`);
 
 	        ssh.exec(command, {
                      exit: (code, stdout, stderr) => {
-                        console.log(`STDOUT: ${stdout}`);
-                        console.log(`STDERR: ${stderr}`);
+                        if (stderr) {
+                                   console.log(`STDERR: ${stderr}`);
+                                   //  Return error with error information back to the caller
+                                   return callback(`Failed to execute SSH command, ${stderr}`);
+                        } else {
+                                   console.log(`STDOUT: ${stdout}`);
+                                   const response = { statusCode: 200, body: 'SSH command executed.' };
+                                   // Return success with information back to the caller
+                                   return callback(null, response);
+                        }
                      }
                    })
                .start({
-                   success: () => console.log(`Successfully connected to ${params[hostkey]} system.`),
-                   fail: (err) => console.log(`Failed to connect to Raijin system: ${err}`)
+                   success: () => console.log(`Successfully connected to ${params[hostkey]}`),
+                   fail: (err) => console.log(`Failed to connect to ${params[hostkey]} system: ${err}`)
                });
         });
 };
