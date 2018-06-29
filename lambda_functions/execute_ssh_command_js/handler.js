@@ -66,13 +66,13 @@ exports.execute_ssh_command = (event, context, callback) => {
                         if (stderr) {
                                        console.log(`STDERR: ${stderr}`);
                                        //  Return error with error information back to the caller
-                                       return callback(`Failed to execute SSH command, ${stderr}`);
+                                       callback(`Failed to execute SSH command, ${stderr}`);
                         } else {
                                    console.log(`Executing: ${command}`);
                                    console.log(`STDOUT: ${stdout}`);
                                    const response = { statusCode: 200, body: 'SSH command executed.' };
                                    // Return success with information back to the caller
-                                   return callback(null, response);
+                                   callback(null, response);
                         }
                      }
                    })
