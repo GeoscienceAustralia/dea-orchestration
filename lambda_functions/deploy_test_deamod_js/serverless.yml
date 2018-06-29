@@ -62,7 +62,7 @@ functions:
       cmd: 'test_deamodule --dea-module <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(05 08 * * ? *) # Run daily, at 02:00:00 am UTC time
+          rate: cron(14 08 * * ? *) # Run daily, at 02:00:00 am UTC time
           enabled: true
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
