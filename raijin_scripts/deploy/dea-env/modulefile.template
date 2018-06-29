@@ -16,7 +16,7 @@ set base          ${module_path}
 
 module-whatis   "${module_description} ${module_version}"
 
-if {[module-info mode load && info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
+if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
         puts stderr "Warning: PYTHONPATH is $$env(PYTHONPATH)"
         puts stderr "Try unloading all python modules if you experience any issues."
 }
