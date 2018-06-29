@@ -65,7 +65,7 @@ dependencies:
 - pytest-cov
 - pyyaml
 - python = 3.6
-- qgis >= 3
+# - qgis >= 3  # QGIS 3 is not being built for linux64 yet. See https://github.com/conda-forge/qgis-feedstock/pull/36
 - rasterio >= 1.0a12  # required for zip reading
 - rasterstats
 - redis
