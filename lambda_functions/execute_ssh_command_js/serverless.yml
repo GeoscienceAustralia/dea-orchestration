@@ -66,19 +66,19 @@ functions:
                          --product <%= product %>'
     events:
       - schedule:
-          rate: cron(35 00 * * ? *) # Run daily, at 00:35:00 am UTC time
+          rate: cron(00 02 * * ? *) # Run daily, at 02:00:00 am UTC time
           enabled: true
           input:
             year: 2017
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(50 00 * * ? *) # Run daily, at 00:50:00 am UTC time
+          rate: cron(05 02 * * ? *) # Run daily, at 02:05:00 am UTC time
           enabled: true
           input:
             year: 2017
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(00 02 * * ? *) # Run daily, at 02:00:00 am UTC time
+          rate: cron(10 02 * * ? *) # Run daily, at 02:10:00 am UTC time
           enabled: true
           input:
             year: 2017
