@@ -61,15 +61,14 @@ exports.execute_ssh_command = (event, context, callback) => {
 
             let command = create_execution_string(event);
 
-            console.log(`Executing: ${command}`);
-
 	        ssh.exec(command, {
                      exit: (code, stdout, stderr) => {
                         if (stderr) {
-                                   console.log(`STDERR: ${stderr}`);
-                                   //  Return error with error information back to the caller
-                                   return callback(`Failed to execute SSH command, ${stderr}`);
+                                       console.log(`STDERR: ${stderr}`);
+                                       //  Return error with error information back to the caller
+                                       return callback(`Failed to execute SSH command, ${stderr}`);
                         } else {
+                                   console.log(`Executing: ${command}`);
                                    console.log(`STDOUT: ${stdout}`);
                                    const response = { statusCode: 200, body: 'SSH command executed.' };
                                    // Return success with information back to the caller
@@ -79,7 +78,7 @@ exports.execute_ssh_command = (event, context, callback) => {
                    })
                .start({
                    success: () => console.log(`Successfully connected to ${params[hostkey]}`),
-                   fail: (err) => console.log(`Failed to connect to ${params[hostkey]} system: ${err}`)
+                   fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
                });
         });
 };
