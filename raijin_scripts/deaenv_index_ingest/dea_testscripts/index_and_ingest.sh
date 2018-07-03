@@ -20,7 +20,7 @@ datacube -vv -C "$1" dataset add --auto-match ./**/**/ga-metadata.yaml
 cd /g/data/v10/reprocess/ls7/level1/2018 || exit 0
 datacube -vv -C "$1" dataset add --auto-match ./**/**/ga-metadata.yaml
 
-cd /g/data/v10/reprocess/ls9/level1/2016 || exit 0
+cd /g/data/v10/reprocess/ls8/level1/2016 || exit 0
 datacube -vv -C "$1" dataset add --auto-match ./**/**/ga-metadata.yaml
 cd /g/data/v10/reprocess/ls8/level1/2017 || exit 0
 datacube -vv -C "$1" dataset add --auto-match ./**/**/ga-metadata.yaml
