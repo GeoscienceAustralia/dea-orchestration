@@ -1,5 +1,5 @@
 {
-  "name": "execute-on",
+  "name": "testing",
   "version": "1.0.0",
   "description": "Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you need to setup the `node_modules` by running: npm install",
   "main": "handler.js",
