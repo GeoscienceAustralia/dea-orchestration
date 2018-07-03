@@ -24,7 +24,7 @@ echo "Start time: " $(date '+%F-%T') > "$SUBMISSION_LOG"
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 
 echo "Logging results into: ${SUBMISSION_LOG}"
-qsub -v MODULE="$MODULE" "$(pwd)"/dea_testscripts/nbconvert_execute.sh
+qsub -v MODULE="$MODULE",TEST_BASE="$(pwd)" "$(pwd)"/dea_testscripts/nbconvert_execute.sh
 
 EOF
 

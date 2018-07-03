@@ -57,13 +57,23 @@ provider:
         - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
 
 functions:
+  deaenv_index_ingest:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'deaenv_index_ingest --deamodule <%= deamodule %>'
+    events:
+      - schedule:
+          rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
+          enabled: true
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
   deaenv_nbconvert:
     handler: handler.execute_ssh_command
     environment:
       cmd: 'deaenv_nbconvert --deamodule <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(42 07 * * ? *) # Run daily, at 02:00:00 am UTC time
+          rate: cron(00 14 * * ? *) # Run daily, at 02:00:00 pm UTC time
           enabled: true
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
@@ -73,7 +83,7 @@ functions:
       cmd: 'deaenv_fc --deamodule <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(43 07 * * ? *) # Run daily, at 02:00:00 am UTC time
+          rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
           enabled: true
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
@@ -83,7 +93,7 @@ functions:
       cmd: 'deaenv_stats --deamodule <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(44 07 * * ? *) # Run daily, at 02:00:00 am UTC time
+          rate: cron(00 16 * * ? *) # Run daily, at 04:00:00 pm UTC time
           enabled: true
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}

@@ -28,7 +28,7 @@
 WORKDIR=/g/data/v10/work/dea_env_test
 NBFILE=requirements_met.ipynb
 OUTPUTDIR="$WORKDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
-CONFIGFILE="$(pwd)"/datacube_config.conf
+CONFIGFILE="$TEST_BASE"/datacube_config.conf
 cd "$WORKDIR" || exit 0
 
 ## Paths for outputs and Error files
@@ -81,7 +81,7 @@ jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_mark
 ## --allow-errors shall allow conversion will continue and the output from
 ## any exception be included in the cell output
 jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors
-mv -f "$(pwd)"/dea_testscripts/requirements_met.nbconvert.ipynb "$WORKDIR"/output_files/nbconvert
+mv -f "$TEST_BASE"/dea_testscripts/requirements_met.nbconvert.ipynb "$WORKDIR"/output_files/nbconvert
 
 ## Finally convert using notebook to html file
 jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUTDIR"
