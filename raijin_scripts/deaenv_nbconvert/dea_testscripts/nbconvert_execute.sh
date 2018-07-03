@@ -26,27 +26,15 @@
 #PBS -V
 
 WORKDIR=/g/data/v10/work/dea_env_test
-NBFILE=requirements_met.ipynb
-OUTPUTDIR="$WORKDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
-CONFIGFILE="$TEST_BASE"/datacube_config.conf
-cd "$WORKDIR" || exit 0
 
 ## Paths for outputs and Error files
 #PBS -e "$WORKDIR"/output_files/nbconvert
 #PBS -o "$WORKDIR"/output_files/nbconvert
 
-# Get database name from the config file
-configname=""
-databasename=""
-while IFS=': ' read -r a b; do
-    if [[ "$a" == "["* ]]; then
-       configname=$a
-    fi
+NBFILE=requirements_met.ipynb
+OUTPUTDIR="$WORKDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
 
-    if [[ "$a" == "db_database" && "$configname" == "[datacube]" ]]; then
-       databasename="$b"
-    fi
-done < "$CONFIGFILE"
+cd "$WORKDIR" || exit 0
 
 echo "
   ------------------------------------------------------
