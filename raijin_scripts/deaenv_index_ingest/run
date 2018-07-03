@@ -23,7 +23,7 @@ sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
 # Check if output directory exists, else create one
 [ -d "$WORKDIR/output_files/idx_ingest" ] || mkdir -p "$WORKDIR"/output_files/idx_ingest
 mkdir -p "$WORKDIR/log_files"
-echo "Start time: " $(date '+%F-%T') > "$SUBMISSION_LOG"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Get database name from the config file
 configname=""
@@ -37,7 +37,6 @@ while IFS=': ' read -r a b; do
        databasename="$b"
     fi
 done < "$CONFIGFILE"
-dcdb="datacube"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging results into: ${SUBMISSION_LOG}"
