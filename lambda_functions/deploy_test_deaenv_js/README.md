@@ -64,4 +64,4 @@ In order to deploy the endpoint, simply run:
 
 In order to run the script (before an event is triggered), simply run:
 
-     1) `serverless invoke -f execute_ingest -l -d '{"command": "execute_ingest", "year": "2017", "product": "ls8_nbar_albers", "dea-module": "dea/20180515", "project":"u46", "queue":"express"}'`
+     1) `serverless invoke -f deaenv_index_ingest -l -d '{"deamodule": "dea/20180515"}'`
