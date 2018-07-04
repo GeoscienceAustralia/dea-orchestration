@@ -29,4 +29,5 @@ do
 
   wget -q "$INGEST_CONF_DIR"
   sed -e 's,location: .*,location: "'"$WORKDIR"'/output_files/idx_ingest/001",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -e 's,description:,metadata_type: eo'"\\n\\"'description:,'  "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
 done
