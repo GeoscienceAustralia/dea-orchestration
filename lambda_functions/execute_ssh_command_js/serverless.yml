@@ -22,7 +22,7 @@ custom:
   Stage: ${opt:stage, self:provider.stage}
   CustEnv:
     s3Bucket:
-      prod: "This is production environment"
+      prod: "dea-lambda"
       dev: "dea-lambdas-dev"
 
 provider:
