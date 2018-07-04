@@ -1,0 +1,99 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+service: testing
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+# plugins:
+plugins:
+  # install serverless pseudo parameters using the following:
+  #   1) $ npm install serverless-pseudo-parameters --save-dev
+  - serverless-pseudo-parameters
+
+custom:
+  Stage: ${opt:stage, self:provider.stage}
+  CustEnv:
+    s3Bucket:
+      prod: "dea-lambda"
+      dev: "dea-lambdas-dev"
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  timeout: 300 # 5 minutes (max). Default is 6 seconds
+  environment:
+    hostkey: 'orchestrator.raijin.users.default.host'
+    userkey: 'orchestrator.raijin.users.default.user'
+    pkey: 'orchestrator.raijin.users.default.pkey'
+    DEA_MODULE: dea/20180515
+    PROJECT: v10
+    QUEUE: express
+  region: ap-southeast-2
+  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
+  stackTags:
+    repo: dea-orchestration
+    author: santosh.mohan@ga.gov.au
+    purpose: nci-automation-testing
+# you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'ssm:GetParameters'
+        - 'ssm:DescribeParameters'
+      Resource:
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/pipeline.*"
+    - Effect: 'Allow'
+      Action: 'kms:Decrypt'
+      Resource:
+        - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+
+functions:
+  deaenv_index_ingest:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'deaenv_index_ingest --deamodule <%= deamodule %>'
+    events:
+      - schedule:
+          rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
+          enabled: false
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
+  deaenv_nbconvert:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'deaenv_nbconvert --deamodule <%= deamodule %>'
+    events:
+      - schedule:
+          rate: cron(00 14 * * ? *) # Run daily, at 02:00:00 pm UTC time
+          enabled: false
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
+  deaenv_fc:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'deaenv_fc --deamodule <%= deamodule %>'
+    events:
+      - schedule:
+          rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
+          enabled: false
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
+  deaenv_stats:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'deaenv_stats --deamodule <%= deamodule %>'
+    events:
+      - schedule:
+          rate: cron(00 16 * * ? *) # Run daily, at 04:00:00 pm UTC time
+          enabled: false
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
