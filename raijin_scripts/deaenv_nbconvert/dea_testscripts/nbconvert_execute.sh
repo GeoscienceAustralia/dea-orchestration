@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 ## Project name
 #PBS -P u46
 
@@ -19,6 +18,10 @@
 ## The job will be executed from current working directory instead of home.
 ## PBS -l wd
 
+## Paths for outputs and Error files
+#PBS -e /g/data/v10/work/dea_env_test/log_files
+#PBS -o /g/data/v10/work/dea_env_test/log_files
+
 #PBS -N NBConvert_Test
 
 ## Export all environment vairables in the qsub command environment to be exported to the
@@ -26,15 +29,14 @@
 #PBS -V
 
 WORKDIR=/g/data/v10/work/dea_env_test
-
-## Paths for outputs and Error files
-#PBS -e "$WORKDIR"/output_files/nbconvert
-#PBS -o "$WORKDIR"/output_files/nbconvert
-
-NBFILE=requirements_met.ipynb
+NBFILE="$TEST_BASE"/dea_testscripts/requirements_met.ipynb
 OUTPUTDIR="$WORKDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
 
-cd "$WORKDIR" || exit 0
+# Load DEA module
+# shellcheck source=/dev/null
+echo Loading module "${MODULE}"
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
 
 echo "
   ------------------------------------------------------
@@ -52,10 +54,6 @@ echo "
    PBS: PATH                   = $PBS_O_PATH
   ------------------------------------------------------"
 echo ""
-
-echo Loading module "${MODULE}"
-module use /g/data/v10/public/modules/modulefiles
-module load "${MODULE}"
 
 ##################################################################################################
 ## Run a test notebook convert using PBS
