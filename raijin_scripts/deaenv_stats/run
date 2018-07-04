@@ -52,11 +52,4 @@ datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=u46,nodes=2,n
 datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=u46,nodes=2,ncpus=4,walltime=1h,mem=medium,queue=express,name=fc_albannual,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers_annual.yaml
 datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=u46,nodes=2,ncpus=4,walltime=1h,mem=medium,queue=express,name=fc_albers,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers.yaml
 
-echo ""
-datacube -C "$CONFIGFILE" product add "$WORKDIR"/stats_configfiles/fc_percentile_albers.yaml
-datacube -C "$CONFIGFILE" product add "$WORKDIR"/stats_configfiles/fc_percentile_albers_annual.yaml
-datacube -C "$CONFIGFILE" product add "$WORKDIR"/stats_configfiles/fc_percentile_albers_seasonal.yaml
-datacube -C "$CONFIGFILE" product add "$WORKDIR"/stats_configfiles/landsat_seasonal_mean.yaml
-datacube -C "$CONFIGFILE" dataset add "$WORKDIR"/output_files/stats/001/SR_N_MEAN/*.nc
-
 EOF
