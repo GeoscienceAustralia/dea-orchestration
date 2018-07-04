@@ -38,6 +38,10 @@ while IFS=': ' read -r a b; do
     fi
 done < "$CONFIGFILE"
 
+# This is required as FC code expects user to configure work root
+# else work root shall be defaulted to '/g/data/v10/work/' folder
+export DEA_WORK_ROOT="$WORKDIR/output_files/fc"
+
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging results into: ${SUBMISSION_LOG}"
 module use /g/data/v10/public/modules/modulefiles
@@ -57,10 +61,6 @@ dea-system -C "$CONFIGFILE" init
 datacube -vv -C "$CONFIGFILE" system check
 
 echo ""
-# This is required as FC code expects user to configure work root
-# else work root shall be defaulted to '/g/data/v10/work/' folder
-export DEA_WORK_ROOT="$WORKDIR/output_files/fc"
-
 # Redirect the PBS logs to log_files folder
 cd "$WORKDIR/log_files" || exit 0
 
