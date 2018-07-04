@@ -22,7 +22,7 @@ custom:
   Stage: ${opt:stage, self:provider.stage}
   CustEnv:
     s3Bucket:
-      prod: "This is production environment"
+      prod: "dea-lambda"
       dev: "dea-lambdas-dev"
 
 provider:
@@ -64,7 +64,7 @@ functions:
     events:
       - schedule:
           rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
-          enabled: true
+          enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
   deaenv_nbconvert:
@@ -74,7 +74,7 @@ functions:
     events:
       - schedule:
           rate: cron(00 14 * * ? *) # Run daily, at 02:00:00 pm UTC time
-          enabled: true
+          enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
   deaenv_fc:
@@ -84,7 +84,7 @@ functions:
     events:
       - schedule:
           rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
-          enabled: true
+          enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
   deaenv_stats:
@@ -94,6 +94,6 @@ functions:
     events:
       - schedule:
           rate: cron(00 16 * * ? *) # Run daily, at 04:00:00 pm UTC time
-          enabled: true
+          enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
