@@ -42,6 +42,7 @@ module use /g/data/v10/private/modules/modulefiles
 module load "${DEA_MODULE}"
 module load "${FC_MODULE}"
 
+cd /g/data/v10/work/fc/
 
 APP_CONFIG=$(datacube-fc list | grep "${OUTPUT_PRODUCT}")
 
