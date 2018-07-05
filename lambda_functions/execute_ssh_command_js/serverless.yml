@@ -37,7 +37,7 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180515
+    DEA_MODULE: dea/20180705
     PROJECT: v10
     QUEUE: express
   region: ap-southeast-2
@@ -71,41 +71,51 @@ functions:
                          --product <%= product %>'
     events:
       - schedule:
-          rate: cron(00 02 * * ? *) # Run daily, at 02:00:00 am UTC time
-          enabled: false
+          rate: cron(20 06 ? * THU *) # Run every Thursday, at 06:20:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(05 02 * * ? *) # Run daily, at 02:05:00 am UTC time
-          enabled: false
+          rate: cron(30 06 ? * THU *) # Run every Thursday, at 06:30:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(10 02 * * ? *) # Run daily, at 02:10:00 am UTC time
-          enabled: false
+          rate: cron(40 06 ? * THU *) # Run every Thursday, at 06:40:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_pq_albers
       - schedule:
-          rate: cron(15 02 * * ? *) # Run daily, at 02:15:00 am UTC time
-          enabled: false
+          rate: cron(50 06 ? * THU *) # Run every Thursday, at 06:50:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_nbar_oli_albers
       - schedule:
-          rate: cron(30 02 * * ? *) # Run daily, at 02:30:00 am UTC time
-          enabled: false
+          rate: cron(00 07 ? * THU *) # Run every Thursday, at 07:00:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_nbart_oli_albers
       - schedule:
-          rate: cron(45 02 * * ? *) # Run daily, at 02:45:00 am UTC time
-          enabled: false
+          rate: cron(10 07 ? * THU *) # Run every Thursday, at 07:10:00 am UTC time
+          enabled: true
           input:
             year: 2018
             product: ls8_pq_oli_albers
+  git_pull_prod:
+    handler: handler.execute_ssh_command
+    environment:
+      hostkey: 'orchestrator.raijin.users.git_pull.host'
+      userkey: 'orchestrator.raijin.users.git_pull.user'
+      pkey: 'orchestrator.raijin.users.git_pull.pkey'
+    events:
+      - schedule:
+          rate: cron(18 06 ? * THU *) # Run every Thursday, at 06:18:00 am UTC time
+          enabled: true
   execute_ingest:
     handler: handler.execute_ssh_command
     environment:
@@ -211,7 +221,3 @@ functions:
           input:
             mintrashage: 10
             searchstr: ls8_nbar_albers
-  git_pull_prod:
-    handler: handler.execute_ssh_command
-    environment:
-      pkey: 'orchestrator.raijin.users.default.pkey'
