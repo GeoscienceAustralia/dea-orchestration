@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-modname=`echo "$MODULE" | sed -r "s/[/]+/_/g"`
+modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
 WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"
 SUBMISSION_LOG="$WORKDIR"/log_files/deaenv_fc-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
