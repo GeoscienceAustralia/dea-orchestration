@@ -30,9 +30,9 @@ script:
   - ./scripts/check-code.sh
 
 
-deploy:
- - provider: script
-   script: scripts/aws-lambda-deploy.js hello-world production
-   skip_cleanup: true
-   on:
-     branch: master
+#deploy:
+# - provider: script
+#   script: scripts/aws-lambda-deploy.js hello-world production
+#   skip_cleanup: true
+#   on:
+#     branch: master
