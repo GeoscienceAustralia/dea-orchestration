@@ -35,9 +35,10 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180515
+    DEA_MODULE: dea/20180705
     PROJECT: v10
     QUEUE: express
+    YEAR: 2018
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
@@ -82,20 +83,28 @@ functions:
   deaenv_fc:
     handler: handler.execute_ssh_command
     environment:
-      cmd: 'deaenv_fc --deamodule <%= deamodule %>'
+      cmd: 'deaenv_fc --deamodule <%= deamodule %>
+                      --year <%= year %>
+                      --queue <%= queue %>
+                      --tag <%= tag %>
+                      --project <%= project %>'
     events:
       - schedule:
           rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
+            year: ${self:provider.environment.YEAR}
+            queue: ${self:provider.environment.QUEUE}
+            project: ${self:provider.environment.PROJECT}
+            tag: ${self:provider.environment.YEAR}
   deaenv_stats:
     handler: handler.execute_ssh_command
     environment:
       cmd: 'deaenv_stats --deamodule <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(00 16 * * ? *) # Run daily, at 04:00:00 pm UTC time
+          rate: cron(00 17 * * ? *) # Run daily, at 05:00:00 pm UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}

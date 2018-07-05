@@ -64,21 +64,23 @@ exports.execute_ssh_command = (event, context, callback) => {
 	        ssh
 	           .exec(command, {
                      exit: (code, stdout, stderr) => {
-                        if (stderr) {
-                                       console.log(`STDERR: ${stderr}`);
-                                       //  Return error with error information back to the caller
-                                       callback(`Failed to execute SSH command, ${stderr}`);
+                        if (code == 0) {
+                                         console.log(`Executing: ${command}`);
+                                         console.log(`STDOUT: ${stdout}`);
+                                         console.log(`SSH returncode: ${code}`);
+                                         const response = { statusCode: 0, body: 'SSH command executed.' };
+                                         // Return success with information back to the caller
+                                         callback(null, response);
                         } else if (code == 1) {
-                                   console.log(`Generic error, usually because invalid command line options or malformed configuration (SSH Return Code: ${code})`);
+                                   console.log(`Generic error, usually because invalid command line options or malformed configuration or error within ./run shell file)`);
+                                   console.log(`SSH returncode: ${code}`);
                                    console.log(`Command: ${command}`);
                                    callback(`Failed to execute SSH command`);
                         } else {
-                                   console.log(`Executing: ${command}`);
-                                   console.log(`STDOUT: ${stdout}`);
+                                   console.log(`STDERR: ${stderr}`);
                                    console.log(`SSH returncode: ${code}`);
-                                   const response = { statusCode: 0, body: 'SSH command executed.' };
-                                   // Return success with information back to the caller
-                                   callback(null, response);
+                                   //  Return error with error information back to the caller
+                                   callback(`Failed to execute SSH command, ${stderr}`);
                         }
                      }
                    })
