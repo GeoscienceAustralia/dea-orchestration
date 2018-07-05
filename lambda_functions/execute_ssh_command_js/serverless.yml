@@ -20,6 +20,9 @@ plugins:
 
 custom:
   Stage: ${opt:stage, self:provider.stage}
+  profiles:
+    dev: devProfile
+    prod: prodProfile
   CustEnv:
     s3Bucket:
       prod: "dea-lambda"
@@ -28,7 +31,8 @@ custom:
 provider:
   name: aws
   runtime: nodejs6.10
-  timeout: 300 # 5 minutes (max). Default is 6 seconds
+  timeout: 120 # 2 minutes. Default is 6 seconds
+  profile: ${self:custom.profiles.${self:custom.Stage}}
   environment:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
@@ -68,39 +72,39 @@ functions:
     events:
       - schedule:
           rate: cron(00 02 * * ? *) # Run daily, at 02:00:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbar_albers
       - schedule:
           rate: cron(05 02 * * ? *) # Run daily, at 02:05:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbart_albers
       - schedule:
           rate: cron(10 02 * * ? *) # Run daily, at 02:10:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_pq_albers
       - schedule:
           rate: cron(15 02 * * ? *) # Run daily, at 02:15:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbar_oli_albers
       - schedule:
           rate: cron(30 02 * * ? *) # Run daily, at 02:30:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbart_oli_albers
       - schedule:
           rate: cron(45 02 * * ? *) # Run daily, at 02:45:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_pq_oli_albers
   execute_ingest:
     handler: handler.execute_ssh_command
@@ -113,39 +117,39 @@ functions:
     events:
       - schedule:
           rate: cron(00 03 * * ? *) # Run daily, at 03:00:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbar_albers
       - schedule:
           rate: cron(15 03 * * ? *) # Run daily, at 03:15:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbart_albers
       - schedule:
           rate: cron(30 03 * * ? *) # Run daily, at 03:30:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_pq_albers
       - schedule:
           rate: cron(45 03 * * ? *) # Run daily, at 03:45:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbar_oli_albers
       - schedule:
           rate: cron(00 04 * * ? *) # Run daily, at 04:00:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_nbart_oli_albers
       - schedule:
           rate: cron(15 04 * * ? *) # Run daily, at 04:15:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             product: ls8_pq_oli_albers
   execute_stacker:
     handler: handler.execute_ssh_command
@@ -158,39 +162,39 @@ functions:
     events:
       - schedule:
           rate: cron(30 04 * * ? *) # Run daily, at 04:30:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_nbar_albers.yaml
       - schedule:
           rate: cron(45 04 * * ? *) # Run daily, at 04:45:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_nbart_albers.yaml
       - schedule:
           rate: cron(00 05 * * ? *) # Run daily, at 05:00:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_pq_albers.yaml
       - schedule:
           rate: cron(15 05 * * ? *) # Run daily, at 05:15:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_nbar_oli_albers.yaml
       - schedule:
           rate: cron(30 05 * * ? *) # Run daily, at 05:30:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_nbart_oli_albers.yaml
       - schedule:
           rate: cron(45 05 * * ? *) # Run daily, at 05:45:00 am UTC time
-          enabled: true
+          enabled: false
           input:
-            year: 2017
+            year: 2018
             appconfig: ls8_pq_oli_albers.yaml
   execute_clean:
     handler: handler.execute_ssh_command
@@ -203,6 +207,7 @@ functions:
     events:
       - schedule:
           rate: cron(00 06 * * ? *)  # Run daily, at 06:00:00 am UTC time
+          enabled: false
           input:
             mintrashage: 10
             searchstr: ls8_nbar_albers
