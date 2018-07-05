@@ -36,8 +36,8 @@ module use /g/data/v10/public/modules/modulefiles
 
 module load "${DEA_MODULE}"
 
-[ -d "${SYNC_CACHE}" ] && mkdir -p "${SYNC_CACHE}"
-cd "${SYNC_LOGS}"
+mkdir -p "${SYNC_CACHE}"
+cd "${SYNC_LOGS}"/"${PRODUCT}"/
 
 SUBMISSION_LOG="${SYNC_LOGS}"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"

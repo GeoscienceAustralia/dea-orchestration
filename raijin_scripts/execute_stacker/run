@@ -34,8 +34,8 @@ module use /g/data/v10/public/modules/modulefiles
 
 module load "${DEA_MODULE}"
 
-[ -d "${STACKDIR}" ] && mkdir -p "${STACKDIR}"
-cd "${STACKDIR}"
+mkdir -p "${STACKDIR}"
+cd "${STACKDIR}"/
 
 SUBMISSION_LOG="${STACKDIR}"/stacker-submission-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${APP_CONFIG_FILE}"
