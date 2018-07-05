@@ -16,6 +16,7 @@ Since this plugin uses the Serverless plugin `serverless-secrets-plugin` you nee
         h) `serverless --version`
     4) Configure AWD configuration values such as AWS Access Key Id and AWS Secret Access Key using aws configure command.
         i) aws configure [--profile profile-name]
+           Note: Configure two aws profiles, one named 'devProfile' and another named 'prodProfile'.
             
         Ref: https://docs.aws.amazon.com/cli/latest/reference/configure/index.html
 
@@ -56,7 +57,12 @@ In order to deploy the endpoint, simply run:
 
     1) cd to the folder where we have handler.js script, package.json and serverless.yml files.
     2) `npm install`
-    3) `serverless deploy -v`
+    
+    To deploy on development environment, use:
+    3) `sls deploy -v -s dev`
+
+    To deploy on production environment, use:
+    3) `sls deploy -v -s prod`
     
     Note: `dea-stacker submit` command only works from Raijin system and not VDI system.
     
@@ -65,3 +71,5 @@ In order to deploy the endpoint, simply run:
 In order to run the script (before an event is triggered), simply run:
 
      1) `serverless invoke -f execute_ingest -l -d '{"command": "execute_ingest", "year": "2017", "product": "ls8_nbar_albers", "dea-module": "dea/20180515", "project":"u46", "queue":"express"}'`
+     
+     Note: Use appropriate stage (-s dev or -s prod) when using sls invoke
