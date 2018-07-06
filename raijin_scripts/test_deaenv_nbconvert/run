@@ -18,13 +18,13 @@ WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"
 SUBMISSION_LOG="$WORKDIR"/log_files/deaenv_nbconvert-$(date '+%F-%T').log
 
 # Check if output directory exists, else create one
-[ -d "$WORKDIR/output_files/nbconvert" ] || mkdir -p "$WORKDIR/output_files/nbconvert"
-[ -d "$WORKDIR/log_files" ] || mkdir -p "$WORKDIR/log_files"
+mkdir -p "$WORKDIR/output_files/nbconvert"
+mkdir -p "$WORKDIR/log_files"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 
 echo "Logging results into: ${SUBMISSION_LOG}"
-qsub -v MODULE="$MODULE",TEST_BASE="$(pwd)" "$(pwd)"/dea_testscripts/nbconvert_execute.sh
+qsub -v MODULE="$MODULE",TEST_BASE="$(pwd)",OUTDIR="$WORKDIR" "$(pwd)"/dea_testscripts/nbconvert_execute.sh
 
 EOF
