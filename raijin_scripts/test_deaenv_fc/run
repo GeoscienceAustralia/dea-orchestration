@@ -55,6 +55,7 @@ done < "$CONFIGFILE"
 # This is required as FC code expects user to configure work root
 # else work root shall be defaulted to '/g/data/v10/work/' folder
 export DEA_WORK_ROOT="$WORKDIR/output_files/fc"
+export DATACUBE_CONFIG_PATH="$CONFIGFILE"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging results into: ${SUBMISSION_LOG}"
