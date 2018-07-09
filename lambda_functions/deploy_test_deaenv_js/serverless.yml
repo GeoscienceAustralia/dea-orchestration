@@ -60,16 +60,34 @@ provider:
         - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
 
 functions:
+  test_deaenv_sync:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'test_deaenv_sync --deamodule <%= deamodule %>
+                             --year <%= year %>
+                             --queue <%= queue %>
+                             --project <%= project %>'
+    events:
+      - schedule:
+          rate: cron(15 08 * * ? *) # Run daily, at 08:15:00 am UTC time
+          enabled: false
+          input:
+            deamodule: ${self:provider.environment.DEA_MODULE}
+            year: ${self:provider.environment.YEAR}
+            queue: ${self:provider.environment.QUEUE}
+            project: ${self:provider.environment.PROJECT}
   test_deaenv_index_ingest:
     handler: handler.execute_ssh_command
     environment:
-      cmd: 'test_deaenv_index_ingest --deamodule <%= deamodule %>'
+      cmd: 'test_deaenv_index_ingest --deamodule <%= deamodule %>
+                                     --year <%= year %>'
     events:
       - schedule:
           rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
+            year: ${self:provider.environment.YEAR}
   test_deaenv_nbconvert:
     handler: handler.execute_ssh_command
     environment:
@@ -84,10 +102,10 @@ functions:
     handler: handler.execute_ssh_command
     environment:
       cmd: 'test_deaenv_fc --deamodule <%= deamodule %>
-                      --year <%= year %>
-                      --queue <%= queue %>
-                      --tag <%= tag %>
-                      --project <%= project %>'
+                           --year <%= year %>
+                           --queue <%= queue %>
+                           --tag <%= tag %>
+                           --project <%= project %>'
     events:
       - schedule:
           rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
@@ -101,10 +119,14 @@ functions:
   test_deaenv_stats:
     handler: handler.execute_ssh_command
     environment:
-      cmd: 'test_deaenv_stats --deamodule <%= deamodule %>'
+      cmd: 'test_deaenv_stats --deamodule <%= deamodule %>
+                              --queue <%= queue %>
+                              --project <%= project %>'
     events:
       - schedule:
-          rate: cron(00 17 * * ? *) # Run daily, at 05:00:00 pm UTC time
+          rate: cron(00 18 * * ? *) # Run daily, at 06:00:00 pm UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
+            queue: ${self:provider.environment.QUEUE}
+            project: ${self:provider.environment.PROJECT}

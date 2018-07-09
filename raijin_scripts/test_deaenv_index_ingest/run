@@ -8,22 +8,24 @@ while [[ $# -gt 0 ]]; do
         --deamodule )           shift
                                 MODULE=$1
                                 ;;
+        --year )                shift
+                                YEAR=$1
+                                ;;
         * )                     exit 0
     esac
     shift
 done
 
 modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
-WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"
-SUBMISSION_LOG="$WORKDIR"/log_files/deaenv_index_ingest-$(date '+%F-%T').log
+WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/index_ingest
+SUBMISSION_LOG="$WORKDIR"/index_ingest-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 
 # Copy yaml files from repo
 sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
 
 # Check if output directory exists, else create one
-mkdir -p "$WORKDIR"/output_files/idx_ingest
-mkdir -p "$WORKDIR/log_files"
+mkdir -p "$WORKDIR"/work
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Get database name from the config file
@@ -45,22 +47,12 @@ module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
 
 echo "Database name from config: ${databasename}"
-dea-test-env -C "$CONFIGFILE" teardown
-sleep 2s
-createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
-
 echo "Loading module ${MODULE}"
 echo ""
 
 # Check if we can connect to the database
-datacube -C "$CONFIGFILE" system check
-
-# Run the initialise Test Database Script
-dea-system -C "$CONFIGFILE" init
-
-# Check if we can connect to the database
 datacube -vv -C "$CONFIGFILE" system check
 
-sh dea_testscripts/index_and_ingest.sh "$CONFIGFILE" "$WORKDIR"
+sh dea_testscripts/index_and_ingest.sh "$CONFIGFILE" "$WORKDIR" "$YEAR"
 
 EOF
