@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ## Project name
-#PBS -P u46
+#PBS -P v10
 
 ## Queue type
 #PBS -q express
@@ -18,18 +18,19 @@
 ## The job will be executed from current working directory instead of home.
 ## PBS -l wd
 
-## Paths for outputs and Error files
-#PBS -e "$OUTDIR"/log_files/nb_convert_e"$(date '+%Y-%m-%d')"
-#PBS -o "$OUTDIR"/log_files/nb_convert_o"$(date '+%Y-%m-%d')"
-
-#PBS -N NBConvert_Test
+#PBS -N NBConvert
 
 ## Export all environment vairables in the qsub command environment to be exported to the
 ## batch job
 #PBS -V
 
+cd "$OUTDIR" || exit 0
+## Paths for outputs and Error files
+#PBS -e nb_convert_e.log
+#PBS -o nb_convert_o.log
+
 NBFILE="$TEST_BASE"/dea_testscripts/requirements_met.ipynb
-OUTPUTDIR="$OUTDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
+OUTPUT_HTML="$OUTDIR"/requirements_met-"$(date '+%Y-%m-%d')".html
 
 # Load DEA module
 # shellcheck source=/dev/null
@@ -68,6 +69,6 @@ jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_mark
 jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors
 
 ## Finally convert using notebook to html file
-jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUTDIR"
+jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUT_HTML"
 
-mv -f "$TEST_BASE"/dea_testscripts/requirements_met.nbconvert.ipynb "$OUTDIR"/output_files/nbconvert
+mv -f "$TEST_BASE"/dea_testscripts/requirements_met.nbconvert.ipynb "$OUTDIR" || exit 0

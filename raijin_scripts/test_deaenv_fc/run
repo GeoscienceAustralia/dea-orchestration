@@ -26,13 +26,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
-WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"
-SUBMISSION_LOG="$WORKDIR"/log_files/deaenv_fc-$(date '+%F-%T').log
+WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/fc
+SUBMISSION_LOG="$WORKDIR"/fc-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 
 # Check if output directory exists, else create one
-mkdir -p "$WORKDIR"/output_files/fc/001
-mkdir -p "$WORKDIR/log_files"
+mkdir -p "$WORKDIR"/work
 
 # Copy yaml files from repo
 sh dea_testscripts/copy_fcyaml_files.sh "$WORKDIR"
@@ -54,7 +53,7 @@ done < "$CONFIGFILE"
 
 # This is required as FC code expects user to configure work root
 # else work root shall be defaulted to '/g/data/v10/work/' folder
-export DEA_WORK_ROOT="$WORKDIR/output_files/fc"
+export DEA_WORK_ROOT="$WORKDIR/work"
 export DATACUBE_CONFIG_PATH="$CONFIGFILE"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
@@ -77,7 +76,7 @@ datacube -vv -C "$CONFIGFILE" system check
 
 echo ""
 # Redirect the PBS logs to log_files folder
-cd "$WORKDIR/log_files" || exit 0
+cd "$WORKDIR" || exit 0
 
 echo "Applying fractional cover on ls7_fc_albers product for the year ${YEAR}" with tag "${TAG}"
 echo "------------------------------------------------------------------------------------------"
