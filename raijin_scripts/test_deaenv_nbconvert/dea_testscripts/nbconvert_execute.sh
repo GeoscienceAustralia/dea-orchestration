@@ -19,8 +19,8 @@
 ## PBS -l wd
 
 ## Paths for outputs and Error files
-#PBS -e /g/data/v10/work/dea_env_test/log_files
-#PBS -o /g/data/v10/work/dea_env_test/log_files
+#PBS -e "$OUTDIR"/log_files/nb_convert_e"$(date '+%Y-%m-%d')"
+#PBS -o "$OUTDIR"/log_files/nb_convert_o"$(date '+%Y-%m-%d')"
 
 #PBS -N NBConvert_Test
 
@@ -28,9 +28,8 @@
 ## batch job
 #PBS -V
 
-WORKDIR=/g/data/v10/work/dea_env_test
 NBFILE="$TEST_BASE"/dea_testscripts/requirements_met.ipynb
-OUTPUTDIR="$WORKDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
+OUTPUTDIR="$OUTDIR"/output_files/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
 
 # Load DEA module
 # shellcheck source=/dev/null
@@ -67,7 +66,8 @@ jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_mark
 ## --allow-errors shall allow conversion will continue and the output from
 ## any exception be included in the cell output
 jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors
-mv -f "$TEST_BASE"/dea_testscripts/requirements_met.nbconvert.ipynb "$WORKDIR"/output_files/nbconvert
 
 ## Finally convert using notebook to html file
 jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUTDIR"
+
+mv -f "$TEST_BASE"/dea_testscripts/requirements_met.nbconvert.ipynb "$OUTDIR"/output_files/nbconvert
