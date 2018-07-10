@@ -24,7 +24,6 @@
 ## batch job
 #PBS -V
 
-cd "$OUTDIR" || exit 0
 ## Paths for outputs and Error files
 #PBS -e nb_convert_e.log
 #PBS -o nb_convert_o.log
@@ -63,10 +62,10 @@ echo ""
 jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_markdown=True
 
 ## Execute the notebook
-## Cell execution timeout = 5000s, --ExecutePreprocessor.timeout=5000
+## Cell execution timeout = 20000s, --ExecutePreprocessor.timeout=20000
 ## --allow-errors shall allow conversion will continue and the output from
 ## any exception be included in the cell output
-jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors
+jupyter nbconvert --ExecutePreprocessor.timeout=20000 --to notebook --execute "$NBFILE" --allow-errors
 
 ## Finally convert using notebook to html file
 jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUT_HTML"
