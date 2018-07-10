@@ -13,7 +13,8 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-WORKDIR=/g/data/v10/work/dea_env_test
+modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
+WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"
 SUBMISSION_LOG="$WORKDIR"/log_files/deaenv_index_ingest-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 
@@ -21,7 +22,7 @@ CONFIGFILE="$(pwd)"/datacube_config.conf
 sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
 
 # Check if output directory exists, else create one
-[ -d "$WORKDIR/output_files/idx_ingest" ] || mkdir -p "$WORKDIR"/output_files/idx_ingest
+mkdir -p "$WORKDIR"/output_files/idx_ingest
 mkdir -p "$WORKDIR/log_files"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
