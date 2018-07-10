@@ -38,7 +38,7 @@ provider:
     DEA_MODULE: dea/20180705
     PROJECT: v10
     QUEUE: express
-    YEAR: 2018
+    YEAR: "2018"
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
@@ -83,7 +83,7 @@ functions:
                                      --year <%= year %>'
     events:
       - schedule:
-          rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
+          rate: cron(00 10 * * ? *) # Run daily, at 10:00:00 am UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
@@ -94,7 +94,7 @@ functions:
       cmd: 'test_deaenv_nbconvert --deamodule <%= deamodule %>'
     events:
       - schedule:
-          rate: cron(00 14 * * ? *) # Run daily, at 02:00:00 pm UTC time
+          rate: cron(00 11 * * ? *) # Run daily, at 11:00:00 am UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
@@ -108,7 +108,7 @@ functions:
                            --project <%= project %>'
     events:
       - schedule:
-          rate: cron(00 15 * * ? *) # Run daily, at 03:00:00 pm UTC time
+          rate: cron(00 14 * * ? *) # Run daily, at 02:00:00 pm UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}
@@ -124,7 +124,7 @@ functions:
                               --project <%= project %>'
     events:
       - schedule:
-          rate: cron(00 18 * * ? *) # Run daily, at 06:00:00 pm UTC time
+          rate: cron(30 15 * * ? *) # Run daily, at 03:30:00 pm UTC time
           enabled: false
           input:
             deamodule: ${self:provider.environment.DEA_MODULE}

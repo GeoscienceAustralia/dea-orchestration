@@ -3,7 +3,7 @@
 set -eu
 
 while [[ $# -gt 0 ]]; do
-    key="$1"
+    key=$1
     case ${key} in
         --deamodule )           shift
                                 MODULE=$1
@@ -41,22 +41,16 @@ echo "Loading module ${MODULE}"
 echo ""
 
 # Check if we can connect to the database
-datacube -C "$CONFIGFILE" system check
-
-# Run the initialise Test Database Script
-dea-system -C "$CONFIGFILE" init
-
-# Check if we can connect to the database
 datacube -vv -C "$CONFIGFILE" system check
 
 # Redirect the PBS logs to log_files folder
 cd "$WORKDIR" || exit 0
 
 echo ""
-datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project="$PROJECT",nodes=2,ncpus=4,walltime=1h,mem=medium,queue="$QUEUE",name=nbar_stats,noask' "$WORKDIR"/stats_configfiles/nbar_stats.yaml
-datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project="$PROJECT",nodes=2,ncpus=4,walltime=1h,mem=medium,queue="$QUEUE",name=fc_stats_annual,noask' "$WORKDIR"/stats_configfiles/fc_stats_annual.yaml
-datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project="$PROJECT",nodes=2,ncpus=4,walltime=1h,mem=medium,queue="$QUEUE",name=fc_albseasonal,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers_seasonal.yaml
-datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project="$PROJECT",nodes=2,ncpus=4,walltime=1h,mem=medium,queue="$QUEUE",name=fc_albannual,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers_annual.yaml
-datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project="$PROJECT",nodes=2,ncpus=4,walltime=1h,mem=medium,queue="$QUEUE",name=fc_albers,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers.yaml
+datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=${PROJECT},nodes=2,ncpus=4,walltime=1h,mem=medium,queue=${QUEUE},name=nbar_stats,noask' "$WORKDIR"/stats_configfiles/nbar_stats.yaml
+datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=${PROJECT},nodes=2,ncpus=4,walltime=1h,mem=medium,queue=${QUEUE},name=fc_stats_annual,noask' "$WORKDIR"/stats_configfiles/fc_stats_annual.yaml
+datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=${PROJECT},nodes=2,ncpus=4,walltime=1h,mem=medium,queue=${QUEUE},name=fc_albseasonal,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers_seasonal.yaml
+datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=${PROJECT},nodes=2,ncpus=4,walltime=1h,mem=medium,queue=${QUEUE},name=fc_albannual,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers_annual.yaml
+datacube-stats -C "$CONFIGFILE" -vvv --log-queries --qsub 'project=${PROJECT},nodes=2,ncpus=4,walltime=1h,mem=medium,queue=${QUEUE},name=fc_albers,noask' "$WORKDIR"/stats_configfiles/fc_percentile_albers.yaml
 
 EOF

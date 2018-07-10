@@ -53,7 +53,7 @@ module load "${MODULE}"
 
 echo "Database name from config: ${databasename}"
 dea-test-env -C "$CONFIGFILE" teardown
-sleep 2s
+sleep 5s
 createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
 
 echo "Loading module ${MODULE}"
