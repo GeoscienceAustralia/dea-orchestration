@@ -76,11 +76,11 @@ functions:
             year: ${self:provider.environment.YEAR}
             queue: ${self:provider.environment.QUEUE}
             project: ${self:provider.environment.PROJECT}
-  test_deaenv_index_ingest:
+  test_deaenv_ingest:
     handler: handler.execute_ssh_command
     environment:
-      cmd: 'test_deaenv_index_ingest --deamodule <%= deamodule %>
-                                     --year <%= year %>'
+      cmd: 'test_deaenv_ingest --deamodule <%= deamodule %>
+                               --year <%= year %>'
     events:
       - schedule:
           rate: cron(00 10 * * ? *) # Run daily, at 10:00:00 am UTC time
