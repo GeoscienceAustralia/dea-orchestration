@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -eu
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --deamodule )           shift
+                                MODULE=$1
+                                ;;
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        * )                     exit 0
+    esac
+    shift
+done
+
+modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
+WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/index_ingest
+SUBMISSION_LOG="$WORKDIR"/index_ingest-$(date '+%F-%T').log
+CONFIGFILE="$(pwd)"/datacube_config.conf
+TESTDIR="$(pwd)"
+
+# Copy yaml files from repo
+sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
+
+# Check if output directory exists, else create one
+mkdir -p "$WORKDIR"/work
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+
+# Get database name from the config file
+configname=""
+databasename=""
+while IFS=': ' read -r a b; do
+    if [[ "$a" == "["* ]]; then
+       configname=$a
+    fi
+
+    if [[ "$a" == "db_database" && "$configname" == "[datacube]" ]]; then
+       databasename="$b"
+    fi
+done < "$CONFIGFILE"
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+echo "Logging results into: ${SUBMISSION_LOG}"
+
+echo "Database name from config: ${databasename}"
+echo "Loading module ${MODULE}"
+echo "Ingesting the product for the year ${YEAR}"
+echo ""
+
+cd "$WORKDIR"
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_nbar_albers.yaml,STR_NAME="Surface Reflectance NBAR" "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_nbart_albers.yaml,STR_NAME="Surface Reflectance NBART" "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_pq_albers.yaml,STR_NAME="Pixel Quality"  "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_nbar_oli_albers.yaml,STR_NAME="Surface Reflectance NBAR OLI" "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_nbart_oli_albers.yaml,STR_NAME="Surface Reflectance NBART OLI" "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+qsub -v MODULE="$MODULE",CONFIG_FILE="$CONFIGFILE",OUTDIR="$WORKDIR",YAML_FILE=ls8_pq_oli_albers.yaml,STR_NAME="Pixel Quality OLI" "$TESTDIR"/dea_testscripts/pbs_ingest.sh
+
+EOF

@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -eu
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --deamodule )           shift
+                                MODULE=$1
+                                ;;
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
+        * )                     exit 0
+    esac
+    shift
+done
+
+modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
+WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/sync
+SUBMISSION_LOG="$WORKDIR"/sync-$(date '+%F-%T').log
+CONFIGFILE="$(pwd)"/datacube_config.conf
+PSQL_LOG="$WORKDIR"/agdc_dataset_before_sync.log
+
+# Check if output directory exists, else create one
+mkdir -p "$WORKDIR"/cache
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+
+# Get database name from the config file
+configname=""
+databasename=""
+while IFS=': ' read -r a b; do
+    if [[ "$a" == "["* ]]; then
+       configname=$a
+    fi
+
+    if [[ "$a" == "db_database" && "$configname" == "[datacube]" ]]; then
+       databasename="$b"
+    fi
+done < "$CONFIGFILE"
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+
+echo "Logging results into: ${SUBMISSION_LOG}"
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+
+echo "Database name from config: ${databasename}"
+dea-test-env -C "$CONFIGFILE" teardown
+sleep 5s
+createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
+
+echo "Loading module ${MODULE}"
+echo ""
+
+# Run the initialise Test Database Script
+dea-system -C "$CONFIGFILE" init
+
+# Check if we can connect to the database
+datacube -vv -C "$CONFIGFILE" system check
+
+# Check the database datasets before sync
+psql -h agdcdev-db.nci.org.au -p 6432 -d "$databasename" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name' > "$PSQL_LOG"
+
+echo ""
+echo "Qsub id/s......"
+##################################################################################################
+# Run sync
+##################################################################################################
+qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -C "$CONFIGFILE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/nbar-scenes-tmp/ls7/"${YEAR}"/
+qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -C "$CONFIGFILE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/nbar-scenes-tmp/ls8/"${YEAR}"/
+qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -C "$CONFIGFILE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/pq-scenes-tmp/ls7/"${YEAR}"/
+qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -C "$CONFIGFILE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/pq-scenes-tmp/ls8/"${YEAR}"/
+
+EOF
