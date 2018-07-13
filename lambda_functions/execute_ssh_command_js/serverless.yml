@@ -67,45 +67,46 @@ functions:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
                          --project ${self:provider.environment.PROJECT}
+                         --stage ${self:custom.Stage}
                          --year <%= year %>
+                         --path <%= path %>
                          --product <%= product %>'
     events:
       - schedule:
-          rate: cron(20 06 ? * THU *) # Run every Thursday, at 06:20:00 am UTC time
-          enabled: true
+          rate: cron(00 04 ? * FRI *) # Run every Friday, at 04:00:00 am UTC time
+          enabled: false
           input:
             year: 2018
-            product: ls8_nbar_albers
+            product: ls8_level1_scene
+            path: '/g/data/v10/reprocess/ls8/level1/2018/05/'
       - schedule:
-          rate: cron(30 06 ? * THU *) # Run every Thursday, at 06:30:00 am UTC time
-          enabled: true
+          rate: cron(00 05 ? * FRI *) # Run every Friday, at 05:00:00 am UTC time
+          enabled: false
           input:
             year: 2018
-            product: ls8_nbart_albers
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbart'
       - schedule:
-          rate: cron(40 06 ? * THU *) # Run every Thursday, at 06:40:00 am UTC time
-          enabled: true
+          rate: cron(00 06 ? * FRI *) # Run every Friday, at 06:00:00 am UTC time
+          enabled: false
           input:
             year: 2018
-            product: ls8_pq_albers
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbar'
       - schedule:
-          rate: cron(50 06 ? * THU *) # Run every Thursday, at 06:50:00 am UTC time
-          enabled: true
+          rate: cron(00 07 ? * FRI *) # Run every Friday, at 07:00:00 am UTC time
+          enabled: false
           input:
             year: 2018
-            product: ls8_nbar_oli_albers
+            product: ls8_pq_scene
+            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/05/output/pqa/'
       - schedule:
-          rate: cron(00 07 ? * THU *) # Run every Thursday, at 07:00:00 am UTC time
-          enabled: true
+          rate: cron(00 08 ? * FRI *) # Run every Friday, at 08:00:00 am UTC time
+          enabled: false
           input:
             year: 2018
-            product: ls8_nbart_oli_albers
-      - schedule:
-          rate: cron(10 07 ? * THU *) # Run every Thursday, at 07:10:00 am UTC time
-          enabled: true
-          input:
-            year: 2018
-            product: ls8_pq_oli_albers
+            product: ls8_pq_legacy_scene
+            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/05/output/pqa'
   git_pull_prod:
     handler: handler.execute_ssh_command
     environment:
@@ -114,49 +115,50 @@ functions:
       pkey: 'orchestrator.raijin.users.git_pull.pkey'
     events:
       - schedule:
-          rate: cron(18 06 ? * THU *) # Run every Thursday, at 06:18:00 am UTC time
-          enabled: true
+          rate: cron(45 03 ? * FRI *) # Run every Friday, at 03:45:00 am UTC time
+          enabled: false
   execute_ingest:
     handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
                            --queue ${self:provider.environment.QUEUE}
                            --project ${self:provider.environment.PROJECT}
+                           --stage ${self:custom.Stage}
                            --year <%= year %>
                            --product <%= product %>'
     events:
       - schedule:
-          rate: cron(00 03 * * ? *) # Run daily, at 03:00:00 am UTC time
+          rate: cron(00 09 ? * FRI *) # Run every Friday, at 09:00:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(15 03 * * ? *) # Run daily, at 03:15:00 am UTC time
+          rate: cron(00 15 ? * FRI *) # Run every Friday, at 03:00:00 pm UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(30 03 * * ? *) # Run daily, at 03:30:00 am UTC time
+          rate: cron(00 21 ? * FRI *) # Run every Friday, at 09:00:00 pm UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_pq_albers
       - schedule:
-          rate: cron(45 03 * * ? *) # Run daily, at 03:45:00 am UTC time
+          rate: cron(00 03 ? * SAT *) # Run every Saturday, at 03:00:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbar_oli_albers
       - schedule:
-          rate: cron(00 04 * * ? *) # Run daily, at 04:00:00 am UTC time
+          rate: cron(00 09 ? * SAT *) # Run every Saturday, at 09:00:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbart_oli_albers
       - schedule:
-          rate: cron(15 04 * * ? *) # Run daily, at 04:15:00 am UTC time
+          rate: cron(00 15 ? * SAT *) # Run every Saturday, at 03:00:00 pm UTC time
           enabled: false
           input:
             year: 2018

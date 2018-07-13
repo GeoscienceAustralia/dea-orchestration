@@ -1,13 +1,14 @@
 #!/bin/bash
-
 set -eu
-
 
 while [[ $# -gt 0 ]]; do
     key="$1"
     case ${key} in
         --dea-module )          shift
-                                DEA_MODULE=$1
+                                MODULE=$1
+                                ;;
+        --year )                shift
+                                YEAR=$1
                                 ;;
         --queue )               shift
                                 QUEUE=$1
@@ -15,55 +16,83 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
-        --year )                shift
-                                YEAR=$1
+        --stage )               shift
+                                STAGE=$1
+                                ;;
+        --path )                shift
+                                PATH_TO_PROCESS=$1
                                 ;;
         --product )             shift
                                 PRODUCT=$1
                                 ;;
-        * )                     exit 1
+        * )                     exit 0
     esac
     shift
 done
 
-SYNC_LOGS=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
-SYNC_CACHE="${SYNC_LOGS}"/cache
-SUBMISSION_LOG="${SYNC_LOGS}"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
+WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
+SYNC_CACHE="${WORKDIR}"/cache/
+SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
-PSQL_LOG="$SYNC_LOGS"/db_before-sync_"${PRODUCT}"-$(date '+%F-%T').log
-echo " " > "$PSQL_LOG"
-
-echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+count=0
+dbhostname='agdcdev-db.nci.org.au'
+dbport='6432'
+dbname='datacube'
 
 mkdir -p "${SYNC_CACHE}"
-cd "${SYNC_LOGS}"/
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
-databasename="datacube"
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+while read -r LINE; do
+  if [[ "$count" -eq 1 ]]
+  then
+      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 2 ]]
+  then
+      dbport="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 3 ]]
+  then
+      dbname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
+      count=$((count+1))
+  fi
+done  < "$DATACUBE_CONFIG_PATH"
+
+cd "${WORKDIR}"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
-
-echo "Logging results into: ${SUBMISSION_LOG}"
-module use /g/data/v10/public/modules/modulefiles
-
-echo Loading module "${DEA_MODULE}"
-module load "${DEA_MODULE}"
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module "${MODULE}"
 echo ""
 
 # Check if we can connect to the database
 datacube -vv system check
 
-# Check the database datasets before sync
-psql -h agdcdev-db.nci.org.au -p 6432 -d "$databasename" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name' > "$PSQL_LOG"
+# Read agdc datasets from the database before sync process
+echo ""
+echo "**********************************************************************"
+echo "Read previous agdc_dataset product names and count before sync process"
+echo "Connected to the database name: $dbhostname"
+echo "Connected to the database port number: $dbport"
+echo "Connected to the database hostname: $dbname"
+psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "**********************************************************************"
 
 echo ""
-echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
-echo "Qsub id/s......"
+echo "Starting Sync process......"
 ##################################################################################################
-# Run sync
+# Run dea-sync process
 ##################################################################################################
-qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$SYNC_LOGS" -e "$SYNC_LOGS" -- dea-sync -vvv --cache-folder "$SYNC_CACHE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/nbar-scenes-tmp/ls7/"${YEAR}"/
-qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$SYNC_LOGS" -e "$SYNC_LOGS" -- dea-sync -vvv --cache-folder "$SYNC_CACHE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/nbar-scenes-tmp/ls8/"${YEAR}"/
-qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$SYNC_LOGS" -e "$SYNC_LOGS" -- dea-sync -vvv --cache-folder "$SYNC_CACHE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/pq-scenes-tmp/ls7/"${YEAR}"/
-qsub -V -N deaenv-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$SYNC_LOGS" -e "$SYNC_LOGS" -- dea-sync -vvv --cache-folder "$SYNC_CACHE" -j 4 --log-queries --update-locations --index-missing /g/data/rs0/scenes/pq-scenes-tmp/ls8/"${YEAR}"/
-
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries --update-locations --index-missing "$PATH_TO_PROCESS"
 EOF
