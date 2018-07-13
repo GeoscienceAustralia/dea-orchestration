@@ -67,6 +67,7 @@ functions:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
                          --project ${self:provider.environment.PROJECT}
+                         --stage ${self:custom.Stage}
                          --year <%= year %>
                          --path <%= path %>
                          --product <%= product %>'
@@ -122,6 +123,7 @@ functions:
       cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
                            --queue ${self:provider.environment.QUEUE}
                            --project ${self:provider.environment.PROJECT}
+                           --stage ${self:custom.Stage}
                            --year <%= year %>
                            --product <%= product %>'
     events:
