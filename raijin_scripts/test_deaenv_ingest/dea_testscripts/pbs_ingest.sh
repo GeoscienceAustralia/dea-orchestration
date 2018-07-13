@@ -49,7 +49,7 @@ datacube -vv -C "$CONFIG_FILE" system check
 
 echo
 echo "======================================================================"
-echo "| Indexing Landsat 8 $STR_NAME 25 metre, 100km tile                   "
+echo "| Ingesting Landsat 8 $STR_NAME 25 metre, 100km tile                  "
 echo "| Australian Albers Equal Area projection (EPSG:3577)                 "
 echo "======================================================================"
 echo
