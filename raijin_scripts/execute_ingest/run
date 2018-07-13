@@ -24,13 +24,15 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-SUBMISSION_LOG=/g/data/v10/work/ingest/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
+WORKDIR=/g/data/v10/work/ingest/"${PRODUCT}"/$(date '+%FT%H%M')
+SUBMISSION_LOG="${WORKDIR}"/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
 
+mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Launch the submission in the background, outputting results to a log file
-cd /g/data/v10/work/ingest/
+cd "${WORKDIR}"
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
 
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
