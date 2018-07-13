@@ -16,6 +16,9 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
+        --stage )               shift
+                                STAGE=$1
+                                ;;
         --path )                shift
                                 PATH_TO_PROCESS=$1
                                 ;;
@@ -31,6 +34,10 @@ WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
 SYNC_CACHE="${WORKDIR}"/cache/
 SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
+count=0
+dbhostname='agdcdev-db.nci.org.au'
+dbport='6432'
+dbname='datacube'
 
 mkdir -p "${SYNC_CACHE}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
@@ -50,8 +57,41 @@ datacube -vv system check
 # Read agdc datasets from the database before sync process
 echo ""
 echo "**********************************************************************"
+while read -r LINE; do
+  if [[ "$count" -eq 1 ]]
+  then
+      IFS=': '
+      set ${LINE}
+      echo "Connected to the database hostname: $2"
+      dbhostname="$2"
+      count=$((count+1))
+  elif [[ "$count" -eq 2 ]]
+  then
+      IFS=': '
+      set $LINE
+      echo "Connected to the database port number: $2"
+      dbport="$2"
+      count=$((count+1))
+  elif [[ "$count" -eq 3 ]]
+  then
+      IFS=': '
+      set $LINE
+      echo "Connected to the database name: $2"
+      dbname="$2"
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
+      count=$((count+1))
+  fi
+done  < "$DATACUBE_CONFIG_PATH"
+
 echo "Read previous agdc_dataset product names and count before sync process"
-psql -h agdcdev-db.nci.org.au -p 6432 -d datacube -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
