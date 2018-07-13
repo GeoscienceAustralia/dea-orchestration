@@ -1,7 +1,5 @@
 #!/bin/bash
-
 set -eu
-
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -26,22 +24,33 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-
-echo Executing ingest for "${YEAR}" "${PRODUCT}"
-echo Loading module "${DEA_MODULE}"
-
-module use /g/data/v10/public/modules/modulefiles
-
-module load "${DEA_MODULE}"
-
-cd /g/data/v10/work/ingest/
-
 SUBMISSION_LOG=/g/data/v10/work/ingest/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
 
-echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Launch the submission in the background, outputting results to a log file
+cd /g/data/v10/work/ingest/
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+
+echo ""
+echo Loading module "${DEA_MODULE}"
+module use /g/data/v10/public/modules/modulefiles
+module load "${DEA_MODULE}"
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+# Read agdc datasets from the database before ingest process
+echo ""
+echo "**********************************************************************"
+echo "Read previous agdc_dataset product names and count before ingest process"
+psql -h agdcdev-db.nci.org.au -p 6432 -d datacube -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "**********************************************************************"
+echo ""
+echo "Executing ingest for ${YEAR} ${PRODUCT}"
 yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
