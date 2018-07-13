@@ -24,6 +24,6 @@ do
   yaml_filename=$(basename "$INGEST_CONF_DIR")
 
   wget -q "$INGEST_CONF_DIR"
-  sed -e 's,location: .*,location: "'"$WORKDIR"'/work",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,description:,metadata_type: eo'"\\n\\"'description:,'  "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work",' "$yaml_filename"
+  sed -i -e 's,description:,metadata_type: eo'"\\n\\"'description:,'  "$yaml_filename"
 done
