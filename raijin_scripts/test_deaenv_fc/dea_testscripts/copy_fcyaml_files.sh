@@ -3,7 +3,6 @@
 WORKDIR="$1"
 
 # Remove previous stored config files
-[ -d "$WORKDIR/output_files/fc" ] && rm -r "$WORKDIR/output_files/fc"
 [ -d "$WORKDIR/fc_configfiles" ] && rm -r "$WORKDIR/fc_configfiles"
 
 # Create new empty directory
@@ -22,5 +21,5 @@ do
   yaml_filename=$(basename "$FC_CONF_DIR")
 
   wget -q "$FC_CONF_DIR"
-  sed -e 's,location: .*,location: "'"$WORKDIR"'/output_files/fc/001",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -e 's,location: .*,location: "'"$WORKDIR"'/work",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
 done
