@@ -11,7 +11,7 @@ while [[ $# -gt 0 ]]; do
                                 PRODUCT=$1
                                 ;;
         --dea-module )          shift
-                                DEA_MODULE=$1
+                                MODULE=$1
                                 ;;
         --queue )               shift
                                 QUEUE=$1
@@ -38,45 +38,20 @@ dbname='datacube'
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
-# Launch the submission in the background, outputting results to a log file
-cd "${WORKDIR}"
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
-
-echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
-
-echo ""
-echo Loading module "${DEA_MODULE}"
 module use /g/data/v10/public/modules/modulefiles
-module load "${DEA_MODULE}"
-echo ""
-
-# Check if we can connect to the database
-datacube -vv system check
-
-# Read agdc datasets from the database before ingest process
-echo ""
-echo "**********************************************************************"
+module load "${MODULE}"
 while read -r LINE; do
   if [[ "$count" -eq 1 ]]
   then
-      IFS=': '
-      set ${LINE}
-      echo "Connected to the database hostname: $2"
-      dbhostname="$2"
+      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
       count=$((count+1))
   elif [[ "$count" -eq 2 ]]
   then
-      IFS=': '
-      set $LINE
-      echo "Connected to the database port number: $2"
-      dbport="$2"
+      dbport="$(cut -d' ' -f2 <<<"$LINE")"
       count=$((count+1))
   elif [[ "$count" -eq 3 ]]
   then
-      IFS=': '
-      set $LINE
-      echo "Connected to the database name: $2"
-      dbname="$2"
+      dbname="$(cut -d' ' -f2 <<<"$LINE")"
       count=$((count+1))
   fi
 
@@ -89,11 +64,32 @@ while read -r LINE; do
   fi
 done  < "$DATACUBE_CONFIG_PATH"
 
+# Launch the submission in the background, outputting results to a log file
+cd "${WORKDIR}"
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module "${MODULE}"
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+# Read agdc datasets from the database before ingest process
+echo ""
+echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before ingest process"
+echo "Connected to the database name: $dbhostname"
+echo "Connected to the database port number: $dbport"
+echo "Connected to the database hostname: $dbname"
 psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
 echo "Executing ingest for ${YEAR} ${PRODUCT}"
+##################################################################################################
+# Run dea-submit-ingest process
+##################################################################################################
 yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
