@@ -26,11 +26,11 @@ do
   yaml_filename=$(basename "$FC_STATS_CONF_DIR")
 
   wget -q "$FC_STATS_CONF_DIR"
-  sed -e 's,location: .*,location: "'"$WORKDIR"'/fc_stats/001",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,2018-01-01,2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  end_date: .*,  end_date: 2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,2017-01-01,2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/fc_stats/001",' "$yaml_filename"
+  sed -i -e 's,2018-01-01,2019-01-01,' "$yaml_filename"
+  sed -i -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename"
+  sed -i -e 's,  end_date: .*,  end_date: 2019-01-01,' "$yaml_filename"
+  sed -i -e 's,2017-01-01,2019-01-01,' "$yaml_filename"
 done
 
 for i in "${fcpercentiltstats_yaml_array[@]}"
@@ -39,11 +39,11 @@ do
   yaml_filename=$(basename "$FC_STATS_CONF_DIR")
 
   wget -q "$FC_STATS_CONF_DIR"
-  sed -e 's,location: .*,location: "'"$WORKDIR"'/fc_stats/001",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,2018-01-01,2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  end_date: .*,  end_date: 2019-01-01\n  stats_duration: 3m\n  step_size: 3m,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,2017-01-01,2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/fc_stats/001",' "$yaml_filename"
+  sed -i -e 's,2018-01-01,2019-01-01,' "$yaml_filename"
+  sed -i -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename"
+  sed -i -e 's,  end_date: .*,  end_date: 2019-01-01\n  stats_duration: 3m\n  step_size: 3m,' "$yaml_filename"
+  sed -i -e 's,2017-01-01,2019-01-01,' "$yaml_filename"
 done
 
 # Replace NBAR stats product output location in the yaml file
@@ -54,9 +54,9 @@ do
   yaml_filename=$(basename "$NBAR_STATS_CONF_DIR")
 
   wget -q "$NBAR_STATS_CONF_DIR"
-  sed -e 's,location: .*,location: "'"$WORKDIR"'/nbar_stats/001",' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
-  sed -e 's,  end_date: .*,  end_date: 2019-01-01,' "$yaml_filename" > "$yaml_filename.tmp" && mv "$yaml_filename.tmp" "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/nbar_stats/001",' "$yaml_filename"
+  sed -i -e 's,  start_date: .*,  start_date: 2018-01-01,' "$yaml_filename"
+  sed -i -e 's,  end_date: .*,  end_date: 2019-01-01,' "$yaml_filename"
 done
 
 cp "$2"/dea_testscripts/landsat_seasonal_mean.yaml "$WORKDIR"/stats_configfiles

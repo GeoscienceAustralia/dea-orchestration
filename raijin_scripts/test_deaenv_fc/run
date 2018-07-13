@@ -67,8 +67,4 @@ echo "Applying fractional cover on ls8_fc_albers product for the year ${YEAR}" w
 echo "------------------------------------------------------------------------------------------"
 datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml --project "${PROJECT}" --queue "${QUEUE}" -C "$DC_CONFIG_FILEPATH" -vvv --year "${YEAR}" --tag "${TAG}"
 
-echo "Applying fractional cover on ls5_fc_albers product for the year ${YEAR}" with tag "${TAG}"
-echo "------------------------------------------------------------------------------------------"
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls5_fc_albers.yaml --project "${PROJECT}" --queue "${QUEUE}" -C "$DC_CONFIG_FILEPATH" -vvv --year "${YEAR}" --tag "${TAG}"
-
 EOF
