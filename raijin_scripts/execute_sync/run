@@ -83,9 +83,9 @@ datacube -vv system check
 echo ""
 echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before sync process"
-echo "Connected to the database name: $dbhostname"
+echo "Connected to the database host name: $dbhostname"
 echo "Connected to the database port number: $dbport"
-echo "Connected to the database hostname: $dbname"
+echo "Connected to the database name: $dbname"
 psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
@@ -94,5 +94,5 @@ echo "Starting Sync process......"
 ##################################################################################################
 # Run dea-sync process
 ##################################################################################################
-qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries --update-locations --index-missing "$PATH_TO_PROCESS"
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=1:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries --trash-archived --update-locations --index-missing "$PATH_TO_PROCESS"
 EOF
