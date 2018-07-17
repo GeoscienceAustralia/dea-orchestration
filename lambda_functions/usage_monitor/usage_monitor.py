@@ -142,6 +142,7 @@ def human2decimal(s):
         return int(val * 1000000)
     else:
         raise ValueError('Error parsing "%s" into integer.' % s)
+        return
 
 
 def update_template(es):

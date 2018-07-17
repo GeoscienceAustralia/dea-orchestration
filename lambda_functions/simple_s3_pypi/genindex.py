@@ -34,7 +34,7 @@ def generate_listing(event, context):
 
 
 def process_directory(bucket, directory):
-    LOG.info(f"Processing s3://{bucket}/{directory}")
+    LOG.info(f"Processing s3://{0}/{1}" % (bucket, directory))
     s3client = boto3.client('s3')
     response = s3client.list_objects_v2(Bucket=bucket, Prefix=f"{directory}/", Delimiter='/')
 
@@ -42,7 +42,7 @@ def process_directory(bucket, directory):
     folders = [prefix['Prefix'] for prefix in response.get('CommonPrefixes', [])]
 
     index_path = path.join(directory, 'index.html')
-    LOG.info(f"Found {len(files)} in {directory}. Updating '{index_path}'.")
+    LOG.info(f"Found {0} in {1}. Updating '{2}'." % (len(files), directory, index_path))
 
     index_contents = generate_index_html(files)
     s3client.put_object(Bucket=bucket, Key=index_path, Body=index_contents, ContentType="text/html",

@@ -13,6 +13,7 @@ def timestr_to_seconds(time_str):
         return parts[0] * (60**2) + parts[1] * (60) + parts[2]
     else:
         raise NotImplementedError('timestamp not handled')
+        return
 
 
 # pylint: disable=pointless-string-statement

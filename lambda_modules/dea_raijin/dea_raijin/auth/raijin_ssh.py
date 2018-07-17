@@ -16,7 +16,7 @@ class _IgnorePolicy(paramiko.MissingHostKeyPolicy):
         pass
 
 
-class SSHConfig(object):
+class SSHConfig():
     """Class to hold ssh credentials for raijin sessions
 
     Attributes:
@@ -82,7 +82,7 @@ class SSHConfig(object):
         return self.from_json_obj(json_obj)
 
 
-class RaijinSession(object):
+class RaijinSession():
     """Establishes an ssh connection with raijin login node.
 
     Attributes:
