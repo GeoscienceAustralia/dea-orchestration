@@ -136,13 +136,15 @@ def storage_usage(storage_pt, text):
 def human2decimal(s):
     unit = s[-1]
     val = float(s[:-1])
+    ret_val = None
     if unit == 'K':
-        return int(val * 1000)
+        ret_val = int(val * 1000)
     elif unit == 'M':
-        return int(val * 1000000)
+        ret_val = int(val * 1000000)
     else:
         raise ValueError('Error parsing "%s" into integer.' % s)
-        return
+
+    return ret_val
 
 
 def update_template(es):
