@@ -157,7 +157,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.debug(f'Installing pip packages from "{ 0 }" into directory "{ 1 }"' % (requirements, dest))
+    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', (requirements, dest))
     run(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
@@ -169,14 +169,15 @@ def find_default_version(module_name):
                             encoding='ascii')
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
+    ret_val = None
     if default_version:
-        return default_version[0].replace('(default)', '')
+        ret_val = default_version[0].replace('(default)', '')
     elif len(versions) > 0:
-        return versions[-1]
+        ret_val = versions[-1]
     else:
         raise Exception('No version of module %s is available.' % module_name)
-        return
-
+    
+    return ret_val
 
 def run_final_commands_on_module(commands, module_name):
     for command in commands:

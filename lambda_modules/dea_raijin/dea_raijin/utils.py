@@ -7,13 +7,16 @@ def timestr_to_seconds(time_str):
         parts = [int(t) for t in time_str.split(':')]
     except TypeError:
         raise RuntimeError('timestamp ill formatted')
+    
+    ret_val = None
     if len(parts) == 2:
-        return parts[0] * (60**2) + parts[1] * (60)
+        ret_val = parts[0] * (60**2) + parts[1] * (60)
     elif len(parts) == 3:
-        return parts[0] * (60**2) + parts[1] * (60) + parts[2]
+        ret_val = parts[0] * (60**2) + parts[1] * (60) + parts[2]
     else:
         raise NotImplementedError('timestamp not handled')
-        return
+
+    return ret_val
 
 
 # pylint: disable=pointless-string-statement
