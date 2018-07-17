@@ -157,7 +157,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', (requirements, dest))
+    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
     run(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
