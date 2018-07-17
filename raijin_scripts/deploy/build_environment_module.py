@@ -176,8 +176,9 @@ def find_default_version(module_name):
         ret_val = versions[-1]
     else:
         raise Exception('No version of module %s is available.' % module_name)
-    
+
     return ret_val
+
 
 def run_final_commands_on_module(commands, module_name):
     for command in commands:
