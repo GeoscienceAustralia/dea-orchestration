@@ -29,9 +29,20 @@ modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
 WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/fc
 SUBMISSION_LOG="$WORKDIR"/fc-$(date '+%F-%T').log
 DC_CONFIG_FILEPATH="$(pwd)"/datacube_config.conf
+LOGFILE="$WORKDIR"/'Not_World_Readable_Files.log'
 
-# Check if output directory exists, else create one
+# Create output work directory (if not exists)
 mkdir -p "$WORKDIR"/work
+
+# Ensure that all files are world readable
+if [[ $(find "/g/data/v10/public/modules/$MODULE" ! -perm -o=r) ]]; then
+    echo "Error: Some files in $MODULE are not world readable"
+    echo "
+Following files in $MODULE are not world readable:
+-----------------------------------------------------------------
+$(find /g/data/v10/public/modules/"$MODULE" ! -perm -o=r)" > "$LOGFILE"
+    exit 0
+fi
 
 # Copy yaml files from repo
 sh dea_testscripts/copy_fcyaml_files.sh "$WORKDIR"
