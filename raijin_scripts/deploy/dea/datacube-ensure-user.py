@@ -113,10 +113,8 @@ def main(hostname, port, username):
                       database='datacube', password=None)
     pgpass = Path(CURRENT_HOME_DIR) / '.pgpass'
 
-    if can_connect(dbcreds):
-        # User can connect to requested database without a password, no more work to do
-        return
-    else:
+    # User cannot connect to the requested database
+    if not can_connect(dbcreds):
         try:
             # We deliberately assume different ports on the same host are the same server.
             # (in our case, pgbouncer and the db itself have different ports)

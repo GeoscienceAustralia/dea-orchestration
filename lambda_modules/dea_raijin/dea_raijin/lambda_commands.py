@@ -4,7 +4,7 @@ from . import config
 from .auth import RaijinSession
 
 
-class BaseCommand(object):
+class BaseCommand():
     """BaseCommand for Command inheritance.
 
     The function command should be overwritten by the inheriting class.

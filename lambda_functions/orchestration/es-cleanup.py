@@ -34,7 +34,7 @@ class ESException(Exception):
                                status_code, payload))
 
 
-class ESCleanup(object):
+class ESCleanup():
 
     name = "lambda_es_cleanup"
 
@@ -123,9 +123,8 @@ class ESCleanup(object):
                 if res.status_code >= 200 and res.status_code <= 299:
                     # print("%s %s" % (res.status_code, res.content))
                     return json.loads(res.content)
-                else:
-                    raise ESException(res.status_code, res.content)
 
+                raise ESException(res.status_code, res.content)
             except ESException as e:
                 if (e.status_code >= 500) and (e.status_code <= 599):
                     retries += 1  # Candidate for retry

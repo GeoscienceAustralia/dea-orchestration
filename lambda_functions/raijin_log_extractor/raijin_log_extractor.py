@@ -15,7 +15,7 @@ from dea_es import ES_CONNECTION as ES
 S3_CLIENT = boto3.client('s3')
 
 
-class ESHandler(object):
+class ESHandler():
 
     TEMPLATE_NAME = 'dea-ncijob-log'
     TEMPLATE = {
@@ -99,7 +99,7 @@ class ESHandler(object):
                 helpers.bulk(client=self.es, actions=self.log_data[key])
 
 
-class S3Handler(object):
+class S3Handler():
 
     SUBMISSION_INFO_FN = 'subbmission-info.yaml'
 
