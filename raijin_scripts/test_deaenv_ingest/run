@@ -21,12 +21,24 @@ WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/index_ingest
 SUBMISSION_LOG="$WORKDIR"/index_ingest-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 TESTDIR="$(pwd)"
+LOGFILE="$WORKDIR"/'Not_World_Readable_Files.log'
+
+# Create output work directory (if not exists)
+mkdir -p "$WORKDIR"/work
+
+# Ensure that all files are world readable
+if [[ $(find "/g/data/v10/public/modules/$MODULE" ! -perm -o=r) ]]; then
+    echo "Error: Some files in $MODULE are not world readable"
+    echo "
+Following files in $MODULE are not world readable:
+-----------------------------------------------------------------
+$(find /g/data/v10/public/modules/"$MODULE" ! -perm -o=r)" > "$LOGFILE"
+    exit 0
+fi
 
 # Copy yaml files from repo
 sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
 
-# Check if output directory exists, else create one
-mkdir -p "$WORKDIR"/work
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Get database name from the config file
