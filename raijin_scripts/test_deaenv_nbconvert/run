@@ -18,8 +18,9 @@ WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/nbconvert
 SUBMISSION_LOG="$WORKDIR"/deaenv_nbconvert-$(date '+%F-%T').log
 HOMEDIR="$(pwd)"
 
-# Check if output directory exists, else create one
+# Create output work directory (if not exists)
 mkdir -p "$WORKDIR"
+
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &

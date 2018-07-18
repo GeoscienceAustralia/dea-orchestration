@@ -24,12 +24,13 @@ WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/stats
 SUBMISSION_LOG="$WORKDIR"/stats-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 
+# Create output work directory (if not exists)
+mkdir -p "$WORKDIR"/nbar_stats/001
+mkdir -p "$WORKDIR"/fc_stats/001
+
 # Copy yaml files from repo
 sh dea_testscripts/cp_statsyaml_files.sh "$WORKDIR" "$(pwd)"
 
-# Check if output directory exists, else create one
-mkdir -p "$WORKDIR"/nbar_stats/001
-mkdir -p "$WORKDIR"/fc_stats/001
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
