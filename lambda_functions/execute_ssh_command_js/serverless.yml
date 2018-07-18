@@ -62,6 +62,7 @@ provider:
 
 functions:
   execute_sync:
+    # trasharchive is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
@@ -70,43 +71,49 @@ functions:
                          --stage ${self:custom.Stage}
                          --year <%= year %>
                          --path <%= path %>
-                         --product <%= product %>'
+                         --product <%= product %>
+                         --trasharchive <%= trasharchive %>'
     events:
       - schedule:
-          rate: cron(00 04 ? * FRI *) # Run every Friday, at 04:00:00 am UTC time
+          rate: cron(10 08 ? * TUE *) # Run every Tuesday, at 08:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_level1_scene
-            path: '/g/data/v10/reprocess/ls8/level1/2018/05/'
+            path: '/g/data/v10/reprocess/ls8/level1/2018/'
+            trasharchive: no
       - schedule:
-          rate: cron(00 05 ? * FRI *) # Run every Friday, at 05:00:00 am UTC time
+          rate: cron(10 09 ? * TUE *) # Run every Tuesday, at 09:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbart_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbart'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/01/output/nbart/'
+            trasharchive: no
       - schedule:
-          rate: cron(00 06 ? * FRI *) # Run every Friday, at 06:00:00 am UTC time
+          rate: cron(10 10 ? * TUE *) # Run every Tuesday, at 10:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbar_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbar'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/02/output/nbar/'
+            trasharchive: no
       - schedule:
-          rate: cron(00 07 ? * FRI *) # Run every Friday, at 07:00:00 am UTC time
+          rate: cron(10 19 ? * TUE *) # Run every Tuesday, at 19:10:00 pm UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_pq_scene
-            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/05/output/pqa/'
+            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/'
+            trasharchive: no
       - schedule:
-          rate: cron(00 08 ? * FRI *) # Run every Friday, at 08:00:00 am UTC time
+          rate: cron(10 20 ? * TUE *) # Run every Tuesday, at 20:10:00 pm UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_pq_legacy_scene
-            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/05/output/pqa'
+            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/'
+            trasharchive: no
   git_pull_prod:
     handler: handler.execute_ssh_command
     environment:
@@ -115,8 +122,8 @@ functions:
       pkey: 'orchestrator.raijin.users.git_pull.pkey'
     events:
       - schedule:
-          rate: cron(45 03 ? * FRI *) # Run every Friday, at 03:45:00 am UTC time
-          enabled: false
+          rate: cron(00 08 ? * TUE *) # Run every Tuesday, at 08:00:00 am UTC time
+          enabled: true
   execute_ingest:
     handler: handler.execute_ssh_command
     environment:
