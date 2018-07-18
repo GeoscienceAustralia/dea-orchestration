@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
         --product )             shift
                                 PRODUCT=$1
                                 ;;
-        --trasharchive )        shift
+        --trasharchived )       shift
                                 TRASH_ARC=$1
                                 ;;
         * )                     exit 0
