@@ -30,7 +30,7 @@ WORKDIR=/g/data/v10/work/dea_env_test/"${modname}"/fc
 SUBMISSION_LOG="$WORKDIR"/fc-$(date '+%F-%T').log
 DC_CONFIG_FILEPATH="$(pwd)"/datacube_config.conf
 
-# Check if output directory exists, else create one
+# Create output work directory (if not exists)
 mkdir -p "$WORKDIR"/work
 
 # Copy yaml files from repo

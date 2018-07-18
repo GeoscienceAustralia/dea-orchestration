@@ -22,11 +22,12 @@ SUBMISSION_LOG="$WORKDIR"/index_ingest-$(date '+%F-%T').log
 CONFIGFILE="$(pwd)"/datacube_config.conf
 TESTDIR="$(pwd)"
 
+# Create output work directory (if not exists)
+mkdir -p "$WORKDIR"/work
+
 # Copy yaml files from repo
 sh dea_testscripts/cp_indingest_yaml_files.sh "$WORKDIR"
 
-# Check if output directory exists, else create one
-mkdir -p "$WORKDIR"/work
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 # Get database name from the config file
