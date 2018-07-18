@@ -25,6 +25,9 @@ while [[ $# -gt 0 ]]; do
         --product )             shift
                                 PRODUCT=$1
                                 ;;
+        --trasharchive )        shift
+                                TRASH_ARC=$1
+                                ;;
         * )                     exit 0
     esac
     shift
@@ -68,6 +71,11 @@ while read -r LINE; do
   fi
 done  < "$DATACUBE_CONFIG_PATH"
 
+TRASH_ARCHIVED=''
+if [ "$TRASH_ARC" == yes ]; then
+   TRASH_ARCHIVED='--trash-archived'
+fi
+
 cd "${WORKDIR}"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
@@ -94,5 +102,5 @@ echo "Starting Sync process......"
 ##################################################################################################
 # Run dea-sync process
 ##################################################################################################
-qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries --trash-archived --update-locations --index-missing "$PATH_TO_PROCESS"
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing "$PATH_TO_PROCESS"
 EOF
