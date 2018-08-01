@@ -1,4 +1,5 @@
 --index-url https://packages.dea.gadevs.ga/
+--no-binary fc
 datacube
 eodatasets
 digitalearthau

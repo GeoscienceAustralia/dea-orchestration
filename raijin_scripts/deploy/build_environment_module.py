@@ -216,7 +216,7 @@ def main(config_path):
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
 
-    if 'finalise_commands' in config:
+    if 'finalise_commands' in config and config['finalise_commands']:
         module_name_and_version = variables['module_name'] + '/' + variables['module_version']
         run_final_commands_on_module(config['finalise_commands'], module_name_and_version)
 
