@@ -1,6 +1,5 @@
 name: dea-env
 channels:
-- conda-forge/label/dev
 - conda-forge
 - defaults
 - nodefaults
@@ -12,15 +11,15 @@ dependencies:
 - cartopy
 - certifi
 - click
+- compliance-checker
 - cython
 - dask
 - distributed
 - ephem
 - fiona
-- ffmpeg
 - folium
 - future
-- gdal >=1.9
+- gdal >= 2.2.4
 - geopandas
 - geopy
 - glueviz
@@ -43,14 +42,14 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-- mkl-service
+  #- mkl-service
 - mock
 - netcdf4
 - nodejs
 - numba
 - numexpr
 - numpy
-- openblas
+  #- openblas
 - openssl
 - pandas
 - pep8
@@ -66,12 +65,12 @@ dependencies:
 - pyyaml
 - python = 3.6
 # - qgis >= 3  # QGIS 3 is not being built for linux64 yet. See https://github.com/conda-forge/qgis-feedstock/pull/36
-- rasterio >= 1.0a12  # required for zip reading
+- rasterio >= 1.0.2  # required for zip reading
 - rasterstats
 - redis
 - redis-py
 - rios
-- rsgislib
+  #- rsgislib # Seems to pull in old gdal
 - rtree
 - scikit-image
 - scikit-learn
@@ -84,6 +83,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - tqdm
+- tuiview
 - xarray
 - voluptuous
 - pip:
@@ -93,7 +93,6 @@ dependencies:
   - celery >= 4
   - ciso8601
   - click-datetime
-  - compliance-checker
   - DAWG
   - flask
   - Flask-Caching
@@ -101,7 +100,6 @@ dependencies:
   - gunicorn
   - hdmedians
   - ipython-sql
-  - jupyterlab_github
   - meinheld
   - modernize
   - mypy
