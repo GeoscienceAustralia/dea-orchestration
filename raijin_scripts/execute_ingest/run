@@ -91,5 +91,5 @@ echo "Executing ingest for ${YEAR} ${PRODUCT}"
 ##################################################################################################
 # Run dea-submit-ingest process
 ##################################################################################################
-yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
+yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 40 --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
