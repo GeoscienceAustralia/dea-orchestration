@@ -33,7 +33,8 @@ script:
 deploy:
    provider: script
    script:
-     - if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+     # Serverless deploy to production environment after merging to production branch
+     - if [ "$TRAVIS_PULL_REQUEST" == "false" ]
        then
           cd lambda_functions/execute_ssh_command_js/
           npm install -g npm
