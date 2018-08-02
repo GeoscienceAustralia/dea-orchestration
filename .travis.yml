@@ -37,7 +37,6 @@ deploy:
      - if [ "$TRAVIS_PULL_REQUEST" == "false" ]
        then
           cd lambda_functions/execute_ssh_command_js/
-          npm install -g npm
           npm install
           sls deploy -v -s prod
        else

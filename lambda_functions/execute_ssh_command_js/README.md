@@ -70,6 +70,7 @@ In order to deploy the endpoint, simply run:
 
 In order to run the script (before an event is triggered), simply run:
 
-     1) `sls invoke -f execute_sync -l -s prod -d '{"year": "2018", "product": "ls8_nbart_scene", "dea-module": "dea/20180801", "project":"v10", "queue":"express", "stage": "prod", "trasharchived": "no", "path": "/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbart/"}'`
+     1) `sls invoke -f git_pull_prod -l -s prod`
+     2) `sls invoke -f execute_sync -l -s prod -d '{"year": "2018", "product": "ls8_nbart_scene", "dea-module": "dea/20180801", "project":"v10", "queue":"express", "stage": "prod", "trasharchived": "no", "path": "/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbart/"}'`
      
      Note: Use appropriate stage (-s dev or -s prod) when using sls invoke
