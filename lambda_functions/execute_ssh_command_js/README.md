@@ -70,6 +70,6 @@ In order to deploy the endpoint, simply run:
 
 In order to run the script (before an event is triggered), simply run:
 
-     1) `serverless invoke -f execute_ingest -l -d '{"command": "execute_ingest", "year": "2017", "product": "ls8_nbar_albers", "dea-module": "dea/20180515", "project":"u46", "queue":"express"}'`
+     1) `sls invoke -f execute_sync -l -s prod -d '{"year": "2018", "product": "ls8_nbart_scene", "dea-module": "dea/20180801", "project":"v10", "queue":"express", "stage": "prod", "trasharchived": "no", "path": "/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbart/"}'`
      
      Note: Use appropriate stage (-s dev or -s prod) when using sls invoke
