@@ -37,14 +37,14 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180705
+    DEA_MODULE: dea/20180801
     PROJECT: v10
-    QUEUE: express
+    QUEUE: normal
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
     repo: dea-orchestration
-    author: santosh.mohan@ga.gov.au
+    author: nci.monitor@dea.ga.gov.au
     purpose: nci-automation
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
@@ -75,7 +75,7 @@ functions:
                          --trasharchived <%= trasharchived %>'
     events:
       - schedule:
-          rate: cron(10 08 ? * TUE *) # Run every Tuesday, at 08:10:00 am UTC time
+          rate: cron(10 00 ? * TUE *) # Run every Tuesday, at 00:10:00 am UTC time
           enabled: false
           input:
             year: 2018
@@ -83,7 +83,7 @@ functions:
             path: '/g/data/v10/reprocess/ls8/level1/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 09 ? * TUE *) # Run every Tuesday, at 09:10:00 am UTC time
+          rate: cron(10 01 ? * TUE *) # Run every Tuesday, at 01:10:00 am UTC time
           enabled: false
           input:
             year: 2018
@@ -91,7 +91,63 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/01/output/nbart/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * TUE *) # Run every Tuesday, at 10:10:00 am UTC time
+          rate: cron(10 02 ? * TUE *) # Run every Tuesday, at 02:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/02/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 03 ? * TUE *) # Run every Tuesday, at 03:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/03/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 04 ? * TUE *) # Run every Tuesday, at 04:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/04/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 05 ? * TUE *) # Run every Tuesday, at 05:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 06 ? * TUE *) # Run every Tuesday, at 06:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/06/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 07 ? * TUE *) # Run every Tuesday, at 07:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 08 ? * TUE *) # Run every Tuesday, at 08:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/01/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 09 ? * TUE *) # Run every Tuesday, at 09:10:00 am UTC time
           enabled: false
           input:
             year: 2018
@@ -99,7 +155,47 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/02/output/nbar/'
             trasharchived: no
       - schedule:
-          rate: cron(10 19 ? * TUE *) # Run every Tuesday, at 19:10:00 pm UTC time
+          rate: cron(10 10 ? * TUE *) # Run every Tuesday, at 10:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/03/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 11 ? * TUE *) # Run every Tuesday, at 11:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/04/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 12 ? * TUE *) # Run every Tuesday, at 12:10:00 pm UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/05/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 13 ? * TUE *) # Run every Tuesday, at 13:10:00 pm UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/06/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 14 ? * TUE *) # Run every Tuesday, at 14:10:00 pm UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 15 ? * TUE *) # Run every Tuesday, at 15:10:00 pm UTC time
           enabled: false
           input:
             year: 2018
@@ -107,7 +203,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 20 ? * TUE *) # Run every Tuesday, at 20:10:00 pm UTC time
+          rate: cron(10 16 ? * TUE *) # Run every Tuesday, at 16:10:00 pm UTC time
           enabled: false
           input:
             year: 2018
@@ -122,7 +218,7 @@ functions:
       pkey: 'orchestrator.raijin.users.git_pull.pkey'
     events:
       - schedule:
-          rate: cron(00 08 ? * TUE *) # Run every Tuesday, at 08:00:00 am UTC time
+          rate: cron(02 00 ? * TUE *) # Run every Tuesday, at 00:02:00 am UTC time
           enabled: true
   execute_ingest:
     handler: handler.execute_ssh_command
@@ -135,41 +231,23 @@ functions:
                            --product <%= product %>'
     events:
       - schedule:
-          rate: cron(00 09 ? * FRI *) # Run every Friday, at 09:00:00 am UTC time
+          rate: cron(10 00 ? * WED *) # Run every Wednesday, at 00:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(00 15 ? * FRI *) # Run every Friday, at 03:00:00 pm UTC time
+          rate: cron(10 03 ? * WED *) # Run every Wednesday, at 03:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(00 21 ? * FRI *) # Run every Friday, at 09:00:00 pm UTC time
+          rate: cron(10 06 ? * WED *) # Run every Wednesday, at 06:10:00 am UTC time
           enabled: false
           input:
             year: 2018
             product: ls8_pq_albers
-      - schedule:
-          rate: cron(00 03 ? * SAT *) # Run every Saturday, at 03:00:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            product: ls8_nbar_oli_albers
-      - schedule:
-          rate: cron(00 09 ? * SAT *) # Run every Saturday, at 09:00:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            product: ls8_nbart_oli_albers
-      - schedule:
-          rate: cron(00 15 ? * SAT *) # Run every Saturday, at 03:00:00 pm UTC time
-          enabled: false
-          input:
-            year: 2018
-            product: ls8_pq_oli_albers
   execute_stacker:
     handler: handler.execute_ssh_command
     environment:
@@ -197,24 +275,6 @@ functions:
           input:
             year: 2018
             appconfig: ls8_pq_albers.yaml
-      - schedule:
-          rate: cron(15 05 * * ? *) # Run daily, at 05:15:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_nbar_oli_albers.yaml
-      - schedule:
-          rate: cron(30 05 * * ? *) # Run daily, at 05:30:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_nbart_oli_albers.yaml
-      - schedule:
-          rate: cron(45 05 * * ? *) # Run daily, at 05:45:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_pq_oli_albers.yaml
   execute_clean:
     handler: handler.execute_ssh_command
     environment:
