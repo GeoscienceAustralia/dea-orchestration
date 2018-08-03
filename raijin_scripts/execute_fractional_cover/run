@@ -1,7 +1,5 @@
 #!/bin/bash
-
 set -eu
-
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -9,17 +7,14 @@ while [[ $# -gt 0 ]]; do
         --year )                shift
                                 YEAR=$1
                                 ;;
-        --output-product )      shift
-                                OUTPUT_PRODUCT=$1
+        --product )             shift
+                                PRODUCT=$1
                                 ;;
         --tag )                 shift
                                 TAG=$1
                                 ;;
-        --fc-module )           shift
-                                FC_MODULE=$1
-                                ;;
         --dea-module )          shift
-                                DEA_MODULE=$1
+                                MODULE=$1
                                 ;;
         --queue )               shift
                                 QUEUE=$1
@@ -27,24 +22,80 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
+        --stage )               shift
+                                STAGE=$1
+                                ;;
         * )                     exit 1
     esac
     shift
 done
 
+WORKDIR=/g/data/v10/work/fc/"${PRODUCT}"/$(date '+%FT%H%M')
+SUBMISSION_LOG="${WORKDIR}"/fc-submission-${PRODUCT}-$(date '+%F-%T').log
+JOB_NAME="${YEAR}_${PRODUCT}"
+count=0
+dbhostname='agdcdev-db.nci.org.au'
+dbport='6432'
+dbname='datacube'
 
-echo Executing fractional cover for "${YEAR}" "${OUTPUT_PRODUCT}" with tag "${TAG}"
-echo Loading modules "${DEA_MODULE}" and "${FC_MODULE}"
+mkdir -p "${WORKDIR}"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
-module use /g/data/v10/private/modules/modulefiles
+module load "${MODULE}"
+while read -r LINE; do
+  if [[ "$count" -eq 1 ]]
+  then
+      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 2 ]]
+  then
+      dbport="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 3 ]]
+  then
+      dbname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  fi
 
-module load "${DEA_MODULE}"
-module load "${FC_MODULE}"
+  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
+      count=$((count+1))
+  fi
+done  < "$DATACUBE_CONFIG_PATH"
 
 cd /g/data/v10/work/fc/
+APP_CONFIG=$(datacube-fc list | grep "${PRODUCT}")
 
-APP_CONFIG=$(datacube-fc list | grep "${OUTPUT_PRODUCT}")
+# Launch the submission in the background, outputting results to a log file
+cd "${WORKDIR}"
 
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module "${MODULE}"
+echo ""
 
+# Check if we can connect to the database
+datacube -vv system check
+
+# Read agdc datasets from the database before fractional cover process
+echo ""
+echo "**********************************************************************"
+echo "Read previous agdc_dataset product names and count before fractional cover process"
+echo "Connected to the database host name: $dbhostname"
+echo "Connected to the database port number: $dbport"
+echo "Connected to the database name: $dbname"
+psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "**********************************************************************"
+
+echo ""
+echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
+##################################################################################################
+# Run dea-submit-fractional cover process
+##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
+EOF

@@ -37,9 +37,9 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180801
+    DEA_MODULE: dea/20180803
     PROJECT: v10
-    QUEUE: normal
+    QUEUE: express
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
@@ -275,6 +275,24 @@ functions:
           input:
             year: 2018
             appconfig: ls8_pq_albers.yaml
+  execute_fractional_cover:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
+                                     --queue ${self:provider.environment.QUEUE}
+                                     --project ${self:provider.environment.PROJECT}
+                                     --stage ${self:custom.Stage}
+                                     --year <%= year %>
+                                     --product <%= product %>
+                                     --tag <%= tag %>'
+    events:
+      - schedule:
+          rate: cron(10 08 ? * THU *) # Run every Thursday, at 08:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_fc_albers
+            tag: '2018'
   execute_clean:
     handler: handler.execute_ssh_command
     environment:
