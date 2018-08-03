@@ -34,14 +34,7 @@ deploy:
    provider: script
    script:
      # Serverless deploy to production environment after merging to production branch
-     - if [ "$TRAVIS_PULL_REQUEST" == "false" ]
-       then
-          cd lambda_functions/execute_ssh_command_js/
-          npm install
-          sls deploy -v -s prod
-       else
-          echo "Skip deploy"
-       fi
+     - cd lambda_functions/execute_ssh_command_js/ && npm install && sls deploy -v -s prod
    skip_cleanup: true
    on:
      branch: production
