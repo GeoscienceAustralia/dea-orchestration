@@ -39,7 +39,7 @@ provider:
     pkey: 'orchestrator.raijin.users.default.pkey'
     DEA_MODULE: dea/20180803
     PROJECT: v10
-    QUEUE: express
+    QUEUE: normal
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
