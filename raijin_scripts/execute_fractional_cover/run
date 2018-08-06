@@ -30,15 +30,14 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-WORKDIR=/g/data/v10/work/fc/"${PRODUCT}"/$(date '+%FT%H%M')
-SUBMISSION_LOG="${WORKDIR}"/fc-submission-${PRODUCT}-$(date '+%F-%T').log
+LOG_FILENAME=fc-submission-${PRODUCT}-$(date '+%F-%T').log
+SUBMISSION_LOG=/g/data/v10/work/fc/"$LOG_FILENAME"
 JOB_NAME="${YEAR}_${PRODUCT}"
 count=0
 dbhostname='agdcdev-db.nci.org.au'
 dbport='6432'
 dbname='datacube'
 
-mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
@@ -71,8 +70,6 @@ cd /g/data/v10/work/fc/
 APP_CONFIG=$(datacube-fc list | grep "${PRODUCT}")
 
 # Launch the submission in the background, outputting results to a log file
-cd "${WORKDIR}"
-
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
@@ -99,3 +96,8 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
 EOF
+
+# Move submission log file to fc work directory
+searchstring='Created work directory '
+dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
+if [[ -d /"$dirpath" && -f "$SUBMISSION_LOG" ]]; then cp -p -r "$SUBMISSION_LOG" /"$dirpath/$LOG_FILENAME" && rm -rf "$SUBMISSION_LOG"; fi
