@@ -92,7 +92,7 @@ echo "**********************************************************************"
 echo ""
 echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
-# Run dea-submit-fractional cover process
+# Run fractional cover two stage process
 ##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
 EOF
