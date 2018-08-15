@@ -1,0 +1,105 @@
+#!/bin/bash
+set -eu
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --year )                shift
+                                YEAR=$1
+                                ;;
+        --product )             shift
+                                PRODUCT=$1
+                                ;;
+        --tag )                 shift
+                                TAG=$1
+                                ;;
+        --dea-module )          shift
+                                MODULE=$1
+                                ;;
+        --queue )               shift
+                                QUEUE=$1
+                                ;;
+        --project )             shift
+                                PROJECT=$1
+                                ;;
+        --stage )               shift
+                                STAGE=$1
+                                ;;
+        * )                     exit 1
+    esac
+    shift
+done
+
+ROOTDIR=/g/data/v10/work/"${PRODUCT}"/wofs
+LOG_FILENAME="${PRODUCT}"-submission-$(date '+%F-%T').log
+SUBMISSION_LOG="$ROOTDIR/$LOG_FILENAME"
+JOB_NAME="${YEAR}_${PRODUCT}"
+count=0
+dbhostname='agdcdev-db.nci.org.au'
+dbport='6432'
+dbname='datacube'
+
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+while read -r LINE; do
+  if [[ "$count" -eq 1 ]]
+  then
+      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 2 ]]
+  then
+      dbport="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  elif [[ "$count" -eq 3 ]]
+  then
+      dbname="$(cut -d' ' -f2 <<<"$LINE")"
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
+      count=$((count+1))
+  fi
+
+  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
+      count=$((count+1))
+  fi
+done  < "$DATACUBE_CONFIG_PATH"
+
+cd "$ROOTDIR"
+APP_CONFIG=/g/data/v10/public/modules/"$MODULE"/wofs/config/"${PRODUCT}".yaml
+
+# Launch the submission in the background, outputting results to a log file
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module "${MODULE}"
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+# Read agdc datasets from the database before wofs process
+echo ""
+echo "**********************************************************************"
+echo "Read previous agdc_dataset product names and count before wofs process"
+echo "Connected to the database host name: $dbhostname"
+echo "Connected to the database port number: $dbport"
+echo "Connected to the database name: $dbname"
+psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "**********************************************************************"
+
+echo ""
+echo "Executing wofs for ${YEAR} ${PRODUCT} with tag ${TAG}"
+##################################################################################################
+# Run datacube-wofs submit two stage PBS job
+##################################################################################################
+datacube-wofs submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
+EOF
+
+sleep 60s # Wait 60s before moving the submission log
+# Move submission log file to wofs work directory
+searchstring='Created work directory '
+dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
+if [[ -d /"$dirpath" && -f "$SUBMISSION_LOG" ]]; then cp -p -r "$SUBMISSION_LOG" /"$dirpath/$LOG_FILENAME" && rm -rf "$SUBMISSION_LOG"; fi
