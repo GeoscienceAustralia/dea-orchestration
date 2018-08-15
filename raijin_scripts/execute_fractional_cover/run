@@ -92,11 +92,12 @@ echo "**********************************************************************"
 echo ""
 echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
-# Run fractional cover two stage process
+# Run datacube-fc submit two stage PBS job
 ##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
 EOF
 
+sleep 60s # Wait 60s before moving the submission log
 # Move submission log file to fc work directory
 searchstring='Created work directory '
 dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
