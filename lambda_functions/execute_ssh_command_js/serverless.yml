@@ -37,7 +37,7 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180803
+    DEA_MODULE: dea/20180815
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -161,6 +161,14 @@ functions:
           enabled: false
           input:
             year: 2018
+            product: ls8_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/08/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(23 08 ? * THU *) # Run every Thursday, at 08:23:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
             product: ls8_nbar_scene
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/01/output/nbar/'
             trasharchived: no
@@ -211,6 +219,14 @@ functions:
             year: 2018
             product: ls8_nbar_scene
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/07/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(30 08 ? * THU *) # Run every Thursday, at 08:30:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: ls8_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/08/output/nbar/'
             trasharchived: no
       - schedule:
           rate: cron(30 08 ? * THU *) # Run every Thursday, at 08:30:00 am UTC time
@@ -292,6 +308,24 @@ functions:
           input:
             year: 2018
             product: ls8_fc_albers
+            tag: '2018'
+  execute_wofs:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
+                         --queue ${self:provider.environment.QUEUE}
+                         --project ${self:provider.environment.PROJECT}
+                         --stage ${self:custom.Stage}
+                         --year <%= year %>
+                         --product <%= product %>
+                         --tag <%= tag %>'
+    events:
+      - schedule:
+          rate: cron(10 10 ? * THU *) # Run every Thursday, at 10:10:00 am UTC time
+          enabled: false
+          input:
+            year: 2018
+            product: wofs_albers
             tag: '2018'
   execute_clean:
     handler: handler.execute_ssh_command
