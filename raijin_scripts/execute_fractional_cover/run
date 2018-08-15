@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-LOG_FILENAME=fc-submission-${PRODUCT}-$(date '+%F-%T').log
+LOG_FILENAME="${PRODUCT}"-submission-$(date '+%F-%T').log
 SUBMISSION_LOG=/g/data/v10/work/fc/"$LOG_FILENAME"
 JOB_NAME="${YEAR}_${PRODUCT}"
 count=0
