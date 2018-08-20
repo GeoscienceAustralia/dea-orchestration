@@ -79,6 +79,9 @@ def install_conda_packages(env_file, variables):
     module_path = variables['module_path']
 
     run(f"{conda_path} env create -p {module_path} -v --file {env_file}")
+    
+    # Activate the new environment
+    run(f"source activate {module_path}")
 
 
 def write_template(template_file, variables, output_file):
