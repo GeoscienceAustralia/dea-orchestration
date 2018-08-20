@@ -11,6 +11,7 @@ dependencies:
 - cartopy
 - certifi
 - click
+- cligj >= 0.4
 - compliance-checker
 - cython
 - dask
@@ -41,14 +42,14 @@ dependencies:
 - line_profiler
 - luigi
 - matplotlib
-- memory_profiler
+#- memory_profiler # Rasterstats depends on memory_profiler from anaconda channel 
   #- mkl-service
 - mock
 - netcdf4
 - nodejs
 - numba
 - numexpr
-- numpy
+- numpy >= 1.9
   #- openblas
 - openssl
 - pandas
@@ -77,6 +78,7 @@ dependencies:
 - scipy
 - seaborn
 - shapely
+- simplejson
 - singledispatch
 - spectral
 - sphinx
