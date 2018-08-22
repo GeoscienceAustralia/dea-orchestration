@@ -33,6 +33,7 @@ import shutil
 import string
 import logging
 import yaml
+from time import sleep
 
 MODULE_DIR = '/g/data/v10/public/modules'
 
@@ -40,7 +41,7 @@ LOG = logging.getLogger('environment_module_builder')
 
 
 def pre_check(config):
-    LOG.debug('Performing pre-check before installing module')
+    LOG.debug(' Performing pre-check before installing module')
     if "PYTHONPATH" in os.environ:
         raise Exception("The PYTHONPATH environment variable must NOT be set when creating modules.")
 
@@ -51,7 +52,7 @@ def pre_check(config):
 
 
 def prep(config_path):
-    LOG.debug('Preparing environment variables')
+    LOG.debug(' Preparing environment variables')
     # Write files as group and world readable
     os.umask(0o22)
     os.chdir(config_path.parent)
@@ -67,27 +68,25 @@ def date(date_format="%Y%m%d") -> str:
 
 
 def run(cmd: str):
-    LOG.debug('Running command: %s', cmd)
+    LOG.debug(' Running command: %s', cmd)
     return subprocess.run(cmd, shell=True, check=True, stdout=sys.stdout, stderr=sys.stderr)
 
 
 def install_conda_packages(env_file, variables):
-    LOG.debug('Installing conda packages from %s', env_file)
+    LOG.debug(' Installing conda packages from %s', env_file)
 
     env_name = variables['module_name']
     conda_path = variables['conda_path']
     module_path = variables['module_path']
 
     run(f"{conda_path} env create -p {module_path} -v --file {env_file}")
-    
-    # Activate the new environment
-    run(f"source activate {module_path}")
 
 
 def write_template(template_file, variables, output_file):
-    LOG.debug('Filling template file %s to %s', template_file, output_file)
-    LOG.debug('Ensuring parent dir %s exists', output_file.parent)
+    LOG.debug(' Filling template file %s to %s', template_file, output_file)
+    LOG.debug(' Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
+    sleep(5) # sleep 5 seconds
 
     template_contents = template_file.read_text()
     template = string.Template(template_contents)
@@ -105,15 +104,16 @@ def copy_files(copy_tasks, variables):
         src = Path(task['src'])
         dest = Path(task['dest'])
 
-        LOG.debug('Copying %s to %s', src, dest)
-        LOG.debug('Ensuring parent dir %s exists', dest.parent)
+        LOG.debug(' Copying %s to %s', src, dest)
+        LOG.debug(' Ensuring parent dir %s exists', dest.parent)
         dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(src, dest)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
-            LOG.debug('Setting %s permissions to %s', dest, oct(perms))
+            LOG.debug(' Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
+
+        shutil.copy(src, dest)
 
 
 def read_config(path):
@@ -126,10 +126,13 @@ def copy_and_fill_templates(template_tasks, variables):
 
         src = Path(task['src'])
         dest = Path(task['dest'])
+        LOG.debug(' Copy and fill dea-env modulefile %s in %s', src, dest)
+        # Write the module file template to modulefiles/dea-env directory
         write_template(src, variables, dest)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
+            LOG.debug(' Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -141,7 +144,7 @@ def include_templated_vars(config):
 
 
 def fix_module_permissions(module_path):
-    LOG.debug('Setting module "%s" to read-only', module_path)
+    LOG.debug(' Setting module "%s" to read-only', module_path)
     run(f'chmod -R a-w "{module_path}"')
 
 
@@ -160,7 +163,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
+    LOG.debug(f' Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
     run(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
@@ -199,7 +202,7 @@ def include_stable_module_dep_versions(config):
 
 def main(config_path):
     logging.basicConfig(level=logging.DEBUG)
-    LOG.debug('Reading config file')
+    LOG.debug(' Reading config file')
     config = read_config(config_path)
     config['variables']['module_version'] = date()
     include_templated_vars(config)
