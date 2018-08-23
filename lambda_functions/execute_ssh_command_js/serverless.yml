@@ -35,9 +35,9 @@ provider:
   profile: ${self:custom.profiles.${self:custom.Stage}}
   environment:
     hostkey: 'orchestrator.raijin.users.default.host'
-    userkey: 'orchestrator.raijin.users.default.user'
-    pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20180815
+    userkey: 'orchestrator.raijin.users.tb1251.user'
+    pkey: 'orchestrator.raijin.users.tb1251.pkey'
+    DEA_MODULE: dea/20180823
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
