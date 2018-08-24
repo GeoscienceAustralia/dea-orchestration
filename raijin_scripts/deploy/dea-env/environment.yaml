@@ -1,8 +1,6 @@
 name: dea-env
 channels:
 - conda-forge
-- defaults
-- nodefaults
 dependencies:
 - affine >= 2.2.1
 - asn1crypto >= 0.24.0
@@ -70,7 +68,7 @@ dependencies:
 - jupyter
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
-- jupyterlab = 0.33.0
+  #- jupyterlab # Not intended for production/distribution environment
 - keras
 - kealib >= 1.4.9
 - krb5 >= 1.14.6
@@ -95,16 +93,18 @@ dependencies:
 - line_profiler
 - luigi
 - matplotlib
-  #- memory_profiler # Rasterstats depends on memory_profiler from anaconda channel 
+- memory_profiler
   #- mkl-service
 - mkl >= 2018.0.3
 - mkl_fft >= 1.0.5
 - mkl_random >= 1.0.1
 - mock
 - munch >= 2.3.2
+- nb_conda_kernels
 - ncurses >= 6.1
 - netcdf4
-  #- nodejs = 9.11.1  # Jupyter lab build fails with Node v10.4.1 and yarn v1.9.4 (Ref: https://github.com/jupyterlab/jupyterlab/issues/4585, #4804). 
+- nodejs
+- notebook
 - numba
 - numexpr
 - numpy >= 1.9
@@ -163,12 +163,15 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite >= 3.24.0
+- tornado
 - tk >= 8.6.7
 - tqdm
 - tuiview
 - urllib3 >= 1.23
+- vega_datasets
 - voluptuous
 - wheel >= 0.31.1
+- widgetsnbextension
 - xarray
 - xerces-c >= 3.2.0
 - xorg-kbproto >= 1.0.7
@@ -184,7 +187,7 @@ dependencies:
 - xorg-xproto >= 7.0.31
 - xz >= 5.2.4
 - yaml >= 0.1.7
-  #- yarn = 1.6.0 # Jupyter lab build fails with Node v10.4.1 and yarn v1.9.4 (Ref: https://github.com/jupyterlab/jupyterlab/issues/4585). 
+- yarn
 - zlib >= 1.2.11
 - pip:
   - autopep8
