@@ -86,7 +86,7 @@ def write_template(template_file, variables, output_file):
     LOG.debug(' Filling template file %s to %s', template_file, output_file)
     LOG.debug(' Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    sleep(5) # sleep 5 seconds
+    sleep(5)  # sleep 5 seconds
 
     template_contents = template_file.read_text()
     template = string.Template(template_contents)
