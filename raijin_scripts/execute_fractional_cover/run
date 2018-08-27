@@ -70,7 +70,7 @@ cd /g/data/v10/work/fc/
 APP_CONFIG=$(datacube-fc list | grep "${PRODUCT}")
 
 # Launch the submission in the background, outputting results to a log file
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+{
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
 echo Loading module "${MODULE}"
@@ -95,10 +95,10 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 # Run datacube-fc submit two stage PBS job
 ##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
-EOF
+} > "$SUBMISSION_LOG"
 
-sleep 60s # Wait 60s before moving the submission log
+sleep 2s
 # Move submission log file to fc work directory
 searchstring='Created work directory '
 dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
-if [[ -d /"$dirpath" && -f "$SUBMISSION_LOG" ]]; then cp -p -r "$SUBMISSION_LOG" /"$dirpath/$LOG_FILENAME" && rm -rf "$SUBMISSION_LOG"; fi
+if [[ -d "$dirpath" && -f "$SUBMISSION_LOG" ]]; then mv "$SUBMISSION_LOG" "$dirpath"; fi
