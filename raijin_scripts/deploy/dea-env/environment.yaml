@@ -70,7 +70,7 @@ dependencies:
 - redis
 - redis-py
 - rios
-  #- rsgislib # Seems to pull in old gdal
+- rsgislib
 - rtree
 - scikit-image
 - scikit-learn
