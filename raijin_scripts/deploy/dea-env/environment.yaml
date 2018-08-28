@@ -68,7 +68,7 @@ dependencies:
 - jupyter
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
-  #- jupyterlab # Not intended for production/distribution environment
+- jupyterlab >= 0.34.2
 - keras
 - kealib >= 1.4.9
 - krb5 >= 1.14.6
