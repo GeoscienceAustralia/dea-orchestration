@@ -20,7 +20,3 @@ template_files:
 - src: modulefile.template
   dest: "{modules_dir}/modulefiles/{module_name}/{module_version}"
   chmod: 0o444
-
-finalise_commands:
-- jupyter lab clean
-- jupyter lab build
