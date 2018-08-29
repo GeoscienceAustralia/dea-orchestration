@@ -43,8 +43,17 @@ from time import sleep
 
 MODULE_DIR = '/g/data/v10/public/modules'
 
+LOG_NAME = 'build_dea_module.log'
+file_handler = logging.FileHandler(filename=LOG_NAME, mode='w')
+stdout_handler = logging.StreamHandler(sys.stdout)
+handlers = [file_handler, stdout_handler]
 
-#logging.basicConfig(filename='build_dea_module.log')
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s',
+    handlers=handlers
+)
+
 LOG = logging.getLogger('build-dea-module')
 
 
@@ -52,10 +61,10 @@ def pre_check(config):
     """
     Perform pre-checks before creating a new module
     
-    :param dict config: Dictionary of config parameters
+    :param config:
     :return: None
     """
-    LOG.debug(' Performing pre-check before installing module')
+    LOG.debug('Performing pre-check before installing module')
     if "PYTHONPATH" in os.environ:
         raise Exception("The PYTHONPATH environment variable must NOT be set when creating modules.")
 
@@ -67,11 +76,12 @@ def pre_check(config):
 
 def prep(config_path):
     """
+    Prepare environment variables before creating a new module
     
     :param config_path:
-    :return:
+    :return: None
     """
-    LOG.debug(' Preparing environment variables')
+    LOG.debug('Preparing environment variables')
     # Write files as group and world readable
     os.umask(0o22)
     os.chdir(config_path.parent)
@@ -84,23 +94,29 @@ def prep(config_path):
 
 def date(date_format="%Y%m%d") -> str:
     """
+    Return data format as YYYYMMDD
     
-    :param date_format:
-    :return:
+    :param str date_format:
+    :return: datetime as a str
     """
     return datetime.datetime.now().strftime(date_format)
 
 
 def run_command(cmd: str):
     """
+    Run subprocess command and print the output on the terminal and the log file
     
-    :param cmd:
+    :param str cmd:
     :return:
     """
-    LOG.debug(' Running command: %s', cmd)
-    return subprocess.run(cmd, shell=True, check=True,
-                          stdout=sys.stdout,
-                          stderr=sys.stderr)
+    try:
+        LOG.debug('Running command: %s', cmd)
+        proc_output = subprocess.run(cmd, shell=True, check=True,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+        LOG.debug(proc_output.stdout.decode('utf-8'))
+    except subprocess.CalledProcessError as suberror:
+        LOG.exception("Failed : %s" % suberror.stdout.decode('utf-8'))
 
 
 def install_conda_packages(env_file, variables):
@@ -110,7 +126,7 @@ def install_conda_packages(env_file, variables):
     :param variables:
     :return:
     """
-    LOG.debug(' Installing conda packages from %s', env_file)
+    LOG.debug('Installing conda packages from %s', env_file)
 
     conda_path = variables['conda_path']
     module_path = variables['module_path']
@@ -126,8 +142,8 @@ def write_template(template_file, variables, output_file):
     :param output_file:
     :return:
     """
-    LOG.debug(' Filling template file %s to %s', template_file, output_file)
-    LOG.debug(' Ensuring parent dir %s exists', output_file.parent)
+    LOG.debug('Filling template file %s to %s', template_file, output_file)
+    LOG.debug('Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     sleep(5)  # sleep 5 seconds
 
@@ -159,13 +175,13 @@ def copy_files(copy_tasks, variables):
         src = Path(task['src'])
         dest = Path(task['dest'])
 
-        LOG.debug(' Copying %s to %s', src, dest)
-        LOG.debug(' Ensuring parent dir %s exists', dest.parent)
+        LOG.debug('Copying %s to %s', src, dest)
+        LOG.debug('Ensuring parent dir %s exists', dest.parent)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
-            LOG.debug(' Setting %s permissions to %s', dest, oct(perms))
+            LOG.debug('Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
 
         shutil.copy(src, dest)
@@ -192,13 +208,13 @@ def copy_and_fill_templates(template_tasks, variables):
 
         src = Path(task['src'])
         dest = Path(task['dest'])
-        LOG.debug(' Copy and fill dea-env modulefile %s in %s', src, dest)
+        LOG.debug('Copy and fill dea-env modulefile %s in %s', src, dest)
         # Write the module file template to modulefiles/dea-env directory
         write_template(src, variables, dest)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
-            LOG.debug(' Setting %s permissions to %s', dest, oct(perms))
+            LOG.debug('Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -220,8 +236,8 @@ def fix_module_permissions(module_path):
     :param module_path:
     :return:
     """
-    LOG.debug(' Setting module "%s" to read-only', module_path)
-    run_command(f'chmod -R a-w "{module_path}"')
+    LOG.debug('Setting module "%s" to read-only', module_path)
+    run_command(f'chmod -R u+rwx go+r "{module_path}"')
 
 
 def install_pip_packages(pip_conf, variables):
@@ -245,7 +261,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.debug(f' Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
+    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
     run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
@@ -253,13 +269,14 @@ def find_default_version(module_name):
     """
     
     :param module_name:
-    :return:
+    :return: Version on success else raise exception
     """
     cmd = f"module --terse avail {module_name}"
     output = subprocess.run(cmd, shell=True, check=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             encoding='ascii')
+    LOG.debug(output.stdout.decode('utf-8'))
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
     if default_version:
@@ -270,24 +287,24 @@ def find_default_version(module_name):
         raise Exception('No version of module %s is available.' % module_name)
 
 
-def run_final_commands_on_module(commands, module_name):
+def run_final_commands_on_module(commands, module_path):
     """
     
-    :param commands:
-    :param module_name:
-    :return:
+    :param list commands:
+    :param str module_path:
+    :return: None
     """
     for command in commands:
-        command = f'module load {module_name}; {command}'
-        LOG.debug(' Run final commands on module')
-        run_command(command)
+        cmd = f'{module_path}/bin/{command}'
+        LOG.debug('Run final commands on module')
+        run_command(cmd)
 
 
 def include_stable_module_dep_versions(config):
     """
     
-    :param config:
-    :return:
+    :param dict config:
+    :return: None
     """
     stable_module_deps = config.get('stable_module_deps', [])
     for dep in stable_module_deps:
@@ -299,34 +316,29 @@ def include_stable_module_dep_versions(config):
 def reinstall_miniconda(script_name):
     """
     
-    :param script_name:
-    :return:
+    :param str script_name:
+    :return: None
     """
-    command = f'./{script_name}'
-    LOG.debug(' Re-install miniconda3 before creating new dea-environment module')
-    run_command(command)
+    LOG.debug('Re-install miniconda3 before creating new dea-environment module')
+    run_command(f'./{script_name}')
 
 
-def main(config_path, dea_env):
+def main(config_path, dea_env: bool):
     """
     
-    :param config_path:
-    :param dea_env:
-    :return:
+    :param str config_path:
+    :param bool dea_env:
+    :return: None
     """
     logging.basicConfig(level=logging.DEBUG)
     run_command(f'module use /g/data/v10/public/modules/modulefiles/')
     run_command(f'pip3 install --user pyyaml')
-    LOG.debug(' Reading config file')
+    LOG.debug('Reading config file')
     config = read_config(config_path)
     variables = config['variables']
 
     if dea_env:
         reinstall_miniconda('reinstall_miniconda.sh')
-    else:
-        if 'finalise_commands' in config and config['finalise_commands']:
-            module_name_and_version = variables['module_name'] + '/' + variables['module_version']
-            run_final_commands_on_module(config['finalise_commands'], module_name_and_version)
 
     config['variables']['module_version'] = date()
     include_templated_vars(config)
@@ -344,8 +356,12 @@ def main(config_path, dea_env):
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
 
+    if 'finalise_commands' in config and config['finalise_commands']:
+        run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
+
     fix_module_permissions(variables['module_path'])
+    shutil.move(LOG_NAME, variables['module_path']/LOG_NAME)
 
 
 if __name__ == '__main__':
-    main(Path(sys.argv[1]), sys.argv[1])
+    main(Path(sys.argv[1]), sys.argv[2])

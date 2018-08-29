@@ -30,10 +30,3 @@ copy_files:
 template_files:
 - src: modulefile.template
   dest: "{modules_base}/modulefiles/{module_name}/{module_version}"
-
-finalise_commands:
-- jupyter labextension install jupyterlab_bokeh
-- jupyter labextension install @jupyterlab/geojson-extension
-- jupyter labextension install @jupyterlab/github
-- jupyter labextension install @jupyterlab/toc
-- jupyter lab build

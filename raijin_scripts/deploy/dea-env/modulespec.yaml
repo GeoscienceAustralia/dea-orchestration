@@ -3,7 +3,7 @@ variables:
   module_description: DEA Environment Module
   modules_dir: "/g/data/v10/public/modules"
   conda_path: "/g/data/v10/private/miniconda3-new/bin/conda"
-#  module_version: This is filled in automatically
+  # module_version: This is filled in automatically
 
 # These templated variables are filled and included in the available variables used
 # in template files and configuration sections below
@@ -20,3 +20,10 @@ template_files:
 - src: modulefile.template
   dest: "{modules_dir}/modulefiles/{module_name}/{module_version}"
   chmod: 0o444
+
+finalise_commands:
+- jupyter labextension install jupyterlab_bokeh
+- jupyter labextension install @jupyterlab/geojson-extension
+- jupyter labextension install @jupyterlab/github
+- jupyter labextension install @jupyterlab/toc
+- jupyter lab build
