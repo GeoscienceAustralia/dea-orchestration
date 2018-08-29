@@ -69,7 +69,7 @@ functions:
       pkey: 'orchestrator.raijin.users.git_pull.pkey'
     events:
       - schedule:
-          rate: cron(15 00 ? * MON,TUE,WED *) # Run every Monday-Wednesday, at 00:15:00 am UTC time
+          rate: cron(00 10 ? * WED,THU,FRI *) # Run every Wednesday-Friday, at 08:00 pm Canberra time
           enabled: true
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
@@ -85,7 +85,7 @@ functions:
                          --trasharchived <%= trasharchived %>'
     events:
       - schedule:
-          rate: cron(30 00 ? * MON *) # Run every Monday, at 00:30:00 am UTC time
+          rate: cron(10 10 ? * WED *) # Run every Wednesday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -93,7 +93,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(30 00 ? * MON *) # Run every Monday, at 00:30:00 am UTC time
+          rate: cron(10 10 ? * WED *) # Run every Wednesday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -101,7 +101,7 @@ functions:
             path: '/g/data/v10/reprocess/ls8/level1/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(30 00 ? * MON *) # Run every Monday, at 00:30:00 am UTC time
+          rate: cron(10 10 ? * WED *) # Run every Wednesday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -109,7 +109,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(30 00 ? * MON *) # Run every Monday, at 00:30:00 am UTC time
+          rate: cron(10 10 ? * WED *) # Run every Wednesday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -117,7 +117,7 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbart/'
             trasharchived: no
       - schedule:
-          rate: cron(30 00 ? * MON *) # Run every Monday, at 00:30:00 am UTC time
+          rate: cron(10 10 ? * WED *) # Run every Wednesday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -135,19 +135,19 @@ functions:
                            --product <%= product %>'
     events:
       - schedule:
-          rate: cron(15 05 ? * TUE *) # Run every Tuesday, at 05:15:00 am UTC time
+          rate: cron(15 10 ? * THU *) # Run every Thursday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(15 05 ? * TUE *) # Run every Tuesday, at 05:15:00 am UTC time
+          rate: cron(15 10 ? * THU *) # Run every Thursday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(15 05 ? * TUE *) # Run every Tuesday, at 05:15:00 am UTC time
+          rate: cron(15 10 ? * THU *) # Run every Thursday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -164,7 +164,7 @@ functions:
                                      --tag <%= tag %>'
     events:
       - schedule:
-          rate: cron(15 14 ? * WED *) # Run every Wednesday, at 14:15:00 pm UTC time
+          rate: cron(15 10 ? * FRI *) # Run every Friday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -182,7 +182,7 @@ functions:
                          --tag <%= tag %>'
     events:
       - schedule:
-          rate: cron(15 14 ? * WED *) # Run every Wednesday, at 14:15:00 pm UTC time
+          rate: cron(20 10 ? * FRI *) # Run every Friday, at 08:20 pm Canberra time
           enabled: true
           input:
             year: 2018
