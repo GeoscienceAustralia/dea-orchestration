@@ -10,10 +10,18 @@ It is configured by a YAML file, which specifies:
  - (opt) Pip style requirements.txt to install to a directory
 
 It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
+  $ module use /g/data/v10/public/modules/modulefiles/
+  $ module load python3/3.6.2
+  $ pip3 install --user pyyaml
 
-  module load python3/3.6.2
-  pip install --user pyyaml
-  ./build_environment_module.py dea-env/modulespec.yaml
+  $ # Building a new Environment Module:
+  $ ./build_environment_module.py dea-env/modulespec.yaml True
+
+New DEA Module to be build from VDI and not Raijin
+  $ module use /g/data/v10/public/modules/modulefiles/
+
+  $ # Building a new DEA Module
+  $ ./build_environment_module.py dea/modulespec.yaml False
 
 It used to be able to perform a miniconda installation, but that turned out to
 be flaky, so we now maintain a central miniconda install, and create environments
@@ -26,8 +34,6 @@ import datetime
 import os
 import subprocess
 import sys
-import tempfile
-import urllib.request
 from pathlib import Path
 import shutil
 import string
@@ -37,10 +43,18 @@ from time import sleep
 
 MODULE_DIR = '/g/data/v10/public/modules'
 
-LOG = logging.getLogger('environment_module_builder')
+
+#logging.basicConfig(filename='build_dea_module.log')
+LOG = logging.getLogger('build-dea-module')
 
 
 def pre_check(config):
+    """
+    Perform pre-checks before creating a new module
+    
+    :param dict config: Dictionary of config parameters
+    :return: None
+    """
     LOG.debug(' Performing pre-check before installing module')
     if "PYTHONPATH" in os.environ:
         raise Exception("The PYTHONPATH environment variable must NOT be set when creating modules.")
@@ -52,6 +66,11 @@ def pre_check(config):
 
 
 def prep(config_path):
+    """
+    
+    :param config_path:
+    :return:
+    """
     LOG.debug(' Preparing environment variables')
     # Write files as group and world readable
     os.umask(0o22)
@@ -64,25 +83,49 @@ def prep(config_path):
 
 
 def date(date_format="%Y%m%d") -> str:
+    """
+    
+    :param date_format:
+    :return:
+    """
     return datetime.datetime.now().strftime(date_format)
 
 
-def run(cmd: str):
+def run_command(cmd: str):
+    """
+    
+    :param cmd:
+    :return:
+    """
     LOG.debug(' Running command: %s', cmd)
-    return subprocess.run(cmd, shell=True, check=True, stdout=sys.stdout, stderr=sys.stderr)
+    return subprocess.run(cmd, shell=True, check=True,
+                          stdout=sys.stdout,
+                          stderr=sys.stderr)
 
 
 def install_conda_packages(env_file, variables):
+    """
+    
+    :param env_file:
+    :param variables:
+    :return:
+    """
     LOG.debug(' Installing conda packages from %s', env_file)
 
-    env_name = variables['module_name']
     conda_path = variables['conda_path']
     module_path = variables['module_path']
 
-    run(f"{conda_path} env create -p {module_path} -v --file {env_file}")
+    run_command(f"{conda_path} env create -p {module_path} -v --file {env_file}")
 
 
 def write_template(template_file, variables, output_file):
+    """
+    
+    :param template_file:
+    :param variables:
+    :param output_file:
+    :return:
+    """
     LOG.debug(' Filling template file %s to %s', template_file, output_file)
     LOG.debug(' Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -94,11 +137,23 @@ def write_template(template_file, variables, output_file):
 
 
 def fill_templates_from_variables(template_dict, variables):
+    """
+    
+    :param template_dict:
+    :param variables:
+    :return:
+    """
     for key, val in template_dict.items():
         template_dict[key] = val.format(**variables)
 
 
 def copy_files(copy_tasks, variables):
+    """
+    
+    :param copy_tasks:
+    :param variables:
+    :return:
+    """
     for task in copy_tasks:
         fill_templates_from_variables(task, variables)
         src = Path(task['src'])
@@ -117,10 +172,21 @@ def copy_files(copy_tasks, variables):
 
 
 def read_config(path):
+    """
+    
+    :param path:
+    :return:
+    """
     return yaml.safe_load(path.read_text())
 
 
 def copy_and_fill_templates(template_tasks, variables):
+    """
+    
+    :param template_tasks:
+    :param variables:
+    :return:
+    """
     for task in template_tasks:
         fill_templates_from_variables(task, variables)
 
@@ -137,6 +203,11 @@ def copy_and_fill_templates(template_tasks, variables):
 
 
 def include_templated_vars(config):
+    """
+    
+    :param config:
+    :return:
+    """
     fill_templates_from_variables(config['templated_variables'], config['variables'])
     config['variables'].update(config['templated_variables'])
 
@@ -144,11 +215,22 @@ def include_templated_vars(config):
 
 
 def fix_module_permissions(module_path):
+    """
+    
+    :param module_path:
+    :return:
+    """
     LOG.debug(' Setting module "%s" to read-only', module_path)
-    run(f'chmod -R a-w "{module_path}"')
+    run_command(f'chmod -R a-w "{module_path}"')
 
 
 def install_pip_packages(pip_conf, variables):
+    """
+    
+    :param pip_conf:
+    :param variables:
+    :return:
+    """
     fill_templates_from_variables(pip_conf, variables)
     pip = pip_conf['pip_cmd']
     prefix = pip_conf.get('prefix', pip_conf.get('dest'))  # 'dest' for backwards compatibility
@@ -164,10 +246,15 @@ def install_pip_packages(pip_conf, variables):
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
     LOG.debug(f' Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
-    run(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
+    run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
 def find_default_version(module_name):
+    """
+    
+    :param module_name:
+    :return:
+    """
     cmd = f"module --terse avail {module_name}"
     output = subprocess.run(cmd, shell=True, check=True,
                             stdout=subprocess.PIPE,
@@ -175,24 +262,33 @@ def find_default_version(module_name):
                             encoding='ascii')
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
-    ret_val = None
     if default_version:
-        ret_val = default_version[0].replace('(default)', '')
+        return default_version[0].replace('(default)', '')
     elif len(versions) > 0:
-        ret_val = versions[-1]
+        return versions[-1]
     else:
         raise Exception('No version of module %s is available.' % module_name)
 
-    return ret_val
-
 
 def run_final_commands_on_module(commands, module_name):
+    """
+    
+    :param commands:
+    :param module_name:
+    :return:
+    """
     for command in commands:
         command = f'module load {module_name}; {command}'
-        run(command)
+        LOG.debug(' Run final commands on module')
+        run_command(command)
 
 
 def include_stable_module_dep_versions(config):
+    """
+    
+    :param config:
+    :return:
+    """
     stable_module_deps = config.get('stable_module_deps', [])
     for dep in stable_module_deps:
         default_version = find_default_version(dep)
@@ -200,15 +296,41 @@ def include_stable_module_dep_versions(config):
         config['variables'][f'fixed_{dep}'] = default_version
 
 
-def main(config_path):
+def reinstall_miniconda(script_name):
+    """
+    
+    :param script_name:
+    :return:
+    """
+    command = f'./{script_name}'
+    LOG.debug(' Re-install miniconda3 before creating new dea-environment module')
+    run_command(command)
+
+
+def main(config_path, dea_env):
+    """
+    
+    :param config_path:
+    :param dea_env:
+    :return:
+    """
     logging.basicConfig(level=logging.DEBUG)
+    run_command(f'module use /g/data/v10/public/modules/modulefiles/')
+    run_command(f'pip3 install --user pyyaml')
     LOG.debug(' Reading config file')
     config = read_config(config_path)
+    variables = config['variables']
+
+    if dea_env:
+        reinstall_miniconda('reinstall_miniconda.sh')
+    else:
+        if 'finalise_commands' in config and config['finalise_commands']:
+            module_name_and_version = variables['module_name'] + '/' + variables['module_version']
+            run_final_commands_on_module(config['finalise_commands'], module_name_and_version)
+
     config['variables']['module_version'] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
-
-    variables = config['variables']
 
     pre_check(config)
     prep(config_path)
@@ -222,12 +344,8 @@ def main(config_path):
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
 
-    if 'finalise_commands' in config and config['finalise_commands']:
-        module_name_and_version = variables['module_name'] + '/' + variables['module_version']
-        run_final_commands_on_module(config['finalise_commands'], module_name_and_version)
-
     fix_module_permissions(variables['module_path'])
 
 
 if __name__ == '__main__':
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), sys.argv[1])

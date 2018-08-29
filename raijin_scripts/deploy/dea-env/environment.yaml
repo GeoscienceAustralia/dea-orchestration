@@ -34,6 +34,7 @@ dependencies:
 - docutils >= 0.14
 - ephem
 - expat >= 2.2.5
+- ffmpeg
 - fiona >= 1.7.13
 - folium
 - fontconfig >= 2.13.0
@@ -52,6 +53,7 @@ dependencies:
 - graphviz # This is only graphviz itself, not the python bindings. The latter are in the pip section.
 - hdf4 >= 4.2.13
 - hdf5 >= 1.10.2
+- h5py
 - hypothesis
 - icu >= 58.2
 - idna >= 2.7
@@ -107,7 +109,6 @@ dependencies:
 - notebook
 - numba
 - numexpr
-- numpy >= 1.9
 - numpy >= 1.14.2
 - openjpeg >= 2.3.0
 - openssl >= 1.0.2o
