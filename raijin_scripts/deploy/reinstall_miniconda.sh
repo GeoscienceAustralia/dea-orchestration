@@ -9,4 +9,4 @@ cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
 "$MINICONDA_PATH"/bin/conda update -y -n base --all
 "$MINICONDA_PATH"/bin/conda install -y -c conda-forge pip
-chmod -R ug+rw "$MINICONDA_PATH"
+chmod -R ug+rwx "$MINICONDA_PATH"
