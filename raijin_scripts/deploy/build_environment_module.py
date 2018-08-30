@@ -10,15 +10,14 @@ It is configured by a YAML file, which specifies:
  - (opt) Pip style requirements.txt to install to a directory
 
 It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
-  $ module use /g/data/v10/public/modules/modulefiles/
+New DEA-Env Module
   $ module load python3/3.6.2
-  $ pip3 install --user pyyaml
 
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml True
 
-New DEA Module to be build from VDI and not Raijin
-  $ module use /g/data/v10/public/modules/modulefiles/
+New DEA Module
+  $ module load python3/3.6.2
 
   $ # Building a new DEA Module
   $ ./build_environment_module.py dea/modulespec.yaml False
@@ -43,7 +42,7 @@ from time import sleep
 
 MODULE_DIR = '/g/data/v10/public/modules'
 
-LOG_NAME = 'build_dea_module.log'
+LOG_NAME = "build_dea_module.log"
 file_handler = logging.FileHandler(filename=LOG_NAME, mode='w')
 stdout_handler = logging.StreamHandler(sys.stdout)
 handlers = [file_handler, stdout_handler]
@@ -60,8 +59,8 @@ LOG = logging.getLogger('build-dea-module')
 def pre_check(config):
     """
     Perform pre-checks before creating a new module
-    
-    :param config:
+
+    :param config: Configuration parameters
     :return: None
     """
     LOG.debug('Performing pre-check before installing module')
@@ -77,8 +76,8 @@ def pre_check(config):
 def prep(config_path):
     """
     Prepare environment variables before creating a new module
-    
-    :param config_path:
+
+    :param config_path: Configuration Path
     :return: None
     """
     LOG.debug('Preparing environment variables')
@@ -94,9 +93,9 @@ def prep(config_path):
 
 def date(date_format="%Y%m%d") -> str:
     """
-    Return data format as YYYYMMDD
-    
-    :param str date_format:
+    Return datatime format as YYYYMMDD
+
+    :param date_format: Date format as a str
     :return: datetime as a str
     """
     return datetime.datetime.now().strftime(date_format)
@@ -105,26 +104,29 @@ def date(date_format="%Y%m%d") -> str:
 def run_command(cmd: str):
     """
     Run subprocess command and print the output on the terminal and the log file
-    
-    :param str cmd:
-    :return:
+
+    :param cmd: Command to execute
+    :return: None
     """
     try:
         LOG.debug('Running command: %s', cmd)
         proc_output = subprocess.run(cmd, shell=True, check=True,
                                      stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT)
-        LOG.debug(proc_output.stdout.decode('utf-8'))
+                                     stderr=subprocess.STDOUT,
+                                     universal_newlines=True,
+                                     encoding='ascii')
+        LOG.debug(proc_output.stdout)
     except subprocess.CalledProcessError as suberror:
-        LOG.exception("Failed : %s" % suberror.stdout.decode('utf-8'))
+        LOG.exception("Failed : %s" % suberror.stdout)
 
 
 def install_conda_packages(env_file, variables):
     """
-    
-    :param env_file:
-    :param variables:
-    :return:
+    Install required conda packages specified in environment yaml file
+
+    :param env_file: Environment yaml file path
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
+    :return: None
     """
     LOG.debug('Installing conda packages from %s', env_file)
 
@@ -136,11 +138,12 @@ def install_conda_packages(env_file, variables):
 
 def write_template(template_file, variables, output_file):
     """
-    
-    :param template_file:
-    :param variables:
-    :param output_file:
-    :return:
+    Create a new dea module file using template file
+
+    :param template_file: Module template file
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
+    :param output_file: New dea module file
+    :return: None
     """
     LOG.debug('Filling template file %s to %s', template_file, output_file)
     LOG.debug('Ensuring parent dir %s exists', output_file.parent)
@@ -154,9 +157,10 @@ def write_template(template_file, variables, output_file):
 
 def fill_templates_from_variables(template_dict, variables):
     """
-    
-    :param template_dict:
-    :param variables:
+    Fill templates from the configuration variables as per configuration settings in modulespec yaml file
+
+    :param template_dict: Template dictionary to be updated
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
     :return:
     """
     for key, val in template_dict.items():
@@ -165,9 +169,10 @@ def fill_templates_from_variables(template_dict, variables):
 
 def copy_files(copy_tasks, variables):
     """
-    
-    :param copy_tasks:
-    :param variables:
+    Copy files from source to destination as per configuration settings in modulespec yaml file
+
+    :param copy_tasks: Copy tasks
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
     :return:
     """
     for task in copy_tasks:
@@ -189,19 +194,21 @@ def copy_files(copy_tasks, variables):
 
 def read_config(path):
     """
-    
-    :param path:
-    :return:
+    Read the configuration file and return a dictionary of configuration variables
+
+    :param path: Configuration file path
+    :return: Dictionary of configuration variables
     """
     return yaml.safe_load(path.read_text())
 
 
 def copy_and_fill_templates(template_tasks, variables):
     """
-    
-    :param template_tasks:
-    :param variables:
-    :return:
+    Copy and fill templates
+
+    :param template_tasks: Template tasks
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
+    :return: None
     """
     for task in template_tasks:
         fill_templates_from_variables(task, variables)
@@ -220,9 +227,10 @@ def copy_and_fill_templates(template_tasks, variables):
 
 def include_templated_vars(config):
     """
-    
-    :param config:
-    :return:
+    Update template variables
+
+    :param config: Dictionary of configuration variables
+    :return: None
     """
     fill_templates_from_variables(config['templated_variables'], config['variables'])
     config['variables'].update(config['templated_variables'])
@@ -232,20 +240,22 @@ def include_templated_vars(config):
 
 def fix_module_permissions(module_path):
     """
-    
-    :param module_path:
-    :return:
+    Fix module permissions
+
+    :param module_path: Module path
+    :return: None
     """
-    LOG.debug('Setting module "%s" to read-only', module_path)
-    run_command(f'chmod -R u+rwx go+r "{module_path}"')
+    LOG.debug('Setting module "%s" permission as world readable', module_path)
+    run_command(f'chmod -R u+rwx,go+rx,go-w "{module_path}"')
 
 
 def install_pip_packages(pip_conf, variables):
     """
-    
-    :param pip_conf:
-    :param variables:
-    :return:
+    Install pip packages as specified in the environment.yaml file
+
+    :param pip_conf: Dictionary of pip configurations
+    :param variables: Configuration variables as per configuration settings in modulespec yaml file
+    :return: None
     """
     fill_templates_from_variables(pip_conf, variables)
     pip = pip_conf['pip_cmd']
@@ -267,16 +277,18 @@ def install_pip_packages(pip_conf, variables):
 
 def find_default_version(module_name):
     """
-    
-    :param module_name:
+    Find default version of the dea module
+
+    :param module_name: Module name
     :return: Version on success else raise exception
     """
     cmd = f"module --terse avail {module_name}"
     output = subprocess.run(cmd, shell=True, check=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
+                            universal_newlines=True,
                             encoding='ascii')
-    LOG.debug(output.stdout.decode('utf-8'))
+    LOG.debug(output.stdout)
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
     if default_version:
@@ -289,21 +301,22 @@ def find_default_version(module_name):
 
 def run_final_commands_on_module(commands, module_path):
     """
-    
-    :param list commands:
-    :param str module_path:
+    Run final commands as per configurations in modulespec.yaml file
+
+    :param commands: List of commands
+    :param module_path: Module path
     :return: None
     """
     for command in commands:
         cmd = f'{module_path}/bin/{command}'
-        LOG.debug('Run final commands on module')
         run_command(cmd)
 
 
 def include_stable_module_dep_versions(config):
     """
-    
-    :param dict config:
+    Include stable module dependency versions
+
+    :param config: Dictionary of configuration variables
     :return: None
     """
     stable_module_deps = config.get('stable_module_deps', [])
@@ -315,8 +328,9 @@ def include_stable_module_dep_versions(config):
 
 def reinstall_miniconda(script_name):
     """
-    
-    :param str script_name:
+    Re-install miniconda and npm packages
+
+    :param script_name: Shell script name
     :return: None
     """
     LOG.debug('Re-install miniconda3 before creating new dea-environment module')
@@ -325,11 +339,16 @@ def reinstall_miniconda(script_name):
 
 def main(config_path, dea_env: bool):
     """
-    
-    :param str config_path:
-    :param bool dea_env:
+    Build new environment module
+
+    :param config_path: Configuration path
+    :param dea_env: Are we building dea-env module?
     :return: None
     """
+
+    # To keep the migration consistency across platforms (macOS/Windows/Linux)
+    ospath = r'%s' % os.getcwd().replace('\\', '/')
+
     logging.basicConfig(level=logging.DEBUG)
     run_command(f'module use /g/data/v10/public/modules/modulefiles/')
     run_command(f'pip3 install --user pyyaml')
@@ -356,11 +375,12 @@ def main(config_path, dea_env: bool):
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
 
+    LOG.debug('Run final commands on module')
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
 
     fix_module_permissions(variables['module_path'])
-    shutil.move(LOG_NAME, variables['module_path']/LOG_NAME)
+    shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
 
 if __name__ == '__main__':
