@@ -43,14 +43,14 @@ from time import sleep
 MODULE_DIR = '/g/data/v10/public/modules'
 
 LOG_NAME = "build_dea_module.log"
-file_handler = logging.FileHandler(filename=LOG_NAME, mode='w')
-stdout_handler = logging.StreamHandler(sys.stdout)
-handlers = [file_handler, stdout_handler]
+FILE_HANDLER = logging.FileHandler(filename=LOG_NAME, mode='w')
+STDOUT_HANDLER = logging.StreamHandler(sys.stdout)
+HANDLERS = [FILE_HANDLER, STDOUT_HANDLER]
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s',
-    handlers=handlers
+    handlers=HANDLERS
 )
 
 LOG = logging.getLogger('build-dea-module')
@@ -122,7 +122,7 @@ def run_command(cmd: str):
             log_output = proc_output.stdout
         LOG.debug(log_output)
     except subprocess.CalledProcessError as suberror:
-        LOG.exception("Failed : %s" % suberror.stdout)
+        LOG.exception("Failed : %s", suberror.stdout)
 
 
 def install_conda_packages(env_file, variables):
@@ -301,12 +301,14 @@ def find_default_version(module_name):
     LOG.debug(log_output)
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
+
     if default_version:
-        return default_version[0].replace('(default)', '')
+        ret_val = default_version[0].replace('(default)', '')
     elif len(versions) > 0:
-        return versions[-1]
+        ret_val = versions[-1]
     else:
         raise Exception('No version of module %s is available.' % module_name)
+    return ret_val
 
 
 def run_final_commands_on_module(commands, module_path):
