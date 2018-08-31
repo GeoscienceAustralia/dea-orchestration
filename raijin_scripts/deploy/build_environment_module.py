@@ -114,8 +114,13 @@ def run_command(cmd: str):
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
                                      universal_newlines=True,
-                                     encoding='iso-8859-1')
-        LOG.debug(proc_output.stdout.decode('iso-8859-1'))
+                                     encoding='utf-8',
+                                     errors='replace')
+        try:
+            log_output = proc_output.stdout.decode('utf-8')
+        except (AttributeError, UnicodeDecodeError):
+            log_output = proc_output.stdout
+        LOG.debug(log_output)
     except subprocess.CalledProcessError as suberror:
         LOG.exception("Failed : %s" % suberror.stdout)
 
@@ -287,8 +292,13 @@ def find_default_version(module_name):
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             universal_newlines=True,
-                            encoding='iso-8859-1')
-    LOG.debug(output.stdout.decode('iso-8859-1'))
+                            encoding='utf-8',
+                            errors='replace')
+    try:
+        log_output = output.stdout.decode('utf-8')
+    except (AttributeError, UnicodeDecodeError):
+        log_output = output.stdout
+    LOG.debug(log_output)
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
     if default_version:
