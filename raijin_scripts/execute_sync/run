@@ -78,6 +78,10 @@ fi
 
 cd "${WORKDIR}"
 # shellcheck disable=SC2086
+# Although quoting variables prevents word splitting and glob expansion, and prevents the script from breaking when 
+# input contains spaces, line feeds, glob characters and such. Folder name used in the search pattern are in Months 
+# represented as numbers (in MM) format. Hence, for the shell globbing to take effect for the input paths, we do not 
+# apply quotes for the $PATH_TO_PROCESS variable. Thus shellcheck for SC2086 is disabled.
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
