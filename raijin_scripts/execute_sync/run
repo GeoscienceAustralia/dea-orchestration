@@ -77,7 +77,7 @@ if [ "$TRASH_ARC" == yes ]; then
 fi
 
 cd "${WORKDIR}"
-
+# shellcheck disable=SC2086
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
@@ -102,5 +102,5 @@ echo "Starting Sync process......"
 ##################################################################################################
 # Run dea-sync process
 ##################################################################################################
-qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing "$PATH_TO_PROCESS"
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing $PATH_TO_PROCESS
 EOF
