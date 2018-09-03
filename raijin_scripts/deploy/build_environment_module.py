@@ -11,12 +11,14 @@ It is configured by a YAML file, which specifies:
 
 It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
 New DEA-Env Module
+  $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.6.2
 
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml True
 
 New DEA Module
+  $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.6.2
 
   $ # Building a new DEA Module
@@ -43,13 +45,13 @@ from time import sleep
 MODULE_DIR = '/g/data/v10/public/modules'
 
 LOG_NAME = "build_dea_module.log"
-FILE_HANDLER = logging.FileHandler(filename=LOG_NAME, mode='w')
+FILE_HANDLER = logging.FileHandler(filename=LOG_NAME, mode='w', encoding='utf-8')
 STDOUT_HANDLER = logging.StreamHandler(sys.stdout)
 HANDLERS = [FILE_HANDLER, STDOUT_HANDLER]
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s',
+    format=u'[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s',
     handlers=HANDLERS
 )
 
@@ -101,7 +103,7 @@ def date(date_format="%Y%m%d") -> str:
     return datetime.datetime.now().strftime(date_format)
 
 
-def run_command(cmd: str):
+def run_command(cmd):
     """
     Run subprocess command and print the output on the terminal and the log file
 
@@ -116,11 +118,9 @@ def run_command(cmd: str):
                                      universal_newlines=True,
                                      encoding='utf-8',
                                      errors='replace')
-        try:
-            log_output = proc_output.stdout.decode('utf-8')
-        except (AttributeError, UnicodeDecodeError):
-            log_output = proc_output.stdout
-        LOG.debug(log_output)
+
+        for line in proc_output.stdout.split(os.linesep):
+            LOG.debug(line)
     except subprocess.CalledProcessError as suberror:
         LOG.exception("Failed : %s", suberror.stdout)
 
@@ -189,12 +189,12 @@ def copy_files(copy_tasks, variables):
         LOG.debug('Ensuring parent dir %s exists', dest.parent)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
+        shutil.copy(src, dest)
+
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
             LOG.debug('Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
-
-        shutil.copy(src, dest)
 
 
 def read_config(path):
@@ -288,17 +288,12 @@ def find_default_version(module_name):
     :return: Version on success else raise exception
     """
     cmd = f"module --terse avail {module_name}"
+    LOG.debug("Running command: %s", cmd)
     output = subprocess.run(cmd, shell=True, check=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             universal_newlines=True,
-                            encoding='utf-8',
-                            errors='replace')
-    try:
-        log_output = output.stdout.decode('utf-8')
-    except (AttributeError, UnicodeDecodeError):
-        log_output = output.stdout
-    LOG.debug(log_output)
+                            encoding='ascii')
     versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
     default_version = [version for version in versions if '(default)' in version]
 
@@ -349,7 +344,7 @@ def reinstall_miniconda(script_name):
     run_command(f'./{script_name}')
 
 
-def main(config_path, dea_env: bool):
+def main(config_path, dea_env):
     """
     Build new environment module
 
@@ -357,18 +352,18 @@ def main(config_path, dea_env: bool):
     :param dea_env: Are we building dea-env module?
     :return: None
     """
+    assert (dea_env.lower() in ("true", "false")), 'Argument 2 shall be a bool (True or False)'
 
     # To keep the migration consistency across platforms (macOS/Windows/Linux)
     ospath = r'%s' % os.getcwd().replace('\\', '/')
 
     logging.basicConfig(level=logging.DEBUG)
-    run_command(f'module use /g/data/v10/public/modules/modulefiles/')
     run_command(f'pip3 install --user pyyaml')
     LOG.debug('Reading config file')
     config = read_config(config_path)
     variables = config['variables']
 
-    if dea_env:
+    if dea_env.lower() == 'true':
         reinstall_miniconda('reinstall_miniconda.sh')
 
     config['variables']['module_version'] = date()
