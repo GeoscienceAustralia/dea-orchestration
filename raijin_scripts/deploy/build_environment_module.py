@@ -348,11 +348,11 @@ def main(config_path):
     config = read_config(config_path)
     variables = config['variables']
 
-    if 'reinstall_miniconda_package' in config:
+    if 'dea_env_miniconda3' in config:
         LOG.debug('Re-install miniconda3 before creating new dea-environment module')
-        scriptname = config['reinstall_miniconda_package']
+        scriptname = config['dea_env_miniconda3']
         run_command(f'./{scriptname}')
-
+    
     config['variables']['module_version'] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
@@ -373,8 +373,10 @@ def main(config_path):
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
 
-    LOG.debug('Installed packages and their versions:')
-    run_command(f'pip freeze')
+    if 'dea_env_miniconda3' in config:
+        LOG.debug('List installed packages and their versions:')
+        module_path = variables['module_path']
+        run_command(f'{module_path}/bin/bin freeze')
 
     fix_module_permissions(variables['module_path'])
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
