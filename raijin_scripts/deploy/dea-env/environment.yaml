@@ -2,194 +2,166 @@ name: dea-env
 channels:
 - conda-forge
 dependencies:
-- affine >= 2.2.1
-- asn1crypto >= 0.24.0
-- attrs >= 18.1.0
+- affine
+- attrs
 - basemap
 - bottleneck
-- boost-cpp >= 1.67.0
-- boto3 >= 1.7.80 
+- boost-cpp
+- boto3
 - bqplot
-- botocore >= 1.10.80
-- bzip2 >= 1.0.6
-- ca-certificates >= 2018.8.13
+- botocore
 - cachetools
-- cairo >= 1.14.12
-- certifi >= 2018.8.13
+- cairo
 - cartopy
-- cffi >= 1.11.5
-- chardet >= 3.0.4
-- click >= 6.7
-- click-plugins >= 1.0.3
-- cligj >= 0.4.0
+- click
+- click-plugins
+- cligj
 - compliance-checker
-- conda >= 4.5.11
-- conda-env >= 2.6.0
-- cryptography >= 2.3
-- cryptography-vectors >= 2.3
-- curl >= 7.61.0
+- conda
+- conda-env
+- curl
 - cython
-- dask
-- distributed
-- docutils >= 0.14
+- dask = 0.18.2  # Existing datacube app has issue with 0.19.0 version
+- distributed = 1.22.0 # Existing datacube app has issue with 1.23.0 version
+- docutils
 - ephem
-- expat >= 2.2.5
+- expat
 - ffmpeg
-- fiona >= 1.7.13
+- fiona
 - folium
-- fontconfig >= 2.13.0
+- fontconfig
 - future
-- freetype >= 2.9.1
-- freexl >= 1.0.5
+- freetype
+- freexl
 - gdal >= 2.2.4
 - geopandas
 - geopy
-- geos >= 3.6.2
-- geotiff >= 1.4.2
-- gettext >= 0.19.8.1
-- giflib >= 5.1.4
-- glib >= 2.55.0
+- geos
+- geotiff
+- gettext
+- giflib
+- glib
 - glueviz
+- glue-geospatial
 - graphviz # This is only graphviz itself, not the python bindings. The latter are in the pip section.
-- hdf4 >= 4.2.13
-- hdf5 >= 1.10.2
+- hdf4
+- hdf5
 - h5py
 - hypothesis
-- icu >= 58.2
-- idna >= 2.7
-- intel-openmp >= 2018.0.3 
+- icu
+- intel-openmp
 - ipdb
 - ipyleaflet
 - ipympl
 - ipywidgets
-- jmespath >= 0.9.3
-- jpeg >= 9c
+- jmespath
+- jpeg
 - jplephem
-- json-c >= 0.12.1 
+- json-c
 - jsonschema
 - jupyter
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
-- jupyterlab >= 0.34.2
+- jupyterlab
 - keras
-- kealib >= 1.4.9
-- krb5 >= 1.14.6
-- libedit >= 3.1.20170329
-- libffi >= 3.2.1
-- libgcc-ng >= 8.2.0
-- libgdal >= 2.2.4
-- libgfortran >= 3.0.0
-- libgfortran-ng >= 7.2.0
-- libiconv >= 1.15
-- libkml >= 1.3.0
-- libnetcdf >= 4.6.1
-- libpng >= 1.6.35
-- libpq >= 9.6.3
-- libspatialite >= 4.3.0a
-- libssh2 >= 1.8.0
-- libstdcxx-ng >= 8.2.0
-- libtiff >= 4.0.9
-- libuuid >= 2.32.1
-- libxcb >= 1.13
-- libxml2 >= 2.9.8 
+- kealib
+- krb5
+- libgdal
+- libgfortran
+- libgfortran-ng
+- libiconv
+- libkml
+- libnetcdf
+- libpng
+- libpq
+- libspatialite
+- libssh2
+- libtiff
+- libuuid
+- libxcb
+- libxml2
 - line_profiler
 - luigi
 - matplotlib
 - memory_profiler
   #- mkl-service
-- mkl >= 2018.0.3
-- mkl_fft >= 1.0.5
-- mkl_random >= 1.0.1
+- mkl
+- mkl_fft
+- mkl_random
 - mock
-- munch >= 2.3.2
+- munch
 - nb_conda_kernels
-- ncurses >= 6.1
 - netcdf4
 - nodejs
 - notebook
 - numba
 - numexpr
-- numpy >= 1.14.2
-- openjpeg >= 2.3.0
-- openssl >= 1.0.2o
+- numpy
+- openjpeg
 - pandas
-- pcre >= 8.41
+- pcre
 - pep8
-- pixman >= 0.34.0
+- pixman
 - plotly
-- poppler >= 0.61.1
-- poppler-data >= 0.4.9
-- proj4 >= 4.9.3
-- psutil >= 5.4.6
-- pthread-stubs >= 0.4 
+- poppler
+- poppler-data
+- proj4
+- psutil
+- pthread-stubs
 - psycopg2
 - py6s
-- pycosat >= 0.6.3
-- pycparser >= 2.18 
 - pylint
-- pyopenssl >= 18.0.0
-- pyparsing >= 2.2.0
-- pysocks >= 1.6.8
+- pyparsing
 - pytables
 - pytest
 - pytest-cov
 - python >= 3.6.6
-- python-dateutil >= 2.7.3
+- python-dateutil
 - pyyaml
 - rasterio >= 1.0.3
 - rasterstats >= 0.13.0
-- readline >= 7.0
 - recommonmark
 - redis
 - redis-py
-- requests >= 2.19.1
 - rios
 - rsgislib
-- ruamel_yaml >= 0.15.46
 - rtree
-- s3transfer >= 0.1.13
+- s3transfer
 - scikit-image
 - scikit-learn
 - scipy
 - seaborn
-- setuptools >= 40.0.0
-- shapely >= 1.6.4
-- simplejson >= 3.16.0
+- shapely
+- simplejson
 - singledispatch
-- six >= 1.11.0
-- snuggs >= 1.4.1
+- snuggs
 - spectral
-- sphinx >= 1.6
+- sphinx
 - sphinx_rtd_theme
 - spyder
 - sqlalchemy
-- sqlite >= 3.24.0
+- sqlite
 - tornado
-- tk >= 8.6.7
 - tqdm
 - tuiview
-- urllib3 >= 1.23
 - vega_datasets
 - voluptuous
-- wheel >= 0.31.1
 - widgetsnbextension
 - xarray
-- xerces-c >= 3.2.0
-- xorg-kbproto >= 1.0.7
+- xerces-c
+- xorg-kbproto
 - xorg-libice >= 1.0.9
-- xorg-libsm >= 1.2.2
-- xorg-libx11 >= 1.6.5
-- xorg-libxau >= 1.0.8
-- xorg-libxdmcp >= 1.1.2
-- xorg-libxext >= 1.3.3
-- xorg-libxrender >= 0.9.10
-- xorg-renderproto >= 0.11.1
-- xorg-xextproto >= 7.3.0
-- xorg-xproto >= 7.0.31
-- xz >= 5.2.4
-- yaml >= 0.1.7
+- xorg-libsm
+- xorg-libx11
+- xorg-libxau
+- xorg-libxdmcp
+- xorg-libxext
+- xorg-libxrender
+- xorg-renderproto
+- xorg-xextproto
+- xorg-xproto
+- yaml
 - yarn
-- zlib >= 1.2.11
 - pip:
   - autopep8
   - awscli

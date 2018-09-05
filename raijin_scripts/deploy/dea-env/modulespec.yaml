@@ -12,6 +12,8 @@ templated_variables:
 
 install_conda_packages: environment.yaml
 
+reinstall_miniconda_package: reinstall_miniconda.sh
+
 copy_files:
 - src: environment.yaml
   dest: "{modules_dir}/{module_name}/{module_version}/environment.yaml"
