@@ -12,7 +12,7 @@ templated_variables:
 
 install_conda_packages: environment.yaml
 
-reinstall_miniconda_package: reinstall_miniconda.sh
+dea_env_miniconda3: reinstall_miniconda.sh
 
 copy_files:
 - src: environment.yaml
