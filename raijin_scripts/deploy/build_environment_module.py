@@ -65,7 +65,7 @@ def pre_check(config):
     :param config: Configuration parameters
     :return: None
     """
-    LOG.debug('Performing pre-check before installing module')
+    LOG.info('Performing pre-check before installing module')
     if "PYTHONPATH" in os.environ:
         raise Exception("The PYTHONPATH environment variable must NOT be set when creating modules.")
 
@@ -82,7 +82,7 @@ def prep(config_path):
     :param config_path: Configuration Path
     :return: None
     """
-    LOG.debug('Preparing environment variables')
+    LOG.info('Preparing environment variables')
     # Write files as group and world readable
     os.umask(0o22)
     os.chdir(config_path.parent)
@@ -111,7 +111,7 @@ def run_command(cmd):
     :return: None
     """
     try:
-        LOG.debug('Running command: %s', cmd)
+        LOG.info('Running command: %s', cmd)
         proc_output = subprocess.run(cmd, shell=True, check=True,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT,
@@ -120,7 +120,11 @@ def run_command(cmd):
                                      errors='replace')
 
         for line in proc_output.stdout.split(os.linesep):
-            LOG.debug(line)
+            try:
+                log_value = line.encode('ascii').decode('utf-8')
+                LOG.debug(log_value)
+            except UnicodeEncodeError:
+                LOG.warning('UnicodeEncodeError: %s ', line.encode('ascii', 'replace'))
     except subprocess.CalledProcessError as suberror:
         LOG.exception("Failed : %s", suberror.stdout)
 
@@ -133,7 +137,7 @@ def install_conda_packages(env_file, variables):
     :param variables: Configuration variables as per configuration settings in modulespec yaml file
     :return: None
     """
-    LOG.debug('Installing conda packages from %s', env_file)
+    LOG.info('Installing conda packages from %s', env_file)
 
     conda_path = variables['conda_path']
     module_path = variables['module_path']
@@ -150,8 +154,8 @@ def write_template(template_file, variables, output_file):
     :param output_file: New dea module file
     :return: None
     """
-    LOG.debug('Filling template file %s to %s', template_file, output_file)
-    LOG.debug('Ensuring parent dir %s exists', output_file.parent)
+    LOG.info('Filling template file %s to %s', template_file, output_file)
+    LOG.info('Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     template_contents = template_file.read_text()
@@ -184,15 +188,15 @@ def copy_files(copy_tasks, variables):
         src = Path(task['src'])
         dest = Path(task['dest'])
 
-        LOG.debug('Copying %s to %s', src, dest)
-        LOG.debug('Ensuring parent dir %s exists', dest.parent)
+        LOG.info('Copying %s to %s', src, dest)
+        LOG.info('Ensuring parent dir %s exists', dest.parent)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         shutil.copy(src, dest)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
-            LOG.debug('Setting %s permissions to %s', dest, oct(perms))
+            LOG.info('Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -219,13 +223,13 @@ def copy_and_fill_templates(template_tasks, variables):
 
         src = Path(task['src'])
         dest = Path(task['dest'])
-        LOG.debug('Copy and fill dea-env modulefile %s in %s', src, dest)
+        LOG.info('Copy and fill dea-env modulefile %s in %s', src, dest)
         # Write the module file template to modulefiles/dea-env directory
         write_template(src, variables, dest)
 
         if 'chmod' in task:
             perms = int(task['chmod'], base=8)
-            LOG.debug('Setting %s permissions to %s', dest, oct(perms))
+            LOG.info('Setting %s permissions to %s', dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -249,7 +253,7 @@ def fix_module_permissions(module_path):
     :param module_path: Module path
     :return: None
     """
-    LOG.debug('Setting module "%s" permission as world readable', module_path)
+    LOG.info('Setting module "%s" permission as world readable', module_path)
     run_command(f'chmod -R u+rwx,go+rx,go-w "{module_path}"')
 
 
@@ -275,7 +279,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.debug(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
+    LOG.info(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
     run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
@@ -287,7 +291,7 @@ def find_default_version(module_name):
     :return: Version on success else raise exception
     """
     cmd = f"module --terse avail {module_name}"
-    LOG.debug("Running command: %s", cmd)
+    LOG.info("Running command: %s", cmd)
     output = subprocess.run(cmd, shell=True, check=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
@@ -344,12 +348,12 @@ def main(config_path):
 
     logging.basicConfig(level=logging.DEBUG)
     run_command(f'pip3 install --user pyyaml')
-    LOG.debug('Reading config file')
+    LOG.info('Reading config file')
     config = read_config(config_path)
     variables = config['variables']
 
     if 'dea_env_miniconda3' in config:
-        LOG.debug('Re-install miniconda3 before creating new dea-environment module')
+        LOG.info('Re-install miniconda3 before creating new dea-environment module')
         scriptname = config['dea_env_miniconda3']
         run_command(f'./{scriptname}')
 
@@ -369,14 +373,14 @@ def main(config_path):
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
 
-    LOG.debug('Run final commands on module')
+    LOG.info('Run final commands on module')
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
 
     if 'dea_env_miniconda3' in config:
-        LOG.debug('List installed packages and their versions:')
+        LOG.info('List installed packages and their versions:')
         module_path = variables['module_path']
-        run_command(f'{module_path}/bin/bin freeze')
+        run_command(f'{module_path}/bin/pip freeze')
 
     fix_module_permissions(variables['module_path'])
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
