@@ -352,7 +352,7 @@ def main(config_path):
         LOG.debug('Re-install miniconda3 before creating new dea-environment module')
         scriptname = config['dea_env_miniconda3']
         run_command(f'./{scriptname}')
-    
+
     config['variables']['module_version'] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
