@@ -7,8 +7,8 @@ curl -o "$TMPDIR/miniconda.sh" https://repo.continuum.io/miniconda/Miniconda3-la
 chmod +x "$TMPDIR/miniconda.sh"
 cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
-"$MINICONDA_PATH"/bin/conda update -y -c conda-forge --override-channels --all
-"$MINICONDA_PATH"/bin/conda install -y -c conda-forge --override-channels pip
+"$MINICONDA_PATH"/bin/conda update -y -c conda-forge --all
+"$MINICONDA_PATH"/bin/conda install -y -c conda-forge pip
 
 if [ ! -d "$HOME"/.nvm ]
 then

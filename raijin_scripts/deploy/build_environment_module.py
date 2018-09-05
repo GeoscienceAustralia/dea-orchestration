@@ -15,14 +15,14 @@ New DEA-Env Module
   $ module load python3/3.6.2
 
   $ # Building a new Environment Module:
-  $ ./build_environment_module.py dea-env/modulespec.yaml True
+  $ ./build_environment_module.py dea-env/modulespec.yaml
 
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.6.2
 
   $ # Building a new DEA Module
-  $ ./build_environment_module.py dea/modulespec.yaml False
+  $ ./build_environment_module.py dea/modulespec.yaml
 
 It used to be able to perform a miniconda installation, but that turned out to
 be flaky, so we now maintain a central miniconda install, and create environments
@@ -153,7 +153,6 @@ def write_template(template_file, variables, output_file):
     LOG.debug('Filling template file %s to %s', template_file, output_file)
     LOG.debug('Ensuring parent dir %s exists', output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    sleep(5)  # sleep 5 seconds
 
     template_contents = template_file.read_text()
     template = string.Template(template_contents)
@@ -333,27 +332,13 @@ def include_stable_module_dep_versions(config):
         config['variables'][f'fixed_{dep}'] = default_version
 
 
-def reinstall_miniconda(script_name):
-    """
-    Re-install miniconda and npm packages
-
-    :param script_name: Shell script name
-    :return: None
-    """
-    LOG.debug('Re-install miniconda3 before creating new dea-environment module')
-    run_command(f'./{script_name}')
-
-
-def main(config_path, dea_env):
+def main(config_path):
     """
     Build new environment module
 
     :param config_path: Configuration path
-    :param dea_env: Are we building dea-env module?
     :return: None
     """
-    assert (dea_env.lower() in ("true", "false")), 'Argument 2 shall be a bool (True or False)'
-
     # To keep the migration consistency across platforms (macOS/Windows/Linux)
     ospath = r'%s' % os.getcwd().replace('\\', '/')
 
@@ -363,8 +348,10 @@ def main(config_path, dea_env):
     config = read_config(config_path)
     variables = config['variables']
 
-    if dea_env.lower() == 'true':
-        reinstall_miniconda('reinstall_miniconda.sh')
+    if 'reinstall_miniconda_package' in config:
+        LOG.debug('Re-install miniconda3 before creating new dea-environment module')
+        scriptname = config['reinstall_miniconda_package']
+        run_command(f'./{scriptname}')
 
     config['variables']['module_version'] = date()
     include_templated_vars(config)
@@ -386,9 +373,12 @@ def main(config_path, dea_env):
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
 
+    LOG.debug('Installed packages and their versions:')
+    run_command(f'pip freeze')
+
     fix_module_permissions(variables['module_path'])
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
 
 if __name__ == '__main__':
-    main(Path(sys.argv[1]), sys.argv[2])
+    main(Path(sys.argv[1]))
