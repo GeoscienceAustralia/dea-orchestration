@@ -20,7 +20,10 @@ while [[ $# -gt 0 ]]; do
                                 STAGE=$1
                                 ;;
         --path )                shift
-                                PATH_TO_PROCESS=$1
+                                # Expand a shell glob pattern, for more flexible path definition
+                                # See https://stackoverflow.com/a/45933949/119603 for more info
+                                # shellcheck disable=SC2206
+                                PATHS_TO_PROCESS=($1)
                                 ;;
         --product )             shift
                                 PRODUCT=$1
@@ -77,11 +80,7 @@ if [ "$TRASH_ARC" == yes ]; then
 fi
 
 cd "${WORKDIR}"
-# shellcheck disable=SC2086
-# Although quoting variables prevents word splitting and glob expansion, and prevents the script from breaking when 
-# input contains spaces, line feeds, glob characters and such. Folder name used in the search pattern are in Months 
-# represented as numbers (in MM) format. Hence, for the shell globbing to take effect for the input paths, we do not 
-# apply quotes for the $PATH_TO_PROCESS variable. Thus shellcheck for SC2086 is disabled.
+
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
@@ -106,5 +105,5 @@ echo "Starting Sync process......"
 ##################################################################################################
 # Run dea-sync process
 ##################################################################################################
-qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing $PATH_TO_PROCESS
+qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing ${PATHS_TO_PROCESS[@]}
 EOF
