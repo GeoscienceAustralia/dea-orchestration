@@ -77,7 +77,11 @@ run from VDI.
 
 ## Building a new _Environment Module_
 
-    ./build_environment_module.py
+It requires python 3.6+ and pyyaml. Run the following on raijin at the NCI:
+
+      $ module use /g/data/v10/public/modules/modulefiles/
+      $ module load python3/3.6.2
+      $ ./build_environment_module.py dea-env/modulespec.yaml
 
 This will build a new environment module for today.
 
@@ -88,8 +92,9 @@ of all of our pip/conda dependencies on that date.
 
 A DEA module will specify one exact environment module.
 
-    ./build_dea_module.py [<environment_module>]
-
+    $ module use /g/data/v10/public/modules/modulefiles/
+    $ module load python3/3.6.2
+    $ ./build_environment_module.py dea/modulespec.yaml
 
 ## Updating the Default Version
 
@@ -102,4 +107,4 @@ Eg. For `dea` this is: `/g/data/v10/public/modules/modulefiles/dea/.version`
 
 ## Archiving an old module
 
-...
+[TO DO]...
