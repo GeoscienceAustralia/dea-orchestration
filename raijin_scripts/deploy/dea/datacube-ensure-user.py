@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-#
-# Ensure that a datacube user account exists for the current user
-#
-# It can copy credentials stored in .pgpass to connect to a different database
-# Or create a new user account if required.
-#
+"""
+   # Ensure that a datacube user account exists for the current user
+   #
+   # It can copy credentials stored in .pgpass to connect to a different database
+   # Or create a new user account if required.
+"""
 from __future__ import print_function
 
 import os
@@ -39,10 +39,12 @@ initially used to access the Data Cube, onto the current system."""
 
 
 class CredentialsNotFound(Exception):
+    """ Empty class for credentials not found exceptions """
     pass
 
 
 def print_stderr(msg):
+    """ Print stderr on the terminal """
     print(msg, file=sys.stderr)
 
 
@@ -61,19 +63,36 @@ def can_connect(dbcreds):
 
 
 def find_credentials(pgpass, host, username):
+    """ Find the credential from pgpass file.
+
+        If pgpass file does not exists, create one and append new credentials
+        If pgpass exists and no credential exists, append new credentials
+        If credentials are found, append a new line to pgpass file that will connect to any database if the user has
+        a current password.
+        """
+    user_password = ''
     if not pgpass.exists():
+        # New user, add new credentials to connect to any database
         raise CredentialsNotFound("No existing pgpass file")
+    elif os.path.getsize(pgpass) == 0:
+        # New user,add new credentials to connect to any database
+        raise CredentialsNotFound("No legacy DB settings found")
+    else:
+        with pgpass.open() as src:
+            for line in src:
+                try:
+                    creds = DBCreds(*line.strip().split(':'))
+                    if creds.host == host and creds.username == username:
+                        return creds
 
-    with pgpass.open() as src:
-        for line in src:
-            try:
-                creds = DBCreds(*line.strip().split(':'))
-                if creds.host == host and creds.username == username:
-                    return creds
-            except TypeError:
-                continue
+                    # Store the password for updating credentials (to connect to any database with this password)
+                    user_password = creds.password
+                except TypeError:
+                    continue
 
-    raise CredentialsNotFound("No legacy DB settings found")
+        # Update credentials to connect to any database on any server IP address
+        return DBCreds(host="*", port="*", username=username,
+                       database="*", password=user_password)
 
 
 def append_credentials(pgpass, dbcreds):
@@ -89,7 +108,9 @@ def append_credentials(pgpass, dbcreds):
             fout.write(data)
             if not data.endswith('\n'):
                 fout.write('\n')
+
         fout.write(':'.join(dbcreds) + '\n')
+        print('\nSuccessfully appended a new line to connect to any database.')
 
 
 _PWD = pwd.getpwuid(os.geteuid())
@@ -99,13 +120,14 @@ CURRENT_HOME_DIR = _PWD.pw_dir
 
 
 @click.command()
-@click.argument('hostname')
-@click.argument('port', type=click.INT)
+@click.argument('hostname', default="*", required=False)
+@click.argument('port', default="*", required=False)
 @click.argument('username', default=CURRENT_USER, required=False)
 def main(hostname, port, username):
     """
     Ensure that a user account exists in the specified Data Cube Database
     """
+
     if 'PBS_JOBID' in os.environ:
         return
 
@@ -119,31 +141,35 @@ def main(hostname, port, username):
             # We deliberately assume different ports on the same host are the same server.
             # (in our case, pgbouncer and the db itself have different ports)
             # So we don't match port when we find credentials
-            creds = find_credentials(pgpass, OLD_DB_HOST, username)
+            creds = find_credentials(pgpass, dbcreds.host, username)
             new_creds = creds._replace(host=dbcreds.host, port=dbcreds.port)
-            print_stderr('Migrating you to the new database server.')
         except CredentialsNotFound:
             try:
-                print_stderr('Attempting to create a new user for {}...'.format(dbcreds.username))
+                print('Attempting to create a new user for {}...'.format(dbcreds.username))
                 new_creds = create_db_account(dbcreds)
-                print_stderr('Created new database account.')
+                print('Created new database account.')
             except psycopg2.Error:
                 print_stderr('Please contact a datacube administrator to help resolve user account creation.')
                 return
 
-        append_credentials(pgpass, new_creds)
+        if can_connect(new_creds):
+            print('Migrating {} to the new database server.'.format(username))
 
-        if can_connect(dbcreds):
-            print_stderr("User credentials written to ~/.pgpass. Connection test: passed.")
+            # Append to pgpass only if the connection is valid
+            append_credentials(pgpass, new_creds)
+            print("User credentials written to ~/.pgpass. Connection test: passed.")
         else:
-            print_stderr('Unable to connect to the Data Cube database, please contact an administrator for help.')
+            print_stderr('Unable to connect to the Data Cube database (host={}, port={}, db={}), '
+                         'please contact an administrator for help.'.format(new_creds.host,
+                                                                            new_creds.port,
+                                                                            new_creds.database))
 
 
 def create_db_account(dbcreds):
     """ Create AGDC user account on the requested """
     real_name = CURRENT_REAL_NAME if dbcreds.username == CURRENT_USER else ''
 
-    dbcreds = dbcreds._replace(database='*', password=gen_password())
+    dbcreds = dbcreds._replace(host=dbcreds.host, port=dbcreds.port, database='*', password=gen_password())
     try:
         with psycopg2.connect(host=dbcreds.host, port=dbcreds.port,
                               user='guest', database='guest', password='guest') as conn:
@@ -161,6 +187,7 @@ def create_db_account(dbcreds):
 
 
 def gen_password(length=20):
+    """ Generate a new password to connect to the database """
     char_set = string.ascii_letters + string.digits
     if not hasattr(gen_password, "rng"):
         gen_password.rng = random.SystemRandom()  # Create a static variable
@@ -219,12 +246,32 @@ def test_append_credentials(tmpdir):
     assert creds is not None
     assert creds.password == 'asdf'
 
-    new_creds = creds._replace(host='127')
+    new_creds = creds._replace(host='*', port='*')
 
     append_credentials(path, new_creds)
 
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_line + '\n' + existing_line.replace('130.56.244.227', '127') + '\n'
+    expected = existing_line + '\n' + existing_line.replace('130.56.244.227:5432', '*:*') + '\n'
     assert contents == expected
+
+
+def test_pgpass_empty(tmpdir):
+    pgpass = tmpdir.join('pgpass.txt')
+    pgpass.write("")
+
+    path = Path(str(pgpass))
+
+    # pgpass file exists and is empty
+    with pytest.raises(CredentialsNotFound):
+        find_credentials(pgpass, host='*', username='foo_user')
+
+    new_creds = DBCreds('*', '*', '*', 'username', 'MYPASS')
+
+    append_credentials(path, new_creds)
+
+    assert path.exists()
+    with path.open() as src:
+        contents = src.read()
+    assert contents == ':'.join(new_creds) + '\n'
