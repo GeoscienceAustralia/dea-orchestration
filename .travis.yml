@@ -40,6 +40,8 @@ before_deploy:
   - pip install --upgrade awscli
   # Configure AWS custom profile settings
   - aws --version
+  # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
+  # configured in travis project web settings
   - aws configure set aws_access_key_id $aws_access_key_id --profile prodProfile
   - aws configure set aws_secret_access_key $aws_secret_access_key --profile prodProfile
   - aws configure set region $AWS_DEFAULT_REGION --profile prodProfile
@@ -49,14 +51,11 @@ deploy:
  -  provider: script
     script:
       # Serverless deploy to production environment after merging to production branch
-      # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are expected to be configured in travis web settings
       - sls deploy -v -s prod
-      # Update the code on the NCI
-      - sls invoke -f git_pull_prod -l -s prod
     skip_cleanup: true # Don't re-run the tests
     on:
         all_branches: true
 
 after_deploy:
-  # Deactivate the AWS CLI virtual environment
-  - source ~/virtualenv/cli-ve/bin/deactivate
+  # Update the code on the NCI
+  - sls invoke -f git_pull_prod -l -s prod
