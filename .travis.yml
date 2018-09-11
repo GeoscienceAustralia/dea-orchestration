@@ -32,12 +32,10 @@ script:
 before_deploy:
   - cd lambda_functions/execute_ssh_command_js/ && npm install
   - npm --version
-  # To install the AWS CLI in a virtual environment
-  - pip install --user virtualenv
   # Create a virtual environment for AWS CLI
-  - virtualenv --python=~/virtualenv/python3.6 ~/cli-ve
+  - virtualenv --python=~/virtualenv/python3.6 ~/virtualenv/cli-ve
   # Activate the AWS CLI virtual environment
-  - source ~/cli-ve/bin/activate
+  - source ~/virtualenv/cli-ve/bin/activate
   # Install AWS CLI
   - pip install --upgrade awscli
   # Set AWS information
@@ -59,4 +57,4 @@ deploy:
 
 after_success:
   # Deactivate the AWS CLI virtual environment
-  - source ~/cli-ve/bin/deactivate
+  - source ~/virtualenv/cli-ve/bin/deactivate
