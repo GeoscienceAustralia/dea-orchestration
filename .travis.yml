@@ -29,12 +29,16 @@ script:
   - npm install -g serverless
   - ./scripts/check-code.sh
 
+before_deploy:
+  - cd lambda_functions/execute_ssh_command_js/ && npm install
+  - npm --version
 
 deploy:
    provider: script
    script:
      # Serverless deploy to production environment after merging to production branch
-     - cd lambda_functions/execute_ssh_command_js/ && npm install && sls deploy -v -s prod
-   skip_cleanup: true
-   on:
-     branch: production
+     # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are configured in travis branch settings
+     - sls deploy -v -s prod
+   skip_cleanup: true # Don't re-run the tests
+  on:
+    all_branches: true
