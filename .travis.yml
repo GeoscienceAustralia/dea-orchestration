@@ -54,7 +54,7 @@ deploy:
       - sls deploy -v -s prod
     skip_cleanup: true # Don't re-run the tests
     on:
-        all_branches: true
+        branch: production
 
 after_deploy:
   # Update the code on the NCI
