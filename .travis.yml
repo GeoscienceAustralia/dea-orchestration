@@ -32,11 +32,20 @@ script:
 before_deploy:
   - cd lambda_functions/execute_ssh_command_js/ && npm install
   - npm --version
-  - pip install awscli --upgrade --user
+  # To install the AWS CLI in a virtual environment
+  - pip install --user virtualenv
+  # Create a virtual environment for AWS CLI
+  - virtualenv --python=~/virtualenv/python3.6 ~/cli-ve
+  # Activate the AWS CLI virtual environment
+  - source ~/cli-ve/bin/activate
+  # Install AWS CLI
+  - pip install --upgrade awscli
+  # Set AWS information
   - aws --version
-  - aws configure set aws_access_key_id aws_access_key_id --profile prodProfile
-  - aws configure set aws_secret_access_key aws_secret_access_key --profile prodProfile
-  - aws configure set region AWS_DEFAULT_REGION --profile prodProfile
+  - aws configure set aws_access_key_id $aws_access_key_id --profile prodProfile
+  - aws configure set aws_secret_access_key $aws_secret_access_key --profile prodProfile
+  - aws configure set region $AWS_DEFAULT_REGION --profile prodProfile
+  - aws configure list
 
 deploy:
  -  provider: script
@@ -47,3 +56,7 @@ deploy:
     skip_cleanup: true # Don't re-run the tests
     on:
         all_branches: true
+
+after_success:
+  # Deactivate the AWS CLI virtual environment
+  - source ~/cli-ve/bin/deactivate
