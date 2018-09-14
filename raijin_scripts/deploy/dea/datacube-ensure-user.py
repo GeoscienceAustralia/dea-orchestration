@@ -71,9 +71,8 @@ def can_connect(dbcreds):
 def find_credentials(pgpass, host, dbcreds):
     """ Find the credential from ~/.pgpass file.
 
-        If pgpass file does not exists or If pgpass exists and no credential exists,
-        raise 'credentials not found'
-        If credentials match the production database ip, return the new credentials for migration
+        If pgpass file does not exists or If pgpass exists and is empty, then raise 'credentials not found'
+        else if credentials match the production database ip, return the production database credentials for migration
         else if new credentials for migration is already appended to the pgpass file, do nothing
         """
     new_creds = None
@@ -145,7 +144,7 @@ def main(hostname, port, dbusername):
         new_creds = create_db_account(dbcreds)
         print('Created new database account.')
 
-    # Append credentials to ~/.pgpass file only if the credentials are new
+    # Append new credentials to ~/.pgpass file
     if new_creds:
         print('Migrating {} to the new database server.'.format(dbcreds.username))
         # Add new credentials to ~/.pgpass file
