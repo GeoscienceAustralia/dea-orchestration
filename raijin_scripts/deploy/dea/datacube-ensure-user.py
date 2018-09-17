@@ -109,7 +109,7 @@ def append_credentials(pgpass, dbcreds):
                 fout.write('\n')
 
         fout.write(':'.join(dbcreds) + '\n')
-        print('\nSuccessfully appended a new line in ~/.pgpass file.')
+        print('\nUpdated DEA Database Password in ~/.pgpass file.')
 
 
 _PWD = pwd.getpwuid(os.geteuid())
@@ -224,7 +224,7 @@ def test_no_pgpass(tmpdir):
 
     # No pgpass file exists
     with pytest.raises(CredentialsNotFound):
-        find_credentials(path, '130.56.244.227', new_creds)
+        find_credentials(path, '130.56.244.105', new_creds)
 
     append_credentials(path, new_creds)
 
@@ -237,13 +237,13 @@ def test_no_pgpass(tmpdir):
 
 def test_db_host_doesnot_match_productiondb(tmpdir):
     # Production db credentials
-    existing_line = '130.56.244.227:5432:*:foo_user:asdf'
+    existing_line = '130.56.244.105:5432:*:foo_user:asdf'
     pgpass = tmpdir.join('pgpass.txt')
     pgpass.write(existing_line)
 
     path = Path(str(pgpass))
-    hostdbcreds = DBCreds('130.56.244.130', '1234', 'datacube', 'foo_user', 'foo_password')
-    creds = find_credentials(pgpass, '130.56.244.227', hostdbcreds)
+    hostdbcreds = DBCreds('130.56.244.105', '1234', 'datacube', 'foo_user', 'foo_password')
+    creds = find_credentials(pgpass, '130.56.244.105', hostdbcreds)
 
     assert creds is not None
     assert creds.password == 'asdf'
@@ -254,7 +254,7 @@ def test_db_host_doesnot_match_productiondb(tmpdir):
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_line + '\n' + existing_line.replace('130.56.244.227:5432', '*:*') + '\n'
+    expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
     assert contents == expected
 
 
@@ -280,14 +280,14 @@ def test_pgpass_empty(tmpdir):
 
 
 def test_db_host_matches_productiondb(tmpdir):
-    existing_line = '130.56.244.227:5432:*:foo_user:asdf'
+    existing_line = '130.56.244.105:5432:*:foo_user:asdf'
     pgpass = tmpdir.join('pgpass.txt')
     pgpass.write(existing_line)
 
     path = Path(str(pgpass))
-    creds = DBCreds('130.56.244.227', '1234', '*', 'foo_user', 'asdf')
+    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
 
-    newcreds = find_credentials(pgpass, '130.56.244.227', creds)
+    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
 
     assert newcreds is not None
     assert newcreds.password == 'asdf'
@@ -297,5 +297,5 @@ def test_db_host_matches_productiondb(tmpdir):
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_line + '\n' + existing_line.replace('130.56.244.227:5432', '*:*') + '\n'
+    expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
     assert contents == expected
