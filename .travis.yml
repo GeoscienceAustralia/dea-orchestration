@@ -32,20 +32,9 @@ script:
 before_deploy:
   - cd lambda_functions/execute_ssh_command_js/ && npm install
   - npm --version
-  # Create a virtual environment for AWS CLI
-  # - virtualenv ~/virtualenv/cli-ve
-  # Activate the AWS CLI virtual environment
-  # - source ~/virtualenv/cli-ve/bin/activate
-  # Install AWS CLI
-  # - pip install --upgrade awscli
-  # Configure AWS custom profile settings
-  # - aws --version
+  # Configure serverless AWS custom profile settings.
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
   # configured in travis project web settings
-  # - aws configure set aws_access_key_id $aws_access_key_id --profile prodProfile
-  # - aws configure set aws_secret_access_key $aws_secret_access_key --profile prodProfile
-  # - aws configure set region $AWS_DEFAULT_REGION --profile prodProfile
-  # - aws configure list --profile prodProfile
   - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
 
 deploy:
@@ -55,8 +44,7 @@ deploy:
       - sls deploy -v -s prod
     skip_cleanup: true # Don't re-run the tests
     on:
-        tags: true
-        #branch: production
+        branch: production
 
 after_deploy:
   # Update the code on the NCI
