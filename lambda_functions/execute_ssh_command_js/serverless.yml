@@ -124,6 +124,46 @@ functions:
             product: ls8_nbar_scene
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbar/'
             trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_pq_scene
+            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/2018/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_level1_scene
+            path: '/g/data/v10/reprocess/ls7/level1/2018/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_pq_legacy_scene
+            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/2018/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_nbart_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbart/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_nbar_scene
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbar/'
+            trasharchived: no
   execute_ingest:
     handler: handler.execute_ssh_command
     environment:
@@ -152,6 +192,24 @@ functions:
           input:
             year: 2018
             product: ls8_pq_albers
+      - schedule:
+          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_nbart_albers
+      - schedule:
+          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_nbar_albers
+      - schedule:
+          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_pq_albers
   execute_fractional_cover:
     handler: handler.execute_ssh_command
     environment:
@@ -169,7 +227,14 @@ functions:
           input:
             year: 2018
             product: ls8_fc_albers
-            tag: '2018'
+            tag: 'ls8_fc2018'
+      - schedule:
+          rate: cron(15 10 ? * SUN *) # Run every Sunday, at 08:15 pm Canberra time
+          enabled: true
+          input:
+            year: 2018
+            product: ls7_fc_albers
+            tag: 'ls7_fc2018'
   execute_wofs:
     handler: handler.execute_ssh_command
     environment:
@@ -216,6 +281,7 @@ functions:
             year: 2018
             appconfig: ls8_pq_albers.yaml
   execute_coherence:
+    # execute_coherence shall not be used on nbar/nbart/pq albers products
     handler: handler.execute_ssh_command
     environment:
       cmd: 'execute_coherence --dea-module ${self:provider.environment.DEA_MODULE}
