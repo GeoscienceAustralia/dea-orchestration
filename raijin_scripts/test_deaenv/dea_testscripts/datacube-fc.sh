@@ -78,9 +78,9 @@ datacube-fc list
 datacube-fc ensure_products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv --dry-run
 datacube-fc ensure_products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv
 
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --no-qsub
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --no-qsub
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
 
 sleep 5s  
 
