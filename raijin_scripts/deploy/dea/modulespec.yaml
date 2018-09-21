@@ -9,6 +9,7 @@ variables:
 templated_variables:
   module_path: "{modules_base}/{module_name}/{module_version}"
   python_path: "{modules_base}/{module_name}/{module_version}/lib/python{python_version}/site-packages/"
+  dea_module: "{module_name}/{module_version}"
 
 stable_module_deps:
 - dea-env
@@ -30,3 +31,6 @@ copy_files:
 template_files:
 - src: modulefile.template
   dest: "{modules_base}/modulefiles/{module_name}/{module_version}"
+
+env_test:
+  test_script: "run"

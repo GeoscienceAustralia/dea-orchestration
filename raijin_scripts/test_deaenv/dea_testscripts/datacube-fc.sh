@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+## Project name
+#PBS -P u46
+
+## Queue type
+#PBS -q normal
+
+## The total memory limit across all nodes for the job
+#PBS -l mem=32GB
+
+## The requested job scratch space.
+#PBS -l jobfs=1GB
+
+## The number of cpus required for the job to run
+#PBS -l ncpus=16
+#PBS -l walltime=10:00:00
+
+#PBS -N testfc
+
+shopt -s globstar
+
+##########################################
+###      PBS job information.          ###
+##########################################
+echo "
+  ------------------------------------------------------
+   -n 'Job is running on node '; cat $PBS_NODEFILE
+  ------------------------------------------------------
+   PBS: qsub is running on $PBS_O_HOST
+   PBS: Originating queue      = $PBS_O_QUEUE
+   PBS: Executing queue        = $PBS_QUEUE
+   PBS: Working directory      = $PBS_O_WORKDIR
+   PBS: Execution mode         = $PBS_ENVIRONMENT
+   PBS: Job identifier         = $PBS_JOBID
+   PBS: Job name               = $PBS_JOBNAME
+   PBS: Node_file              = $PBS_NODEFILE
+   PBS: Current home directory = $PBS_O_HOME
+   PBS: PATH                   = $PBS_O_PATH
+  ------------------------------------------------------"
+
+# shellcheck source=/dev/null
+source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MODULE" "$TESTDIR/$DC_CONF"
+
+fc_version=$(datacube-fc --version)
+
+echo "********************************************************************"
+echo "  Datacube Config Path (fc):  $DATACUBE_CONFIG_PATH"
+echo "  Datacube fc version under test:  $fc_version"
+echo "  PATH (fc):  $PATH" 
+echo "********************************************************************"
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+echo "Starting datacube-fc process......"
+# This is required as FC code expects user to configure work root
+# else work root shall be defaulted to '/g/data/v10/work/' folder
+export DEA_WORK_ROOT=$WORKDIR/work/fc
+##################################################################################################
+# Submit a LS8_FC job to Raijin
+##################################################################################################
+SUBMISSION_LOG="$WORKDIR"/work/fc/fc-$(date '+%F-%T').log
+cd "$WORKDIR/work/fc" || exit 0
+
+# Read agdc datasets from the database before Fractional Cover process
+{
+echo "
+********************************************************************
+   Datacube Config Path (FC):  $DATACUBE_CONFIG_PATH
+   DEA WORK ROOT (FC):  $DEA_WORK_ROOT
+********************************************************************
+
+Read previous agdc_dataset product names and count before fractional cover process"
+psql -h agdcdev-db.nci.org.au -p 6432 -d "$DBNAME" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "**********************************************************************"
+datacube-fc list
+datacube-fc ensure_products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv --dry-run
+datacube-fc ensure_products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv
+
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --no-qsub
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
+
+sleep 5s  
+
+} > "$SUBMISSION_LOG"
