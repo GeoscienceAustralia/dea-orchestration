@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+
+#####################################################################################
+# PBS job has been scheduled in the following sequence:
+#    1) NBConvert pbs job shall run first (express queue)
+#    2) DEA-Sync pbs job shall run after NBConvert job completes (express queue)
+#    3) DEA-Submit-Ingest pbs job shall run after sync jobs completes (express queue)
+#    4) Datacube-fc pbs job shall run after ingest jobs (normal queue)
+#    5) Datacube-wofs pbs job shall run after fc jobs (normal queue)
+#    6) Datacube-stats pbs job shall run after wofs jobs (normal queue)
+#
+#    TODO: Need resolve datacube-fc/wofs/stats dependencies on ingest jobs.
+#          Instead of assuming normal jobs will take longer time to schedule
+#          and by then ingest jobs have completed, we need to make fc/wofs 
+#          hold job till dea-submit-ingest jobs has completed.
+#####################################################################################
+
+set -eu
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --deamodule )           shift
+                                MODULE=$1
+                                ;;
+        --testdir )             shift
+                                TESTDIR=$1
+                                ;;
+        * )                     exit 0
+    esac
+    shift
+done
+
+modname=$(echo "$MODULE" | sed -r "s/[/]+/_/g")
+WORKDIR=/g/data/v10/work/dea_env_test/test"$modname"-$(date '+%d%m%yT%H%M')
+LOGFILE="$WORKDIR"/'Not_World_Readable_Files.log'
+
+CONFIGFILE="$TESTDIR/datacube_config.conf"
+DCCONF="datacube_config.conf"
+
+# Ensure that all files are world readable
+if [[ $(find "/g/data/v10/public/modules/$MODULE" ! -perm -o=r) ]]; then
+    echo "Error: Some files in $MODULE are not world readable"
+    echo "
+Following files in $MODULE are not world readable:
+-----------------------------------------------------------------
+$(find /g/data/v10/public/modules/"$MODULE" ! -perm -o=r)" > "$LOGFILE"
+    exit 0
+fi
+
+# Function to fetch pbs job id's
+fetch_pbs_job_ids()
+{
+   sleep 15s
+   # Extract job id using `cut`
+   # Concatinate all numbers in one line using `sed`
+   # Replace white space with `:` using `tr`
+   # Remove `:` at the beginning and end of the string using `tail` and `head`
+   retval="$(qstat -u "$USER" | cut -d . -f1 | sed "/r-man/d" | sed "s/[^0-9]//g" | tr -s "[:space:]" ":" | tail -c +2 | head -c -1)"
+   echo "$retval"
+}
+
+# Copy yaml files from repo
+sh "$TESTDIR"/dea_testscripts/copy_yaml_files.sh "$WORKDIR" "$TESTDIR"
+
+# Get database name from the config file
+configname=""
+databasename=""
+while IFS=': ' read -r a b; do
+    if [[ "$a" == "["* ]]; then
+       configname=$a
+    fi
+
+    if [[ "$a" == "db_database" && "$configname" == "[datacube]" ]]; then
+       databasename="$b"
+    fi
+done < "$CONFIGFILE"
+
+# Check if output directory exists, else create one
+[ -d "$WORKDIR/work/ingest/001" ] || mkdir -p "$WORKDIR"/work/ingest/001
+[ -d "$WORKDIR/work/sync" ] || mkdir -p "$WORKDIR"/work/sync
+[ -d "$WORKDIR/work/stats/001" ] || mkdir -p "$WORKDIR"/work/stats/001
+[ -d "$WORKDIR/work/fc/001" ] || mkdir -p "$WORKDIR"/work/fc/001
+[ -d "$WORKDIR/work/nbconvert" ] || mkdir -p "$WORKDIR"/work/nbconvert
+[ -d "$WORKDIR/work/wofs/001" ] || mkdir -p "$WORKDIR"/work/wofs/001
+
+echo "
+===================================================================
+|  Module under test : $MODULE      
+==================================================================="
+echo ""
+module use /g/data/v10/public/modules/modulefiles/
+module load "$MODULE"
+export DATACUBE_CONFIG_PATH="$CONFIGFILE"
+echo "$DATACUBE_CONFIG_PATH"
+
+dea-test-env check
+dea-test-env -C "$CONFIGFILE" teardown
+# Create a database file for testing purpose
+createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
+
+# Run the initialise Test Database Script
+# Dea-System Init adds all the products to the database (i.e., No need to do datacube product add)
+# datacube product add ~/PycharmProjects/digitalearthau/digitalearthau/config/products/*.yaml
+dea-system -C "$CONFIGFILE" init
+
+datacube -v system check
+
+# Copy the dsm1sv10 product definition from the production database to a temp yaml file
+# This file shall be used to update the test database product definition (consumed by WOfS processing)
+datacube -C "$CONFIGFILE" -E production product show dsm1sv10 > "$WORKDIR/dsm.yaml"
+
+echo "
+##################################################################################################
+# Run a dea-env-test nbconvert on requirements_met.ipynb file using PBS job submission
+##################################################################################################"
+echo ""
+
+cd "$WORKDIR/work/nbconvert" || exit 0
+qsub -v MUT="$MODULE",WORKDIR="$WORKDIR",DC_CONF="$DCCONF",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/pbs_nbconvert_script.sh
+
+echo "
+##################################################################################################
+# Run a dea-env-test sync using PBS job submission
+##################################################################################################"
+echo ""
+## Declare datacube array of yaml files to download
+declare -a sync_path_array=("/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/01/output/nbart/LS8_OLITIRS_NBART_P54_GANBART01-032_092_085_20180109"
+                            "/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/06/output/nbar/LS8_OLITIRS_NBAR_P54_GANBAR01-032_100_071_20180610")
+
+cd "$WORKDIR"/work/sync || exit 0
+for i in "${sync_path_array[@]}"
+do
+    # Fetch pbs job id's
+    pbs_jobs=$( fetch_pbs_job_ids )
+    qsub -V -W depend=afterok:"$pbs_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",PATH_TO_PROCESS="$i",TRASH_ARC=no,DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-sync.sh
+done
+
+echo "
+##################################################################################################
+# Run a dea-env-test ingest using PBS job submission
+##################################################################################################"
+# Fetch pbs job id's
+pbs_jobs=$( fetch_pbs_job_ids )
+
+cd "$WORKDIR"/work || exit 0
+# Migrate sample scenes from production database for testing purpose
+qsub -V -W depend=afterok:"$pbs_jobs" -P u46 -q express -l walltime=01:00:00,mem=1GB -v DC_CONF="$CONFIGFILE",MODULE="$MODULE",TEMP_DIR="$WORKDIR", "$TESTDIR"/dea_testscripts/migrate_from_production_db.sh
+
+echo ""
+## Declare datacube array of yaml files to download
+declare -a albers_yaml_array=("ls8_nbart_albers.yaml"
+                              "ls8_nbar_albers.yaml"
+                              "ls8_pq_albers.yaml")
+
+cd "$WORKDIR"/work/ingest || exit 0
+for i in "${albers_yaml_array[@]}"
+do
+  productname=$(echo "$i" | cut -f 1 -d '.')
+
+  # Fetch pbs job id's
+  sync_jobs=$( fetch_pbs_job_ids )
+  qsub -V -W depend=afterok:"$sync_jobs" -v WORKDIR="$WORKDIR",PRODUCT="$productname",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-submit-ingest.sh
+done
+
+echo "
+##################################################################################################
+# Run a dea-env-test FC using PBS job submission
+##################################################################################################"
+# Fetch pbs job id's
+ingest_jobs=$( fetch_pbs_job_ids )
+
+echo ""
+cd "$WORKDIR"/work/fc || exit 0
+qsub -V -W depend=afterok:"$ingest_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-fc.sh
+
+echo "
+##################################################################################################
+# Run a dea-env-test WOfS using PBS job submission
+##################################################################################################"
+# Fetch pbs job id's
+fc_jobs=$( fetch_pbs_job_ids )
+
+echo ""
+cd "$WORKDIR"/work/wofs || exit 0
+qsub -V -W depend=afterok:"$fc_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-wofs.sh
+
+echo "
+##################################################################################################
+# Run a datacube-stats using PBS job submission
+##################################################################################################"
+echo ""
+declare -a stats_yaml_array=("item_10"
+                             #"item_10_shapefile"
+                             "nbar_ls8_2018_tcwbg"
+                             "nbar_ls8_2018_tcwbg_shapefile"
+                             "nbar_ls8_2018_geomedian"
+                             "nbar_ls8_2018_wet_geomedian_shapefile"
+                             "nbar_ls8_2018_simple"
+                             "nbar_ls8_2018_simple_shapefile"
+                             "pq_count_albers_all"
+                             "pq_count_albers_annual_shapefile"
+                             "fc_ls8_2018_medoid"
+                             "fc_ls8_2018_medoid_shapefile"
+                             "fc_ls8_2018_medoid_simple"
+                             "fc_ls8_2018_medoid_simple_shapefile"
+                             "fc_percentile_albers"
+                             "fc_percentile_albers_shapefile"
+                             "wofsstats"
+                             "wofsstats_shapefile"
+                             "fc_ls8_2018_medoid_no_prov"
+                             "fc_ls8_2018_medoid_no_prov_shapefile"
+                             "fc_ls8_2018_none"
+                             "fc_ls8_2018_none_shapefile"
+                             "fc_ls8_2018_percentile_no_prov"
+                             "fc_ls8_2018_percentile_no_prov_shapefile")
+# Fetch pbs job id's
+pbs_jobs=$( fetch_pbs_job_ids )
+
+cd "$WORKDIR"/work/stats || exit 0
+for i in "${stats_yaml_array[@]}"
+do 
+    stats_job="$(qsub -V -W depend=afterany:$pbs_jobs -v WORKDIR=$WORKDIR,MODULE=$MODULE,PRODUCT=$i,DC_CONF=$DCCONF,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh)"
+    pbs_jobs="$stats_job"
+done
