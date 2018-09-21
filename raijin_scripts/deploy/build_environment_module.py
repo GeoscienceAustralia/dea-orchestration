@@ -40,7 +40,6 @@ import shutil
 import string
 import logging
 import yaml
-from time import sleep
 
 MODULE_DIR = '/g/data/v10/public/modules'
 
@@ -126,7 +125,12 @@ def run_command(cmd):
             except UnicodeEncodeError:
                 LOG.warning('UnicodeEncodeError: %s ', line.encode('ascii', 'replace'))
     except subprocess.CalledProcessError as suberror:
-        LOG.exception("Failed : %s", suberror.stdout)
+        for line in suberror.stdout.split(os.linesep):
+            try:
+                log_value = line.encode('ascii').decode('utf-8')
+                LOG.error(log_value)
+            except UnicodeEncodeError:
+                LOG.warning("UnicodeEncodeError : %s", line.encode('ascii', 'replace'))
 
 
 def install_conda_packages(env_file, variables):
@@ -383,6 +387,16 @@ def main(config_path):
         run_command(f'{module_path}/bin/pip freeze')
 
     fix_module_permissions(variables['module_path'])
+
+    if 'env_test' in config:
+        script_dir = Path(__file__).absolute().parents[2] / 'test_deaenv'
+        test_script = config['env_test']['test_script']
+        dea_module = variables['dea_module']
+        LOG.info('*'*80)
+        LOG.info(f'Run regression testing on new DEA Module ({dea_module})')
+        LOG.info('*'*80)
+        run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
+
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
 
