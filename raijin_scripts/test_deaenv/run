@@ -220,6 +220,7 @@ pbs_jobs=$( fetch_pbs_job_ids )
 cd "$WORKDIR"/work/stats || exit 0
 for i in "${stats_yaml_array[@]}"
 do 
-    stats_job="$(qsub -V -W depend=afterany:$pbs_jobs -v WORKDIR=$WORKDIR,MODULE=$MODULE,PRODUCT=$i,DC_CONF=$DCCONF,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh)"
+    stats_job="$(qsub -V -W depend=afterok:$pbs_jobs -v WORKDIR=$WORKDIR,MODULE=$MODULE,PRODUCT=$i,DC_CONF=$DCCONF,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh)"
     pbs_jobs="$stats_job"
+    echo "$pbs_jobs"
 done
