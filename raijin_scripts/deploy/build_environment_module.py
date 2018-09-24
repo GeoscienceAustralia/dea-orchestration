@@ -393,7 +393,7 @@ def main(config_path):
         test_script = config['env_test']['test_script']
         dea_module = variables['dea_module']
         LOG.info('*'*80)
-        LOG.info(f'Run regression testing on new DEA Module ({dea_module})')
+        LOG.info(f'Run regression testing on new DEA Module (%r) ', dea_module)
         LOG.info('*'*80)
         run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
 
