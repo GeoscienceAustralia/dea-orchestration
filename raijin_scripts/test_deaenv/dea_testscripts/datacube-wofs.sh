@@ -39,7 +39,7 @@ echo "
   ------------------------------------------------------"
 
 # shellcheck source=/dev/null
-source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MODULE" "$TESTDIR/$DC_CONF"
+source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$DATACUBE_CONFIG_PATH"
 
 wofs_version=$(datacube-wofs --version)
 

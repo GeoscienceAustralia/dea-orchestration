@@ -121,7 +121,7 @@ def run_command(cmd):
         for line in proc_output.stdout.split(os.linesep):
             try:
                 log_value = line.encode('ascii').decode('utf-8')
-                LOG.debug(log_value)
+                LOG.info(log_value)
             except UnicodeEncodeError:
                 LOG.warning('UnicodeEncodeError: %s ', line.encode('ascii', 'replace'))
     except subprocess.CalledProcessError as suberror:
@@ -381,17 +381,21 @@ def main(config_path):
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
 
-    if 'dea_env_miniconda3' in config:
-        LOG.info('List installed packages and their versions:')
-        module_path = variables['module_path']
-        run_command(f'{module_path}/bin/pip freeze')
-
     fix_module_permissions(variables['module_path'])
 
     if 'env_test' in config:
+        # List installed packages and their versions.
+        # And finally, run tests on the new dea module.
+        LOG.info('*'*80)
+        LOG.info('List installed packages and their versions:')
+        LOG.info('*'*80)
+
         script_dir = Path(__file__).absolute().parents[2] / 'test_deaenv'
         test_script = config['env_test']['test_script']
         dea_module = variables['dea_module']
+        run_command(f'module load {dea_module}; pip freeze')
+
+        LOG.info('')
         LOG.info('*'*80)
         LOG.info(f'Run regression testing on new DEA Module (%r) ', dea_module)
         LOG.info('*'*80)
