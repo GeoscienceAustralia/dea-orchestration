@@ -2,13 +2,13 @@
 
 # Migrate from production database
 module use /g/data/v10/public/modules/modulefiles/
-echo "module unload $MODULE"
-module unload "$MODULE"
+echo "module unload $MUT"
+module unload "$MUT"
 
 echo "module load dea/20180515"
 module load dea/20180515
 
-export DATACUBE_CONFIG_PATH="$DC_CONF"
+export DATACUBE_CONFIG_PATH="$CONFIGFILE"
 echo "$DATACUBE_CONFIG_PATH"
 dea-test-env check
 dea-test-env teardown
@@ -45,26 +45,26 @@ echo "module unload dea/20180515"
 module unload dea/20180515
 sleep 5s # Wait for 5 seconds
 
-echo "module load $MODULE"
-module load "$MODULE"
+echo "module load $MUT"
+module load "$MUT"
 
 # Update dsm1sv10 product definition in the test database with the one we want as per the production database 
-datacube -C "$DC_CONF" -E NCI-test product update "$TEMP_DIR/dsm.yaml" --allow-unsafe
-datacube -C "$DC_CONF" -E NCI-test dataset add /g/data/v10/eoancillarydata/elevation/dsm1sv1_0_Clean_tiff/agdc-metadata.yaml --confirm-ignore-lineage -p dsm1sv10
+datacube -C "$CONFIGFILE" -E NCI-test product update "$TEMP_DIR/dsm.yaml" --allow-unsafe
+datacube -C "$CONFIGFILE" -E NCI-test dataset add /g/data/v10/eoancillarydata/elevation/dsm1sv1_0_Clean_tiff/agdc-metadata.yaml --confirm-ignore-lineage -p dsm1sv10
 
 # Update fc and wofs albers product definition to the test database
 echo "Add FC and WOFS product definition to test database"
-datacube -C "$DC_CONF" -E NCI-test product add "$TEMP_DIR/fc_albers.yaml"
-datacube -C "$DC_CONF" -E NCI-test product add "$TEMP_DIR/wofs_albers.yaml"
+datacube -C "$CONFIGFILE" -E NCI-test product add "$TEMP_DIR/fc_albers.yaml"
+datacube -C "$CONFIGFILE" -E NCI-test product add "$TEMP_DIR/wofs_albers.yaml"
 
 echo ""
 echo "Show dsm1sv10 product definition from the test database"
-datacube -C "$DC_CONF" -E NCI-test product show dsm1sv10
+datacube -C "$CONFIGFILE" -E NCI-test product show dsm1sv10
 
 echo ""
 echo ""
 echo "Show dsm1sv10 product definition from the production database"
-datacube -C "$DC_CONF" -E production product show dsm1sv10
+datacube -C "$CONFIGFILE" -E production product show dsm1sv10
 echo ""
 
 echo "Remove temp files:"

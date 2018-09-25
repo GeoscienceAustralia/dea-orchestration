@@ -56,7 +56,7 @@ cd "$WORKDIR" || exit 0
 
 # Load DEA module
 # shellcheck source=/dev/null
-source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$TESTDIR/$DC_CONF"
+source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$DATACUBE_CONFIG_PATH"
 
 ## Convert a notebook to an python script and print the stdout
 ## To remove code cells from the output, use templateExporter

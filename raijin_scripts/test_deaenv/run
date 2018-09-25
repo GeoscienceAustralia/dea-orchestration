@@ -36,7 +36,6 @@ WORKDIR=/g/data/v10/work/dea_env_test/test"$modname"-$(date '+%d%m%yT%H%M')
 LOGFILE="$WORKDIR"/'Not_World_Readable_Files.log'
 
 CONFIGFILE="$TESTDIR/datacube_config.conf"
-DCCONF="datacube_config.conf"
 
 # Ensure that all files are world readable
 if [[ $(find "/g/data/v10/public/modules/$MODULE" ! -perm -o=r) ]]; then
@@ -94,7 +93,6 @@ module load "$MODULE"
 export DATACUBE_CONFIG_PATH="$CONFIGFILE"
 echo "$DATACUBE_CONFIG_PATH"
 
-dea-test-env check
 dea-test-env -C "$CONFIGFILE" teardown
 # Create a database file for testing purpose
 createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
@@ -104,7 +102,7 @@ createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
 # datacube product add ~/PycharmProjects/digitalearthau/digitalearthau/config/products/*.yaml
 dea-system -C "$CONFIGFILE" init
 
-datacube -v system check
+datacube -v -C "$CONFIGFILE" system check
 
 # Copy the dsm1sv10 product definition from the production database to a temp yaml file
 # This file shall be used to update the test database product definition (consumed by WOfS processing)
@@ -117,7 +115,7 @@ echo "
 echo ""
 
 cd "$WORKDIR/work/nbconvert" || exit 0
-qsub -v MUT="$MODULE",WORKDIR="$WORKDIR",DC_CONF="$DCCONF",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/pbs_nbconvert_script.sh
+qsub -v MUT="$MODULE",WORKDIR="$WORKDIR",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/pbs_nbconvert_script.sh
 
 echo "
 ##################################################################################################
@@ -132,8 +130,11 @@ cd "$WORKDIR"/work/sync || exit 0
 for i in "${sync_path_array[@]}"
 do
     # Fetch pbs job id's
-    pbs_jobs=$( fetch_pbs_job_ids )
-    qsub -V -W depend=afterok:"$pbs_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",PATH_TO_PROCESS="$i",TRASH_ARC=no,DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-sync.sh
+    echo "Running:
+    qsub -V -v WORKDIR=$WORKDIR,MUT=$MODULE,PATH_TO_PROCESS=$i,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/dea-sync.sh"
+
+    qsub -V -v WORKDIR="$WORKDIR",MUT="$MODULE",PATH_TO_PROCESS="$i",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-sync.sh
+    echo ""
 done
 
 echo "
@@ -145,9 +146,11 @@ pbs_jobs=$( fetch_pbs_job_ids )
 
 cd "$WORKDIR"/work || exit 0
 # Migrate sample scenes from production database for testing purpose
-qsub -V -W depend=afterok:"$pbs_jobs" -P u46 -q express -l walltime=01:00:00,mem=1GB -v DC_CONF="$CONFIGFILE",MODULE="$MODULE",TEMP_DIR="$WORKDIR", "$TESTDIR"/dea_testscripts/migrate_from_production_db.sh
-
+echo "Running:
+qsub -V -W depend=afterany:$pbs_jobs -P u46 -q express -l walltime=01:00:00,mem=1GB -v CONFIGFILE=$CONFIGFILE,MUT=$MODULE,TEMP_DIR=$WORKDIR, $TESTDIR/dea_testscripts/migrate_from_production_db.sh"
+qsub -V -W depend=afterany:"$pbs_jobs" -P u46 -q express -l walltime=01:00:00,mem=1GB -v CONFIGFILE="$CONFIGFILE",MUT="$MODULE",TEMP_DIR="$WORKDIR", "$TESTDIR"/dea_testscripts/migrate_from_production_db.sh
 echo ""
+
 ## Declare datacube array of yaml files to download
 declare -a albers_yaml_array=("ls8_nbart_albers.yaml"
                               "ls8_nbar_albers.yaml"
@@ -160,7 +163,10 @@ do
 
   # Fetch pbs job id's
   sync_jobs=$( fetch_pbs_job_ids )
-  qsub -V -W depend=afterok:"$sync_jobs" -v WORKDIR="$WORKDIR",PRODUCT="$productname",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-submit-ingest.sh
+  echo "Running:
+  qsub -V -W depend=afterany:$sync_jobs -v WORKDIR=$WORKDIR,PRODUCT=$productname,MUT=$MODULE,YEAR=2018,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/dea-submit-ingest.sh"
+  qsub -V -W depend=afterany:"$sync_jobs" -v WORKDIR="$WORKDIR",PRODUCT="$productname",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-submit-ingest.sh
+  echo ""
 done
 
 echo "
@@ -172,7 +178,11 @@ ingest_jobs=$( fetch_pbs_job_ids )
 
 echo ""
 cd "$WORKDIR"/work/fc || exit 0
-qsub -V -W depend=afterok:"$ingest_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-fc.sh
+echo "Running:
+qsub -V -W depend=afterany:$ingest_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,YEAR=2018,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-fc.sh"
+
+qsub -V -W depend=afterany:"$ingest_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-fc.sh
+echo ""
 
 echo "
 ##################################################################################################
@@ -183,7 +193,11 @@ fc_jobs=$( fetch_pbs_job_ids )
 
 echo ""
 cd "$WORKDIR"/work/wofs || exit 0
-qsub -V -W depend=afterok:"$fc_jobs" -v WORKDIR="$WORKDIR",MODULE="$MODULE",DC_CONF="$DCCONF",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-wofs.sh
+echo "Running:
+qsub -V -W depend=afterany:$fc_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,YEAR=2018,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-wofs.sh"
+
+qsub -V -W depend=afterany:"$fc_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-wofs.sh
+echo ""
 
 echo "
 ##################################################################################################
@@ -220,7 +234,11 @@ pbs_jobs=$( fetch_pbs_job_ids )
 cd "$WORKDIR"/work/stats || exit 0
 for i in "${stats_yaml_array[@]}"
 do 
-    stats_job="$(qsub -V -W depend=afterok:$pbs_jobs -v WORKDIR=$WORKDIR,MODULE=$MODULE,PRODUCT=$i,DC_CONF=$DCCONF,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh)"
+    echo "Running:
+    qsub -V -W depend=afterany:$pbs_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,PRODUCT=$i,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh"
+
+    stats_job="$(qsub -V -W depend=afterany:"$pbs_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh)"
     pbs_jobs="$stats_job"
     echo "$pbs_jobs"
+    echo ""
 done
