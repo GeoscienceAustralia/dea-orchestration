@@ -29,31 +29,32 @@ declare -a wofs_yaml_array=("wofs_albers.yaml")
 
 ## Declare datacube stats yaml file to download
 declare -a stats_yaml_array=("item_10"
-                             "item_10_shapefile"
-                             "fc_percentile_albers"
-                             "fc_percentile_albers_shapefile"
-                             "pq_count_albers_all"
-                             "pq_count_albers_annual_shapefile"
-                             "wofsstats"
-                             "wofsstats_shapefile"
-                             "fc_ls8_2018_medoid_no_prov"
-                             "fc_ls8_2018_medoid_no_prov_shapefile"
+                             "nbar_ls8_2018_simple_normalised_difference"
+                             "nbar_ls8_2018_geomedian"
+                             "nbar_ls8_2018_spectral_mad")
+                             #"item_10_shapefile"
                              "nbar_ls8_2018_tcwbg"
                              "nbar_ls8_2018_tcwbg_shapefile"
                              "nbar_ls8_2018_geomedian"
                              "nbar_ls8_2018_wet_geomedian_shapefile"
+                             "nbar_ls8_2018_simple"
+                             "nbar_ls8_2018_simple_shapefile"
+                             "pq_count_albers_all_masked_multi_count"
+                             "pq_count_albers_annual_shapefile"
                              "fc_ls8_2018_medoid"
                              "fc_ls8_2018_medoid_shapefile"
                              "fc_ls8_2018_medoid_simple"
                              "fc_ls8_2018_medoid_simple_shapefile"
-                             "nbar_ls8_2018_simple"
-                             "nbar_ls8_2018_simple_shapefile"
+                             "fc_percentile_albers"
+                             "fc_percentile_albers_shapefile"
+                             "wofsstats"
+                             "wofsstats_shapefile"
+                             "fc_ls8_2018_medoid_no_prov"
+                             "fc_ls8_2018_medoid_no_prov_shapefile"
                              "fc_ls8_2018_none"
                              "fc_ls8_2018_none_shapefile"
                              "fc_ls8_2018_percentile_no_prov"
-                             "fc_ls8_2018_percentile_no_prov_shapefile"
-                             "fc_ls8_2018_external"
-                             "fc_ls8_2018_external_shapefile")
+                             "fc_ls8_2018_percentile_no_prov_shapefile")
 
 # Replace NBAR/NBART/PQ product output location in the yaml file
 cd "$WORKDIR"/ingest_configfiles || exit 0
