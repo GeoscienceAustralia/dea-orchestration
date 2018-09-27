@@ -302,14 +302,15 @@ def test_db_host_matches_productiondb(tmpdir):
     expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
     assert contents == expected
 
+
 def test_against_emptylines_in_pgpass(tmpdir):
-    existing_pgpass = dedent('''\
+    existing_pgpass = dedent('''
 
             130.56.244.105:5432:*:foo_user:asdf
 
             agdc-db.nci.org.au:*:*:foo_user:asdf
             agdcdev-db.nci.org.au:*:*:foo_user:asdf
-            agdcstaging-db.nci.org.au:*:*:foo_user:asdf 
+            agdcstaging-db.nci.org.au:*:*:foo_user:asdf
 
             ''')
     pgpass = tmpdir.join('pgpass.txt')
@@ -328,5 +329,5 @@ def test_against_emptylines_in_pgpass(tmpdir):
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_pgpass + '\n*:*:*:foo_user:asdf\n'
+    expected = existing_pgpass + '*:*:*:foo_user:asdf\n'
     assert contents == expected
