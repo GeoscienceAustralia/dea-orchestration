@@ -23,7 +23,6 @@ cache:
 
 install:
   - pip install -r requirements.txt
-  - ./scripts/install_script all
 
 script:
   - npm install -g serverless
