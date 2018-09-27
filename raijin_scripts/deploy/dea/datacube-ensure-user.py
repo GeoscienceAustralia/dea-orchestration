@@ -12,6 +12,7 @@ import pwd
 import random
 import string
 import sys
+from textwrap import dedent
 from collections import namedtuple
 from pathlib import Path
 
@@ -82,13 +83,14 @@ def find_credentials(pgpass, host, dbcreds):
     else:
         with pgpass.open() as src:
             for line in src:
-                creds = DBCreds(*line.strip().split(':'))
-                if creds.host == host and creds.username == dbcreds.username:
-                    # Production database credentials exists
-                    new_creds = creds._replace(host="*", port="*")
-                elif creds.host == "*" and creds.username == dbcreds.username:
-                    # Already migrated to new database format, do noting
-                    new_creds = None
+                if line.strip():
+                    creds = DBCreds(*line.strip().split(':'))
+                    if creds.host == host and creds.username == dbcreds.username:
+                        # Production database credentials exists
+                        new_creds = creds._replace(host="*", port="*")
+                    elif creds.host == "*" and creds.username == dbcreds.username:
+                        # Already migrated to new database format, do noting
+                        new_creds = None
         return new_creds
 
 
@@ -298,4 +300,34 @@ def test_db_host_matches_productiondb(tmpdir):
         contents = src.read()
 
     expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
+    assert contents == expected
+
+
+def test_against_emptylines_in_pgpass(tmpdir):
+    existing_pgpass = dedent('''
+
+            130.56.244.105:5432:*:foo_user:asdf
+
+            agdc-db.nci.org.au:*:*:foo_user:asdf
+            agdcdev-db.nci.org.au:*:*:foo_user:asdf
+            agdcstaging-db.nci.org.au:*:*:foo_user:asdf
+
+            ''')
+    pgpass = tmpdir.join('pgpass.txt')
+    pgpass.write(existing_pgpass)
+
+    path = Path(str(pgpass))
+    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
+
+    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
+
+    assert newcreds is not None
+    assert newcreds.password == 'asdf'
+
+    append_credentials(path, newcreds._replace(host='*', port='*'))
+
+    with path.open() as src:
+        contents = src.read()
+
+    expected = existing_pgpass + '*:*:*:foo_user:asdf\n'
     assert contents == expected
