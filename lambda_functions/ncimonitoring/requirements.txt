@@ -1,4 +1,0 @@
-# elasticsearch
-paramiko>=2.2.1
-python-dateutil>=2.6.1
-boto3>=1.4.6
