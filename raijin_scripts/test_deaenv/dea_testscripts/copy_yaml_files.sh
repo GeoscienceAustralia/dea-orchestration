@@ -31,7 +31,7 @@ declare -a wofs_yaml_array=("wofs_albers.yaml")
 declare -a stats_yaml_array=("item_10"
                              "nbar_ls8_2018_simple_normalised_difference"
                              "nbar_ls8_2018_geomedian"
-                             "nbar_ls8_2018_spectral_mad")
+                             "nbar_ls8_2018_spectral_mad"
                              #"item_10_shapefile"
                              "nbar_ls8_2018_tcwbg"
                              "nbar_ls8_2018_tcwbg_shapefile"
