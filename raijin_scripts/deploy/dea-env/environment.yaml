@@ -21,19 +21,18 @@ dependencies:
 - conda-env
 - curl
 - cython
-- dask = 0.18.2  # Existing datacube app has issue with 0.19.0 version
-- distributed = 1.22.0 # Existing datacube app has issue with 1.23.0 version
+- dask
+- distributed
 - docutils
 - ephem
 - expat
-- ffmpeg
 - fiona
 - folium
 - fontconfig
 - future
 - freetype
 - freexl
-- gdal >= 2.2.4
+- gdal
 - geopandas
 - geopy
 - geos
@@ -118,8 +117,8 @@ dependencies:
 - python >= 3.6.6
 - python-dateutil
 - pyyaml
-- rasterio >= 1.0.3
-- rasterstats >= 0.13.0
+- rasterio
+- rasterstats
 - recommonmark
 - redis
 - redis-py
@@ -150,7 +149,7 @@ dependencies:
 - xarray
 - xerces-c
 - xorg-kbproto
-- xorg-libice >= 1.0.9
+- xorg-libice
 - xorg-libsm
 - xorg-libx11
 - xorg-libxau
@@ -166,10 +165,11 @@ dependencies:
   - autopep8
   - awscli
   - boltons
-  - celery >= 4
+  - celery
   - ciso8601
   - click-datetime
   - DAWG
+  - ffmpeg-python
   - flask
   - Flask-Caching
   - graphviz
