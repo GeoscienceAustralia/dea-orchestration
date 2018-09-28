@@ -84,11 +84,11 @@ computation:
 
 ## Define statistics to perform and how to store the data
 output_products:
-  - name: nbar_geomedian
-    statistic: geomedian
+  - name: nbar_new_geomedian
+    statistic: new_geomedian
     statistic_args:
-        maxiters: 32
+        num_threads: 32
     output_params:
       zlib: True
       fletcher32: True
-    file_path_template: 'NBAR_LS8_2018_GEOMEDIAN/{x}_{y}/NBAR_LS8_2018_GEOMEDIAN_3577_{x}_{y}_{epoch_start:%Y%m%d}_{epoch_end:%Y%m%d}.nc'
+    file_path_template: 'NBAR_LS8_2018_NEW_GEOMEDIAN/{x}_{y}/NBAR_LS8_2018_NEW_GEOMEDIAN_3577_{x}_{y}_{epoch_start:%Y%m%d}_{epoch_end:%Y%m%d}.nc'
