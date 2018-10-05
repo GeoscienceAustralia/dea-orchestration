@@ -239,8 +239,6 @@ do
     echo "Running:
     qsub -V -W depend=afterany:$pbs_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,PRODUCT=$i,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh"
 
-    stats_job="$(qsub -V -W depend=afterany:"$pbs_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh)"
-    pbs_jobs="$stats_job"
-    echo "$pbs_jobs"
+    qsub -V -W depend=afterany:"$pbs_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh
     echo ""
 done
