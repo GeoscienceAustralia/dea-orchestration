@@ -326,12 +326,15 @@ def test_against_emptylines_in_pgpass(tmpdir):
 
 def test_against_comment_in_pgpass(tmpdir):
     existing_pgpass = dedent('''
-            # testing comments #
+            # test comment 1 #
             130.56.244.105:5432:*:foo_user:asdf
 
-            # testing comments
+            # test comments 2
             agdc-db.nci.org.au:*:*:foo_user:asdf
+
+            # 'test comments 3'
             agdcdev-db.nci.org.au:*:*:foo_user:asdf
+
             agdcstaging-db.nci.org.au:*:*:foo_user:asdf
 
             ''')
