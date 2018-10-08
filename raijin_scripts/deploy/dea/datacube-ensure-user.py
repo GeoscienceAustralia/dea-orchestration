@@ -40,10 +40,6 @@ To fix this problem, please copy your ~/.pgpass file from the system you
 initially used to access the Data Cube, onto the current system.
 """
 
-CONNECTION_TEST_PASSED = """
-Connection test passed on (host={}, port={}, db={}, username={}).
-"""
-
 
 class CredentialsNotFound(Exception):
     """ Empty class for credentials not found exceptions """
@@ -83,7 +79,7 @@ def find_credentials(pgpass, host, dbcreds):
     else:
         with pgpass.open() as src:
             for line in src:
-                if line.strip():
+                if line.partition('#')[0].strip():
                     creds = DBCreds(*line.strip().split(':'))
                     if creds.host == host and creds.username == dbcreds.username:
                         # Production database credentials exists
@@ -157,11 +153,6 @@ def main(hostname, port, dbusername):
                                                dbcreds.port,
                                                dbcreds.database,
                                                dbcreds.username))
-    else:
-        print_stderr(CONNECTION_TEST_PASSED.format(dbcreds.host,
-                                                   dbcreds.port,
-                                                   dbcreds.database,
-                                                   dbcreds.username))
 
 
 def create_db_account(dbcreds):
@@ -308,6 +299,37 @@ def test_against_emptylines_in_pgpass(tmpdir):
 
             130.56.244.105:5432:*:foo_user:asdf
 
+            agdc-db.nci.org.au:*:*:foo_user:asdf
+            agdcdev-db.nci.org.au:*:*:foo_user:asdf
+            agdcstaging-db.nci.org.au:*:*:foo_user:asdf
+
+            ''')
+    pgpass = tmpdir.join('pgpass.txt')
+    pgpass.write(existing_pgpass)
+
+    path = Path(str(pgpass))
+    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
+
+    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
+
+    assert newcreds is not None
+    assert newcreds.password == 'asdf'
+
+    append_credentials(path, newcreds._replace(host='*', port='*'))
+
+    with path.open() as src:
+        contents = src.read()
+
+    expected = existing_pgpass + '*:*:*:foo_user:asdf\n'
+    assert contents == expected
+
+
+def test_against_comment_in_pgpass(tmpdir):
+    existing_pgpass = dedent('''
+            # testing comments #
+            130.56.244.105:5432:*:foo_user:asdf
+
+            # testing comments
             agdc-db.nci.org.au:*:*:foo_user:asdf
             agdcdev-db.nci.org.au:*:*:foo_user:asdf
             agdcstaging-db.nci.org.au:*:*:foo_user:asdf
