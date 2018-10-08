@@ -32,7 +32,7 @@ done
 
 # Override echo command to prepend timestamp before echo message
 echo() {
-    command echo "$(date '+%F_%T.%N') $@"
+    command echo "$(date '+%F_%T.%N')" "$@"
 }
 
 OUTPUT_DIR=/g/data/v10/work/"${PRODUCT}"/fc/$(date '+%Y-%m')
