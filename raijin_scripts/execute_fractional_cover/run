@@ -30,8 +30,14 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-LOG_FILENAME="${PRODUCT}"-submission-$(date '+%F-%T').log
-SUBMISSION_LOG=/g/data/v10/work/fc/"$LOG_FILENAME"
+# Override echo command to prepend timestamp before echo message
+echo() {
+    command echo "$(date '+%F_%T.%N') $@"
+}
+
+OUTPUT_DIR=/g/data/v10/work/"${PRODUCT}"/fc/$(date '+%Y-%m')
+LOG_FILENAME="${PRODUCT}"-$(date '+%F-%T').log
+SUBMISSION_LOG="$OUTPUT_DIR/$LOG_FILENAME"
 JOB_NAME="${YEAR}_${PRODUCT}"
 count=0
 dbhostname='agdcdev-db.nci.org.au'
@@ -64,13 +70,13 @@ while read -r LINE; do
   if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
       count=$((count+1))
   fi
-done  < "$DATACUBE_CONFIG_PATH"
+done < "$DATACUBE_CONFIG_PATH"
 
-cd /g/data/v10/work/fc/
+cd "$OUTPUT_DIR" || exit 0
 APP_CONFIG=$(datacube-fc list | grep "${PRODUCT}")
 
 # Launch the submission in the background, outputting results to a log file
-{
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
 echo Loading module "${MODULE}"
@@ -86,7 +92,7 @@ echo "Read previous agdc_dataset product names and count before fractional cover
 echo "Connected to the database host name: $dbhostname"
 echo "Connected to the database port number: $dbport"
 echo "Connected to the database name: $dbname"
-psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
@@ -95,10 +101,4 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 # Run datacube-fc submit two stage PBS job
 ##################################################################################################
 datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
-} > "$SUBMISSION_LOG"
-
-sleep 2s
-# Move submission log file to fc work directory
-searchstring='Created work directory '
-dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
-if [[ -d "$dirpath" && -f "$SUBMISSION_LOG" ]]; then mv "$SUBMISSION_LOG" "$dirpath"; fi
+EOF
