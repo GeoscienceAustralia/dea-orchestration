@@ -79,6 +79,7 @@ def find_credentials(pgpass, host, dbcreds):
     else:
         with pgpass.open() as src:
             for line in src:
+                # Ignore comments and empty lines
                 if not line.startswith('#') and line.strip():
                     creds = DBCreds(*line.strip().split(':'))
                     if creds.host == host and creds.username == dbcreds.username:
