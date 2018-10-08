@@ -30,9 +30,14 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-ROOTDIR=/g/data/v10/work/"${PRODUCT}"/wofs
-LOG_FILENAME="${PRODUCT}"-submission-$(date '+%F-%T').log
-SUBMISSION_LOG="$ROOTDIR/$LOG_FILENAME"
+# Override echo command to prepend timestamp before echo message
+echo() {
+    command echo "$(date '+%F_%T.%N') $@"
+}
+
+OUTPUT_DIR=/g/data/v10/work/"${PRODUCT}"/wofs/$(date '+%Y-%m')
+LOG_FILENAME="${PRODUCT}"-$(date '+%F-%T').log
+SUBMISSION_LOG="$OUTPUT_DIR/$LOG_FILENAME"
 JOB_NAME="${YEAR}_${PRODUCT}"
 count=0
 dbhostname='agdcdev-db.nci.org.au'
@@ -65,9 +70,9 @@ while read -r LINE; do
   if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
       count=$((count+1))
   fi
-done  < "$DATACUBE_CONFIG_PATH"
+done < "$DATACUBE_CONFIG_PATH"
 
-cd "$ROOTDIR"
+cd "$OUTPUT_DIR" || exit 0
 APP_CONFIG=/g/data/v10/public/modules/"$MODULE"/wofs/config/"${PRODUCT}".yaml
 
 # Launch the submission in the background, outputting results to a log file
@@ -97,9 +102,3 @@ echo "Executing wofs for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 datacube-wofs submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
 EOF
-
-sleep 60s # Wait 60s before moving the submission log
-# Move submission log file to wofs work directory
-searchstring='Created work directory '
-dirpath=$(sed "s:.*$searchstring/::" <<< "$(grep "$searchstring" "$SUBMISSION_LOG")")
-if [[ -d /"$dirpath" && -f "$SUBMISSION_LOG" ]]; then cp -p -r "$SUBMISSION_LOG" /"$dirpath/$LOG_FILENAME" && rm -rf "$SUBMISSION_LOG"; fi
