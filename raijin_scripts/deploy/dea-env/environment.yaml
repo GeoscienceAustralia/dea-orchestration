@@ -40,7 +40,6 @@ dependencies:
 - gettext
 - giflib
 - glib
-- glueviz
 - glue-geospatial
 - graphviz # This is only graphviz itself, not the python bindings. The latter are in the pip section.
 - hdf4
@@ -54,6 +53,7 @@ dependencies:
 - ipympl
 - ipywidgets
 - jmespath
+- joblib
 - jpeg
 - jplephem
 - json-c
@@ -148,6 +148,7 @@ dependencies:
 - widgetsnbextension
 - xarray
 - xerces-c
+- xgboost
 - xorg-kbproto
 - xorg-libice
 - xorg-libsm
