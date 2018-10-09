@@ -15,6 +15,9 @@
 #PBS -l ncpus=16
 #PBS -l walltime=05:00:00
 
+#PBS -M santosh.mohan@ga.gov.au
+#PBS -m ae
+
 #PBS -N Test_NBConvert
 
 ##########################################

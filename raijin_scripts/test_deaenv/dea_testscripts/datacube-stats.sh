@@ -15,6 +15,9 @@
 #PBS -l ncpus=16
 #PBS -l walltime=10:00:00
 
+#PBS -M santosh.mohan@ga.gov.au
+#PBS -m ae
+
 #PBS -N dc-stats
 
 echo "
