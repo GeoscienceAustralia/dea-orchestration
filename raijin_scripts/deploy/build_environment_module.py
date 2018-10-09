@@ -400,6 +400,10 @@ def main(config_path):
         LOG.info(f'Run regression testing on new DEA Module (%r) ', dea_module)
         LOG.info('*'*80)
         run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
+    else:
+        LOG.info('List installed python dependencies and their versions:')
+        module_path = variables['module_path']
+        run_command(f'{module_path}/bin/pip freeze')
 
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
