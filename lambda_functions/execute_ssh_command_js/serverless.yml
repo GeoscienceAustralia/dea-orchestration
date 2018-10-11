@@ -290,3 +290,60 @@ functions:
           input:
             mintrashage: 10
             searchstr: ls8_nbar_albers
+  execute_s2ard:
+    handler: handler.execute_ssh_command
+    environment:
+      cmd: 'execute_s2ard --project ${self:provider.environment.PROJECT}
+                          --level1-dir <%= level1_dir %>
+                          --output-dir <%= output_dir %>
+                          --copy-parent-dir-count <%= copy_parent_dir_count %>
+                          --file-mod-start <% print(new Date().toISOString().split("T")[0]) %>
+                          --file-mod-start-offset <%= start_date_offset %>
+                          --days-to-process <%= days_to_process %>
+                          --task <%= task %>
+                          --obs-year <%= obs_year %>'
+      events:
+        - schedule:
+            rate: cron(17 05 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+            enabled: false
+            input:
+              task: level1
+              start_date_offset: 7
+              days_to_process: 7
+              output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
+              copy_parent_dir_count: 1
+              level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
+              year: current
+        - schedule:
+            rate: cron(17 10 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+            enabled: false
+            input:
+              task: level1
+              start_date_offset: 7
+              days_to_process: 31
+              output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
+              copy_parent_dir_count: 1
+              level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
+              obs_year: previous
+        - schedule:
+            rate: cron(17 05 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+            enabled: false
+            input:
+              task: level2
+              start_date_offset: 28
+              days_to_process: 7
+              output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
+              copy_parent_dir_count: 0 # IGNORED FOR L2
+              level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
+              obs_year: current
+        - schedule:
+            rate: cron(17 10 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+            enabled: false
+            input:
+              task: level2
+              start_date_offset: 28
+              days_to_process: 31
+              output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
+              copy_parent_dir_count: 0 # IGNORED FOR L2
+              level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
+              obs_year: previous
