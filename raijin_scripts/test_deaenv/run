@@ -195,8 +195,8 @@ echo ""
 cd "$WORKDIR"/work/wofs || exit 0
 echo "Running:
 qsub -V -W depend=afterany:$fc_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,YEAR=2018,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-wofs.sh"
-
-qsub -V -W depend=afterany:"$fc_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-wofs.sh
+wofs_job="$(qsub -V -W depend=afterany:"$fc_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-wofs.sh)"
+echo "$wofs_job"
 echo ""
 
 echo "
@@ -230,15 +230,13 @@ declare -a stats_yaml_array=("item_10"
                              "fc_ls8_2018_none_shapefile"
                              "fc_ls8_2018_percentile_no_prov"
                              "fc_ls8_2018_percentile_no_prov_shapefile")
-# Fetch pbs job id's
-pbs_jobs=$( fetch_pbs_job_ids )
 
 cd "$WORKDIR"/work/stats || exit 0
 for i in "${stats_yaml_array[@]}"
 do 
     echo "Running:
-    qsub -V -W depend=afterany:$pbs_jobs -v WORKDIR=$WORKDIR,MUT=$MODULE,PRODUCT=$i,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh"
+    qsub -V -W depend=afterany:$wofs_job -v WORKDIR=$WORKDIR,MUT=$MODULE,PRODUCT=$i,CONFIGFILE=$CONFIGFILE,DBNAME=$databasename,TESTDIR=$TESTDIR, $TESTDIR/dea_testscripts/datacube-stats.sh"
 
-    qsub -V -W depend=afterany:"$pbs_jobs" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh
+    qsub -V -W depend=afterany:"$wofs_job" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh
     echo ""
 done
