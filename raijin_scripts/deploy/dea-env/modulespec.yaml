@@ -3,12 +3,13 @@ variables:
   module_description: DEA Environment Module
   modules_dir: "/g/data/v10/public/modules"
   conda_path: "/g/data/v10/private/miniconda3-new/bin/conda"
-  # module_version: This is filled in automatically
+  python_version: 3.6
 
 # These templated variables are filled and included in the available variables used
 # in template files and configuration sections below
 templated_variables:
   module_path: "{modules_dir}/{module_name}/{module_version}"
+  python_path: "{modules_dir}/{module_name}/{module_version}/lib/python{python_version}/site-packages/"
 
 install_conda_packages: environment.yaml
 
