@@ -168,6 +168,7 @@ dependencies:
   - awscli
   - boltons
   - celery
+  - checksumdir
   - ciso8601
   - click-datetime
   - DAWG
