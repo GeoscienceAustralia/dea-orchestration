@@ -16,19 +16,27 @@ set base          ${module_path}
 
 module-whatis   "${module_description} ${module_version}"
 
-if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
-        puts stderr "Warning: PYTHONPATH is $$env(PYTHONPATH)"
-        puts stderr "Try unloading all python modules if you experience any issues."
-}
-
 # Enable segfault tracebacks in py3. https://docs.python.org/3/library/faulthandler.html
 setenv PYTHONFAULTHANDLER 1
 
-prepend-path PATH ${module_path}/bin
+# Set PYTHONUSERBASE based on the version of dea-env module.
+# This allows users to install python packages with "pip install --user <package>",
+setenv PYTHONUSERBASE ~/.digitalearthau/${module_version}/local
 setenv GDAL_DATA ${module_path}/share/gdal
 
-# Disable loading modules and .pth files from ~/.local/lib/python3.6/...
-# This allows users to install python packages with "pip install --user <package>",
-# while still meaning that a new module release will have a clean user environment.
-setenv PYTHONUSERBASE ~/.digitalearthau/${module_version}/local
-prepend-path PATH ~/.digitalearthau/${module_version}/local/bin
+if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
+        puts stderr "Warning: PYTHONPATH is $$env(PYTHONPATH)"
+        puts stderr "Unload all python modules, if you experience any issues."
+} else {
+        # Prepend only if we have new dea-env module
+        prepend-path PATH ${module_path}/bin
+
+        # Set python path to point to the dea-env path
+        setenv PYTHONPATH ${python_path}
+
+        # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
+        # variables to point to a directory based on the Environment Module version which is loaded so that extra
+        # packages must be re-installed when a new dea-env module is released
+        prepend-path PATH ~/.digitalearthau/${module_version}/local/bin
+        prepend-path PYTHONPATH ~/.digitalearthau/${module_version}/local
+}
