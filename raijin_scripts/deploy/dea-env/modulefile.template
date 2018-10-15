@@ -28,13 +28,12 @@ if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH
         puts stderr "Warning: ${module_name}/${module_version} exists in the python env ($$env(PYTHONPATH))"
         puts stderr "Unload all python modules, if you experience any issues."
 } else {
-        # Prepend only if we have new dea-env module
-        prepend-path PATH ${module_path}/bin
-
         # Set python path to point to the dea-env path
         setenv PYTHONPATH ${python_path}
 
         prepend-path PYTHONPATH ~/.digitalearthau/${module_name}/${module_version}/local
+
+        prepend-path PATH ${module_path}/bin
 
         # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
         # variables to point to a directory based on the Environment Module version which is loaded so that extra
