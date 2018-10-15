@@ -27,15 +27,16 @@ setenv LANG C.UTF-8
 if {[module-info mode load] && [is-loaded ${module_name}/${module_version}]} {
         puts stderr "Warning: ${module_name}/${module_version} exists in the python env ($$env(PYTHONPATH))"
 } else {
-        # Prepend only if we have new dea-env module
         prepend-path PATH ${module_path}/bin
-        prepend-path PYTHONPATH ${python_path}
-        prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local
 
         # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
         # variables to point to a directory based on the Environment Module version which is loaded so that extra
         # packages must be re-installed when a new dea-env module is released
         prepend-path PATH ~/.digitalearthau/${fixed_dea_env}/local/bin
+
+        prepend-path PYTHONPATH ${python_path}
+        prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local
+
 }
 
 #############################################################
