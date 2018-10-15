@@ -33,4 +33,11 @@ if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH
 
         # Set python path to point to the dea-env path
         setenv PYTHONPATH ${python_path}
+
+        prepend-path PYTHONPATH ~/.digitalearthau/${module_name}/${module_version}/local
+
+        # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
+        # variables to point to a directory based on the Environment Module version which is loaded so that extra
+        # packages must be re-installed when a new dea-env module is released
+        prepend-path PATH ~/.digitalearthau/${module_name}/${module_version}/local/bin
 }
