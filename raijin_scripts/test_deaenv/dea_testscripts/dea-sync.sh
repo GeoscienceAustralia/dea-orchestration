@@ -73,5 +73,6 @@ if [ "$TRASH_ARC" == yes ]; then
 fi
 
 cd "$SYNCDIR" || exit 0
-mkdir -p "$SYNCDIR/cache_$RANDOM"
-qsub -V -W block=true -N dea-sync -q express -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -m ae -M santosh.mohan@ga.gov.au -P u46 -- dea-sync -vvv --cache-folder "$SYNCDIR/cache_$RANDOM" -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing "$PATH_TO_PROCESS"
+CACHE_DIR="$SYNCDIR/cache_$RANDOM"
+mkdir -p "$CACHE_DIR"
+qsub -V -W block=true -N dea-sync -q express -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -m ae -M santosh.mohan@ga.gov.au -P u46 -- dea-sync -vvv --cache-folder "$CACHE_DIR" -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing "$PATH_TO_PROCESS"
