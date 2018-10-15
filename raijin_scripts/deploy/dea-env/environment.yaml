@@ -183,6 +183,7 @@ dependencies:
   - modernize
   - mypy
   - opencv-python
+  - parse
   - perf
   - pudb
   - pydash
