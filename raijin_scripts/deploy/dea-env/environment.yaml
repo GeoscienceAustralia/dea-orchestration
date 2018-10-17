@@ -88,7 +88,6 @@ dependencies:
 - mkl_fft
 - mkl_random
 - mock
-- mpi4py
 - munch
 - nb_conda_kernels
 - netcdf4
