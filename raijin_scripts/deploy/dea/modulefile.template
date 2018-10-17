@@ -39,7 +39,7 @@ remove-path PATH ~/.digitalearthau/${fixed_dea_env}/local/bin
 prepend-path PATH ~/.digitalearthau/${fixed_dea_env}/local/bin
 
 # Remove duplicate entries for HOME dir and prepend at the top
-remove-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local
+remove-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local/lib/python3.6/site-packages
 prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local
 
 
