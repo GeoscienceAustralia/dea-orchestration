@@ -99,6 +99,7 @@ dependencies:
 - numpy
 - openjpeg
 - pandas
+- parallel
 - pcre
 - pep8
 - pixman
