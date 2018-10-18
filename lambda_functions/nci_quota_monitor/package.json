@@ -1,0 +1,15 @@
+{
+  "name": "nci_quota_monitor",
+  "version": "1.0.0",
+  "description": "Monitor Quotas on the NCI",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Geoscience Australia",
+  "license": "Apache 2",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.2.0",
+    "serverless-python-requirements": "^4.2.4"
+  }
+}

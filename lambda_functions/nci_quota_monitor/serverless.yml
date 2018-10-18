@@ -1,0 +1,57 @@
+service: nci_quota_monitor
+
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+
+provider:
+  name: aws
+  runtime: python3.6
+
+  timeout: 60
+  stage: prod
+  region: ap-southeast-2
+  deploymentBucket: dea-lambda
+
+  iamRoleStatements:
+  - Effect: 'Allow'
+    Action:
+    - 'ssm:GetParameters'
+    - 'ssm:DescribeParameters'
+    Resource:
+    - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+  - Effect: 'Allow'
+    Action: 'kms:Decrypt'
+    Resource:
+    - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+  - Effect: 'Allow'
+    Action: 'es:ESHttp*'
+    Resource:
+
+# you can define service wide environment variables here
+  environment:
+    NCI_PROJECTS: 'rs0,v10,u46,fk4,r78'
+    NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
+
+functions:
+  nci_quota_monitor:
+    handler: nci_quotas_monitor.handler
+    events:
+      - schedule: rate(2 hours)
+
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"

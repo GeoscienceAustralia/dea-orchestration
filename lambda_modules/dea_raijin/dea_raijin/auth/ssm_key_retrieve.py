@@ -2,9 +2,8 @@ import boto3
 
 from ..config import AWS_REGION
 
-SSM_SERVICE_NAME = 'ssm'
 
-SSM = boto3.client(SSM_SERVICE_NAME, AWS_REGION)
+SSM = boto3.client('ssm', AWS_REGION)
 
 
 def get_ssm_parameter(name, with_decryption=True):

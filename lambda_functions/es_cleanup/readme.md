@@ -1,6 +1,6 @@
 # Orchestration
 
-Serverless deployment of orchestration lambdas
+Serverless deployment of es_cleanup lambdas
 
 Deploy using https://serverless.com/ 
 `serverless deploy -v`
