@@ -1,5 +1,5 @@
 # serverless.yml
-service: orchestration
+service: es_cleanup
 
 provider:
   name: aws
@@ -9,7 +9,7 @@ provider:
     name: dea-lambda
   stackTags:  # Optional CF stack tags
     Owner: tom.butler@ga.gov.au
-    Purpose: dea-orchestration
+    Purpose: dea-es_cleanup
   iamRoleStatements:
     - Effect: "Allow"
       Action:

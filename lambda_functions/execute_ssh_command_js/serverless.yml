@@ -43,7 +43,7 @@ provider:
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
-    repo: dea-orchestration
+    repo: dea-es_cleanup
     author: nci.monitor@dea.ga.gov.au
     purpose: nci-automation
 # you can add statements to the Lambda function's IAM Role here
