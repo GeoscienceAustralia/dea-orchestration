@@ -1,3 +1,11 @@
+import os
+
+import boto3
+
+SSM = boto3.client('ssm')
+
+DEFAULT_SSM_USER_PATH = os.environ.get('DEA_RAIJIN_USER_PATH', 'orchestrator.raijin.users.default')
+
 
 def timestr_to_seconds(time_str):
     if not time_str:
@@ -8,26 +16,23 @@ def timestr_to_seconds(time_str):
     except TypeError:
         raise RuntimeError('timestamp ill formatted')
 
-    ret_val = None
     if len(parts) == 2:
-        ret_val = parts[0] * (60**2) + parts[1] * (60)
+        ret_val = parts[0] * (60 ** 2) + parts[1] * (60)
     elif len(parts) == 3:
-        ret_val = parts[0] * (60**2) + parts[1] * (60) + parts[2]
+        ret_val = parts[0] * (60 ** 2) + parts[1] * (60) + parts[2]
     else:
         raise NotImplementedError('timestamp not handled')
 
     return ret_val
 
 
-# pylint: disable=pointless-string-statement
-"""
-Bytes-to-human / human-to-bytes converter.
-Based on: http://goo.gl/kTQMs
-Working with Python 2.x and 3.x.
-Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
-License: MIT
-"""
-
+#
+# Bytes-to-human / human-to-bytes converter.
+# Based on: http://goo.gl/kTQMs
+# Working with Python 2.x and 3.x.
+# Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
+# License: MIT
+#
 # see: http://goo.gl/kTQMs
 SYMBOLS = {
     'customary': ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'),
@@ -87,3 +92,38 @@ def human2bytes(s):
     for i, _s in enumerate(sset[1:]):
         prefix[_s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
+
+
+def human2decimal(s):
+    unit = s[-1]
+    val = float(s[:-1])
+
+    if unit == 'K':
+        ret_val = int(val * 1000)
+    elif unit == 'M':
+        ret_val = int(val * 1000000)
+    else:
+        raise ValueError('Error parsing "%s" into integer.' % s)
+
+    return ret_val
+
+
+def get_ssm_parameter(name, with_decryption=True):
+    """ Returns a parameter from the Secure Systems Manager
+
+    Args:
+        name (str): Key name from the ssm
+        with_decryption (bool): if the value should be decrypted with default kms key
+
+    Returns:
+        str: The value of the key in the ssm
+
+    Raises:
+        AttributeError: If key doesn't exist in the ssm.
+    """
+
+    response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
+
+    if response:
+        return response['Parameters'][0]['Value']  # Return the first value from doc stub
+    raise AttributeError("Key '{}' not found in SSM".format(name))
