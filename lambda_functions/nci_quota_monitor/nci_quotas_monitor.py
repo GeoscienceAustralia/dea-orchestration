@@ -1,50 +1,62 @@
-import logging
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import boto3
-from elasticsearch import helpers
 
-from .es_connection import get_es_connection
-from .raijin_ssh import exec_command
-from .utils import human2bytes, human2decimal
+from es_connection import get_es_connection
+from log_cfg import logger
+from raijin_ssh import exec_command
+from utils import human2bytes, human2decimal
 
 NCI_PROJECTS = os.environ['NCI_PROJECTS'].split(',')
 NCI_STORAGE = os.environ['NCI_STORAGE'].split(',')
 
-CLOUDWATCH_NAMESPACE = 'nci_metrics'
-CLOUDWATCH_MAX_SEND = 20
-
 CPU_FIELDS = ['cpu_grant', 'cpu_usage', 'cpu_avail', 'cpu_bonus_used']
 STORAGE_FIELDS = ['grant', 'usage', 'avail', 'igrant', 'iusage', 'iavail']
 
-ES_INDEX = 'nci-quotausage-'
+CLOUDWATCH_NAMESPACE = 'nci_metrics'
+CLOUDWATCH_MAX_SEND = 20
 
-logger = logging.getLogger(__name__)
+ES_INDEX = 'nci-quotausage'
+ES_DOC_TYPE = 'nci_quota_usage'
 
 cloudwatch = boto3.client('cloudwatch')
 
+logger.debug("loading module")
 
-def monitor_project(project):
+
+def handler(event, context):
+    """Main Entry Point"""
+    logger.debug("inside handler")
+    with ThreadPoolExecutor() as executor:
+        usages = executor.map(get_project_usage, NCI_PROJECTS)
+
+        for usage in usages:
+            logger.info("Usage: %s", usage)
+
+
+def get_project_usage(project):
     output, stderr, exit_code = exec_command('monitor {}'.format(project))
 
     if exit_code != 0:
         logger.error('Could not get quota report for %s, with exit code %s', project, exit_code)
-        return
+        raise Exception()
 
     usage = project_usage(output)
     assert project == usage['project']
 
-    upload_to_cloudwatch_metrics(project, usage)
+    upload_to_cloudwatch_metrics(usage)
     upload_to_elasticsearch(usage)
+
+    return usage
 
 
 def upload_to_elasticsearch(usage):
     es_connection = get_es_connection()
     now = datetime.utcnow()
-    # Upload to elastic Search
-    update_template(es_connection)
+    update_es_template(es_connection)
     es_data = [dict(**usage)]
     es_data[0].update({
         '_index': ES_INDEX + now.strftime('%Y'),
@@ -55,27 +67,22 @@ def upload_to_elasticsearch(usage):
     logger.info(summary)
 
 
-def upload_to_cloudwatch_metrics(project, usage):
+def upload_to_cloudwatch_metrics(usage):
     now = datetime.utcnow()
-    cloud_metrics = [make_metric(resource_name, resource_value, project, now)
+    cloud_metrics = [make_cw_metric(resource_name, resource_value, usage['project'], now)
                      for resource_name, resource_value in usage.items()
                      if resource_name not in ['project', 'period']]
     # Upload to cloud watch
-    for some_cloud_metrics in [
-        cloud_metrics[x:x + CLOUDWATCH_MAX_SEND]
-        for x in range(0, len(cloud_metrics), CLOUDWATCH_MAX_SEND)]:
+    chunked_metrics = [cloud_metrics[x:x + CLOUDWATCH_MAX_SEND]
+                       for x in range(0, len(cloud_metrics), CLOUDWATCH_MAX_SEND)]
+    for some_cloud_metrics in chunked_metrics:
         cloudwatch.put_metric_data(
             Namespace=CLOUDWATCH_NAMESPACE,
             MetricData=some_cloud_metrics
         )
 
 
-def handler(event, context):
-    for project in NCI_PROJECTS:
-        monitor_project(project)
-
-
-def make_metric(resource_name, resource_value, project, time):
+def make_cw_metric(resource_name, resource_value, project, time):
     system, resource = resource_name.split('_')[:2]
     return {
         'MetricName': 'quota',
@@ -96,10 +103,10 @@ def project_usage(output):
     }
     try:
         cpu = {
-            'cpu_grant': re.findall(r'.*Total Grant:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0],
-            'cpu_usage': re.findall(r'.*Total Used:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0],
-            'cpu_avail': re.findall(r'.*Total Avail:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0],
-            'cpu_bonus_used': re.findall(r'.*Bonus Used:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0]
+            'cpu_grant': 1000 * float(re.findall(r'.*Total Grant:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0]),
+            'cpu_usage': 1000 * float(re.findall(r'.*Total Used:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0]),
+            'cpu_avail': 1000 * float(re.findall(r'.*Total Avail:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0]),
+            'cpu_bonus_used': 1000 * float(re.findall(r'.*Bonus Used:\s+([\d.]+) KSU.*', output, re.MULTILINE)[0])
         }
         usage.update(cpu)
     except (TypeError, IndexError):
@@ -131,7 +138,7 @@ def storage_usage(storage_pt, text):
     return {}
 
 
-def update_template(es):
+def update_es_template(es):
     usage_template = {
         'template': ES_INDEX + '*',
         'mappings': {
