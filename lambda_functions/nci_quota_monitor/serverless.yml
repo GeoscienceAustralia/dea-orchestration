@@ -1,4 +1,4 @@
-service: nci_quota_monitor
+service: nci-quota-monitor
 
 plugins:
   - serverless-python-requirements
@@ -7,12 +7,22 @@ plugins:
 custom:
   pythonRequirements:
     dockerizePip: non-linux
-
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
 provider:
   name: aws
   runtime: python3.6
 
   timeout: 60
+  memorySize: 128 # in MB, default is 1024
   stage: prod
   region: ap-southeast-2
   deploymentBucket: dea-lambda
@@ -20,26 +30,33 @@ provider:
   iamRoleStatements:
   - Effect: 'Allow'
     Action:
-    - 'ssm:GetParameters'
-    - 'ssm:DescribeParameters'
+      - 'ssm:GetParameter'
+      - 'ssm:GetParameters'
+      - 'ssm:DescribeParameters'
     Resource:
-    - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
   - Effect: 'Allow'
     Action: 'kms:Decrypt'
     Resource:
-    - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
   - Effect: 'Allow'
     Action: 'es:ESHttp*'
-    Resource:
+    Resource: '*'
+  - Effect: 'Allow'
+    Action: 'cloudwatch:PutMetricData'
+    Resource: '*'
 
 # you can define service wide environment variables here
   environment:
     NCI_PROJECTS: 'rs0,v10,u46,fk4,r78'
     NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
+    SSM_USER_PATH: 'orchestrator.raijin.users.default'
+    DEA_AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
 
 functions:
   nci_quota_monitor:
     handler: nci_quotas_monitor.handler
+    description: Record Quota/Usage for projects on the NCI into Cloudwatch Metrics and ElasticSearch
     events:
       - schedule: rate(2 hours)
 
