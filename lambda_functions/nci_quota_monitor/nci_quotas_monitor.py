@@ -19,7 +19,7 @@ STORAGE_FIELDS = ['grant', 'usage', 'avail', 'igrant', 'iusage', 'iavail']
 CLOUDWATCH_NAMESPACE = 'nci_metrics'
 CLOUDWATCH_MAX_SEND = 20
 
-ES_INDEX = 'nci-quotausage'
+ES_INDEX = 'nci-quotausage-'
 ES_DOC_TYPE = 'nci_quota_usage'
 
 cloudwatch = boto3.client('cloudwatch')
@@ -56,14 +56,20 @@ def get_project_usage(project):
 def upload_to_elasticsearch(usage):
     es_connection = get_es_connection()
     now = datetime.utcnow()
-    update_es_template(es_connection)
-    es_data = [dict(**usage)]
-    es_data[0].update({
-        '_index': ES_INDEX + now.strftime('%Y'),
-        '_type': 'nci_quota_usage',
-        '@timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    })
-    summary = helpers.bulk(client=es_connection, actions=es_data)
+
+    usage = usage.copy()
+    usage['@timestamp'] = now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    # update_es_template(es_connection)
+    # es_data = [dict(**usage)]
+    # es_data[0].update({
+    #     '_index': ES_INDEX + now.strftime('%Y'),
+    #     '_type': 'nci_quota_usage',
+    #     '@timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    # })
+    # summary = helpers.bulk(client=es_connection, actions=es_data)
+    summary = es_connection.index(index=ES_INDEX + now.strftime('%Y'),
+                                  doc_type=ES_DOC_TYPE,
+                                  body=usage)
     logger.info(summary)
 
 
