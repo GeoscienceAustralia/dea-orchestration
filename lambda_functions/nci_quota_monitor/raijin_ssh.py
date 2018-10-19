@@ -82,28 +82,25 @@ def get_ssm_parameter(name, with_decryption=True):
     raise AttributeError("Key '{}' not found in SSM".format(name))
 
 
-_sshclient = None
-
-
 def connect():
-    global _sshclient
-    if _sshclient and _sshclient.get_transport().is_active():
-        return _sshclient
-    else:
-        ssh_config = ssh_config_from_ssm_user_path()
+    # global _sshclient
+    # if _sshclient and _sshclient.get_transport().is_active():
+    #     return _sshclient
+    # else:
+    ssh_config = ssh_config_from_ssm_user_path()
 
-        with StringIO() as f:
-            f.write(ssh_config['pkey'])
-            f.seek(0)
-            private_key = paramiko.rsakey.RSAKey.from_private_key(f)
+    with StringIO() as f:
+        f.write(ssh_config['pkey'])
+        f.seek(0)
+        private_key = paramiko.rsakey.RSAKey.from_private_key(f)
 
-        _sshclient = paramiko.SSHClient()
-        _sshclient.set_missing_host_key_policy(_IgnorePolicy)  # Host will change with lambda
-        _sshclient.connect(
-            ssh_config['host'],
-            username=ssh_config['user'],
-            pkey=private_key,
-            look_for_keys=False
-        )
+    _sshclient = paramiko.SSHClient()
+    _sshclient.set_missing_host_key_policy(_IgnorePolicy)  # Host will change with lambda
+    _sshclient.connect(
+        ssh_config['host'],
+        username=ssh_config['user'],
+        pkey=private_key,
+        look_for_keys=False
+    )
 
-        return _sshclient
+    return _sshclient
