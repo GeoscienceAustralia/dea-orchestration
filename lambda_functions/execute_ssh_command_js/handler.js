@@ -61,8 +61,8 @@ exports.execute_ssh_command = (event, context, callback) => {
 
             let command = create_execution_string(event);
 
-	        ssh
-	           .exec(command, {
+            ssh
+               .exec(command, {
                      exit: (code, stdout, stderr) => {
                         if (code == 0) {
                                          console.log(`Executing: ${command}`);
