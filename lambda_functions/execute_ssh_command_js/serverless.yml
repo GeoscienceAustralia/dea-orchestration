@@ -255,9 +255,9 @@ functions:
           rate: cron(00 09 ? * * *) # Run every day, at 07:00 pm Canberra time
           enabled: false
           input:
-            timerange: 'time in 2018'
+            timerange: "'\''time in 2018'\''"
   execute_notify_on_error_ds:
-    handler: handler.execute_ssh_command
+    handler: handler.email_notification
     description: Upload csv file to S3 and send an email, if coherence tool detects bad datasets in the database
     environment:
       cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}'

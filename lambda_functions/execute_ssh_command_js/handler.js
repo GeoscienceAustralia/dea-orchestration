@@ -5,6 +5,10 @@ var _ = require('lodash');
 const AWS = require("aws-sdk");
 AWS.config.update({region: 'ap-southeast-2'});
 
+var nodemailer = require("nodemailer");
+var ses = new AWS.SES();
+var s3 = new AWS.S3();
+
 const ssm = new AWS.SSM();
 
 const hostkey = process.env.hostkey;
@@ -28,6 +32,11 @@ const pkey = process.env.pkey;
  *      'mycommand --arg1 myarg'
  */
 function create_execution_string(event) {
+    var compiled = _.template(process.env.cmd);
+    return compiled(event);
+}
+
+function create_email_body_string(event) {
     var compiled = _.template(process.env.cmd);
     return compiled(event);
 }
@@ -84,4 +93,46 @@ exports.execute_ssh_command = (event, context, callback) => {
                    fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
                });
         });
+};
+
+
+exports.email_notification = function (event, context, callback) {
+    var mailOptions = {
+        from: "nci.monitor@dea.ga.gov.au",
+        subject: "Erroneous datasets found in database (Reported by coherence tool)!",
+        html: `<p>You got a contact message from: <b>${event.emailAddress}</b></p>`,
+        to: "santosh.mohan@ga.gov.au",
+        attachments: [
+            {
+               filename: "erroneous_datasets.csv",
+               content: fileData.Body
+            }
+        ]
+    };
+
+    console.log('Creating SES transporter');
+    // create Nodemailer SES transporter
+    var transporter = nodemailer.createTransport({
+        SES: ses
+    });
+
+    let email_body = create_email_body_string(event);
+
+    // send email
+    transporter.sendMail(mailOptions, function (err, info) {
+        if (err) {
+            console.log("Error sending email");
+            callback(err);
+        } else {
+            console.log(`Email Content: ${email_body}`);
+            console.log("Email sent successfully");
+            callback();
+        }
+    });
+  })
+  .catch(function (error) {
+            console.log(error);
+            console.log('Error getting attachment from S3');
+            callback(err);
+  });
 };
