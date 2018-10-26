@@ -1,5 +1,6 @@
 import logging
 import sys
+
 """
 All lambda methods use this loging config.
 Provides a single place where all log config/level/formatting is setup so that one
