@@ -21,7 +21,7 @@ shellcheck -e SC1071,SC1090,SC1091 "${SHELL_SCRIPTS[@]}"
 
 # Run tests, taking coverage.
 # Users can specify extra folders as arguments.
-pytest -r sx --doctest-ignore-import-errors --durations=5 lambda_functions lambda_modules "$@"
+pytest -r sx --doctest-ignore-import-errors --durations=5 lambda_functions "$@"
 
 set +x
 

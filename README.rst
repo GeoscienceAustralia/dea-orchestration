@@ -4,78 +4,38 @@
 .. role:: py(code)
    :language: python
 
-###############
-Collection Aims
-###############
+##############
+ Introduction
+##############
 
 .. image:: https://travis-ci.org/GeoscienceAustralia/dea-orchestration.svg?branch=master
     :target: https://travis-ci.org/GeoscienceAustralia/dea-orchestration
 
-This repo contains a collection of wrapper and helper libraries for communicating between
-AWS' lambda and NCI's raijin facilities; and a collection of scripts that can be triggered 
-within the raijin environment.
+This repo contains code for managing the automated processing of data within Digital Earth Australia.
+
+It is made up of:
+ - AWS Lambda functions in `lambda_functions/`_
+ - Code which runs on NCI/Raijin in `raijin_scripts`_
+
 
 ================
 Lambda Functions
 ================
+- Make sure the private keys are stored in `aws ssm`_
+- By default the user credentials will be retrieved from the ssm parameters:
 
-To create a new lambda function create a class that inherits from one of the
-`command classes`_ in the lambda_functions directory.
+ - User: :bash:`orchestrator.raijin.users.default.user`
+ - Host: :bash:`orchestrator.raijin.users.default.host`
+ - Private Key: :bash:`orchestrator.raijin.users.default.pkey`
+ - The prefix :bash:`orchestrator.raijin.users.default` can be overriden with the :bash:`DEA_RAIJIN_USER_PATH` environment variable.
 
-To Create a new Lambda Function
--------------------------------
+- When the lambda is configured it will need an associated role with policy permissions to access
+ the ssm to retrieve parameters and the `aws kms`_ decryption key.
 
-- A script directory called :bash:`{{script_name}}` must be created in [lambda_functions](/lambda_functions) directory and inside must appear a :bash:`{{script_name}}.py` file.
-- Inside the directory create the following additional files:
-
-  - requirements.txt (with the python dependencies)
-  - If internal modules are required base the url path from the base directory i.e. (:bash:`./lambda_modules/dea_raijin`)
-  - an :bash:`env_vars.json` file which documents the environment variables required by the lambda.
-
-- The "command" method needs to be overwritten by the subclass and is invoked to run the command.
-- The :bash:`{{script_name}}.py` file must include a handler method that accepts the event and context variables
-  from AWS and instantiates the user defined command class and calls run.
-- The command must have a class variable "COMMAND_NAME" which is used to identify the command when logging.
-- To create a new function use :bash:`./scripts/package_lambda {{script_name}} {{zipfile_name}}` to create a packaged
-  zipfile; this will need to be uploaded into AWS Lambda with the corresponding IAM roles and access to
-  ec2 parameter store
-
-  - Make sure the private keys are stored in `aws ssm`_
-  - By default the user credentials will be retrieved from the ssm parameters:
-
-    - User: :bash:`orchestrator.raijin.users.default.user`
-    - Host: :bash:`orchestrator.raijin.users.default.host`
-    - Private Key: :bash:`orchestrator.raijin.users.default.pkey`
-    - The prefix :bash:`orchestrator.raijin.users.default` can be overriden with the :bash:`DEA_RAIJIN_USER_PATH` environment variable.
-
-  - When the lambda is configured it will need an associated role with policy permissions to access
-    the ssm to retrieve parameters and the `aws kms`_ decryption key.
-
-Installs the requirements of a script into the current python env; useful to install internal modules.
-
-An `example lambda class`_ is available to use a template.
 
 Writing a new Lambda function
 -----------------------------
 
-- For scripts that inherit from the :python:`BaseCommand`/:python:`RaijinCommand` logging
-  is available with :python:`self.logger.{{level}}('{{message}}')`
-- For RaijinCommands/BaseCommands the constructor must pass itself into the super constructor
-  to provide the command name.
-- For RaijinCommands the ssh_client can be accessed directly by using :python:`self.raijin.ssh_client`
-- Use the inbuilt:python:`self.raijin.exec_command()` for standard behaviour and have the stdout, stderr, and
-  exit_code decoded and returned for processing.
-- BaseCommands can manage the connection themselves by importing and using :python:`dea_raijin.auth.RaijinSession`
-
-To test run a Lambda function
------------------------------
-
-- The simplest method to test run a lambda command is to call the run_lambda script in the scripts directory.
-- The script will need to be run from an environment that has access to AWS ssm and AWS kms key.
-    - This can be done by installing the `aws cli and invoking aws configure`_
-- This script invokes the lambda handler based on the script name after initialising the
-  environment variables in env_vars.
-- If additional raijin commands are required they should be submitted first for approval.
 
 ==============
 Raijin Scripts
@@ -88,14 +48,14 @@ execute arbitrary code in our environment.
 To Create a new Raijin script
 -----------------------------
 
-- create a folder in the raijin_scripts directory with the name of that will be used to invoke the command.
-- Inside the directory is an executable run file which will be called via the executor with the
+- create a folder in the ``raijin_scripts`` directory with the name of that will be used to invoke the command.
+- Inside the directory is an executable ``run`` file which will be called via the executor with the
   commandline arguments passed into the function.
 - If you require additional files please store them in this directory, for example have a python virtual
   environment in order to access libraries please store them in this directory.
 - If there is work required to install the command, please create an install.sh file in this directory
   which is where the code will be executed from following approval.
-- stderr, stdout and exit_code is returned to the lambda function by default
+- ``stderr``, ``stdout`` and ``exit_code`` are returned to the lambda function by default
 - An exit code of :bash:`127 (command not found)` is returned if remote cannot find the command requested.
 
 Running a Raijin Command
