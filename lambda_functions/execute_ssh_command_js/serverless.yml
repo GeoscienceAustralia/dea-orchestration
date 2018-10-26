@@ -27,16 +27,6 @@ custom:
     s3Bucket:
       prod: "dea-lambda"
       dev: "dea-lambdas-dev"
-  s3Sync:
-    - bucketName: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}} # required
-      localDir: /g/data/v10/work/coherence/ # required
-
-resources:
-  Resources:
-    AssetsBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
 
 provider:
   name: aws
@@ -262,7 +252,7 @@ functions:
                               --timerange <%= timerange %>'
     events:
       - schedule:
-          rate: cron(20 10 ? * * *) # Run every day, at 08:20 pm Canberra time
+          rate: cron(00 09 ? * * *) # Run every day, at 07:00 pm Canberra time
           enabled: false
           input:
             timerange: 'time in 2018'
@@ -273,7 +263,7 @@ functions:
       cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}'
     events:
       - schedule:
-          rate: cron(20 10 ? * SUN *) # Run every Sunday, at 08:20 pm Canberra time
+          rate: cron(00 10 ? * * *) # Run every day, at 08:00 pm Canberra time
           enabled: false
   execute_clean:
     handler: handler.execute_ssh_command
@@ -286,7 +276,7 @@ functions:
                           --search-string <%= searchstr %>'
     events:
       - schedule:
-          rate: cron(20 10 ? * SUN *) # Run every Sunday, at 08:20 pm Canberra time
+          rate: cron(00 11 ? * SUN *) # Run every Sunday, at 09:00 pm Canberra time
           enabled: false
           input:
             mintrashage: 10
