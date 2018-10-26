@@ -27,6 +27,16 @@ custom:
     s3Bucket:
       prod: "dea-lambda"
       dev: "dea-lambdas-dev"
+  s3Sync:
+    - bucketName: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}} # required
+      localDir: /g/data/v10/work/coherence/ # required
+
+resources:
+  Resources:
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
 
 provider:
   name: aws
@@ -37,7 +47,7 @@ provider:
     hostkey: 'orchestrator.raijin.users.default.host'
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
-    DEA_MODULE: dea/20181011
+    DEA_MODULE: dea/20181015
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -74,6 +84,7 @@ functions:
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
+    description: Execute dea-sync tool to sync datasets from the specified path
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -150,6 +161,7 @@ functions:
             trasharchived: no
   execute_ingest:
     handler: handler.execute_ssh_command
+    description: Execute dea-submit-ingest qsub tool to ingest datasets to the database
     environment:
       cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
                            --queue ${self:provider.environment.QUEUE}
@@ -196,6 +208,7 @@ functions:
             product: ls7_pq_albers
   execute_fractional_cover:
     handler: handler.execute_ssh_command
+    description: Execute datacube-fc submit tool to generate fc and ingest them to the database
     environment:
       cmd: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
                                      --queue ${self:provider.environment.QUEUE}
@@ -221,6 +234,7 @@ functions:
             tag: 'ls7_fc2018'
   execute_wofs:
     handler: handler.execute_ssh_command
+    description: Execute datacube-wofs submit tool to generate wofs and ingest them to the database
     environment:
       cmd: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -237,52 +251,33 @@ functions:
             year: 2018
             product: wofs_albers
             tag: '2018'
-  execute_stacker:
-    handler: handler.execute_ssh_command
-    environment:
-      cmd: 'execute_stacker --dea-module ${self:provider.environment.DEA_MODULE}
-                            --queue ${self:provider.environment.QUEUE}
-                            --project ${self:provider.environment.PROJECT}
-                            --year <%= year %>
-                            --app-config <%= appconfig %>'
-    events:
-      - schedule:
-          rate: cron(30 04 * * ? *) # Run daily, at 04:30:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_nbar_albers.yaml
-      - schedule:
-          rate: cron(45 04 * * ? *) # Run daily, at 04:45:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_nbart_albers.yaml
-      - schedule:
-          rate: cron(00 05 * * ? *) # Run daily, at 05:00:00 am UTC time
-          enabled: false
-          input:
-            year: 2018
-            appconfig: ls8_pq_albers.yaml
   execute_coherence:
     # execute_coherence shall not be used on nbar/nbart/pq albers products
     handler: handler.execute_ssh_command
+    description: Execute dea-coherence tool to check the database inconsistencies (duplicates, siblings, locationless)
     environment:
       cmd: 'execute_coherence --dea-module ${self:provider.environment.DEA_MODULE}
                               --queue ${self:provider.environment.QUEUE}
                               --project ${self:provider.environment.PROJECT}
-                              --stage ${self:custom.Stage}
-                              --timerange <%= timerange %>
-                              --product <%= product %>'
+                              --timerange <%= timerange %>'
     events:
       - schedule:
-          rate: cron(10 08 ? * THU *) # Run every Thursday, at 08:10:00 am UTC time
+          rate: cron(20 10 ? * * *) # Run every day, at 08:20 pm Canberra time
           enabled: false
           input:
-            timerange: '2018-01-01 < time < 2018-12-31'
-            product: ls8_fc_albers
+            timerange: 'time in 2018'
+  execute_notify_on_error_ds:
+    handler: handler.execute_ssh_command
+    description: Upload csv file to S3 and send an email, if coherence tool detects bad datasets in the database
+    environment:
+      cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}'
+    events:
+      - schedule:
+          rate: cron(20 10 ? * SUN *) # Run every Sunday, at 08:20 pm Canberra time
+          enabled: false
   execute_clean:
     handler: handler.execute_ssh_command
+    description: Execute dea-clean tool to clean the file on the disk
     environment:
       cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
                           --queue ${self:provider.environment.QUEUE}
@@ -291,7 +286,7 @@ functions:
                           --search-string <%= searchstr %>'
     events:
       - schedule:
-          rate: cron(00 06 * * ? *)  # Run daily, at 06:00:00 am UTC time
+          rate: cron(20 10 ? * SUN *) # Run every Sunday, at 08:20 pm Canberra time
           enabled: false
           input:
             mintrashage: 10

@@ -1,0 +1,73 @@
+#!/bin/bash
+set -eu
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case ${key} in
+        --dea-module )          shift
+                                MODULE=$1
+                                ;;
+        * )                     exit 1
+    esac
+    shift
+done
+
+module use /g/data/v10/public/modules/modulefiles
+module load "$MODULE"
+
+# If aws cli is not installed, exit
+aws --version 2> /dev/null || exit 0;
+
+# Get the latest csv file from the coherence directory
+file=$(find /g/data/v10/work/coherence/ -type f -name '*.csv' -print | sort | tail -n -1)
+num_rows=$(head "$file" | wc -l)
+
+# Check if we have any bad datasets in the csv file
+[ "$num_rows" -lt 2 ] && echo "No bad datasets found within the database" && exit 0;
+
+filename=~/.aws/credentials
+
+datetime=$(date '+%F-%T')
+
+# Recepient's email address
+RECP=nci.monitor@dea.ga.gov.au
+
+# -s: Returns true if file exists and has a size > 0
+if [[ -s ~/.aws/credentials ]]; then
+    while read -ra line; 
+    do
+        for word in "${line[@]}";
+        do
+            [ "$word" = "[devProfile]" ] && exists="$word"
+        done;
+    done < "$filename"
+
+    if [ "$exists" ]
+    then
+        aws configure list --profile devProfile
+
+        s3_file=s3://dea-lambdas-dev/coherence/error_datasets_$(date '+%F').csv
+
+        # Upload to aws s3
+        aws --profile devProfile s3 cp "$file" "$s3_file"
+
+        # Email Content
+        email_content="
+         ${datetime} ----------------------------------- Begin -----------------------------------
+         ${datetime} Event: Erroneous_datasets_found_in_database (Reported by coherence tool)
+         ${datetime} ---------------------------- CSV File location ------------------------------
+         ${datetime}
+         ${datetime} NCI: ${file}
+         ${datetime} AWS S3: s3://dea-lambdas-dev/coherence/error_datasets_$(date '+%F').csv
+         ${datetime} 
+         ${datetime} ------------------------------------ End ------------------------------------"
+
+        echo "$email_content" | mailx -s "Erroneous datasets detected ($datetime)" $RECP
+    else
+        echo "'devProfile' does not exist in '~/.aws/credentials' file"
+        exit 0
+    fi
+else
+    echo "'~/.aws/credentials' file not found"
+    exit 0
+fi

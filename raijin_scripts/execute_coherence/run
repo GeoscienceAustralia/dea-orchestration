@@ -13,55 +13,22 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
-        --stage )               shift
-                                STAGE=$1
-                                ;;
         --timerange )           shift
                                 RANGE_EXP=$1
-                                ;;
-        --product )             shift
-                                PRODUCT=$1
                                 ;;
         * )                     exit 0
     esac
     shift
 done
 
-WORKDIR=/g/data/v10/work/coherence/"${PRODUCT}"/$(date '+%FT%H%M')
-SUBMISSION_LOG="$WORKDIR"/"${PRODUCT}"-coherence-submission-$(date '+%F-%T').log
-count=0
-dbhostname='agdcdev-db.nci.org.au'
-dbport='6432'
-dbname='datacube'
+WORKDIR=/g/data/v10/work/coherence/$(date '+%F')
+SUBMISSION_LOG="$WORKDIR"/Coherence_$(date '+%H_%m_%s').log
 
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
-while read -r LINE; do
-  if [[ "$count" -eq 1 ]]
-  then
-      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
-  elif [[ "$count" -eq 2 ]]
-  then
-      dbport="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
-  elif [[ "$count" -eq 3 ]]
-  then
-      dbname="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
-  fi
-
-  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
-      count=$((count+1))
-  fi
-
-  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
-      count=$((count+1))
-  fi
-done  < "$DATACUBE_CONFIG_PATH"
 
 cd "${WORKDIR}"
 
@@ -74,21 +41,13 @@ echo ""
 # Check if we can connect to the database
 datacube -vv system check
 
-# Read agdc datasets from the database before dea-coherence process
-echo ""
-echo "***************************************************************************"
-echo "Read previous agdc_dataset product names and count before coherence process"
-echo "Connected to the database host name: $dbhostname"
-echo "Connected to the database port number: $dbport"
-echo "Connected to the database name: $dbname"
-psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
-echo "***************************************************************************"
-
 echo ""
 echo "Starting coherence process......"
 ##################################################################################################
 # Qsub dea-coherence process
 ##################################################################################################
-qsub -V -N dea-coherence -q "${QUEUE}" -W umask=33 -l wd,walltime=20:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-coherence --check-ancestors --check-siblings --archive-siblings --check-locationless --archive-locationless "${RANGE_EXP}" product="${PRODUCT}"
+qsub -V -N dea-coherence -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" \
+    -o "$WORKDIR" -e "$WORKDIR" -m abe -M nci.monitor@dea.ga.gov.au \
+    -- dea-coherence --check-siblings --check-locationless --check-downstream-ds "${RANGE_EXP}"
 
 EOF
