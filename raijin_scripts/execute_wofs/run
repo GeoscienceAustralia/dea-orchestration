@@ -72,7 +72,7 @@ while read -r LINE; do
   fi
 done < "$DATACUBE_CONFIG_PATH"
 
-cd "$OUTPUT_DIR" || exit 0
+cd "$OUTPUT_DIR" || exit 1
 APP_CONFIG=/g/data/v10/public/modules/"$MODULE"/wofs/config/"${PRODUCT}".yaml
 
 # Launch the submission in the background, outputting results to a log file
