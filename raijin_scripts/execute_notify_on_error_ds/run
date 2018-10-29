@@ -7,13 +7,16 @@ while [[ $# -gt 0 ]]; do
         --dea-module )          shift
                                 MODULE=$1
                                 ;;
+        --webhook )             shift
+                                DEA_ORCHESTRATION_WEBHOOK=$1
+                                ;;
         --awsprofile )          shift
                                 AWS_PROFILE=$1
                                 ;;
         --recemail )            shift
                                 RECP=$1
                                 ;;
-        * )                     exit 0
+        * )                     exit 1
     esac
     shift
 done
@@ -21,8 +24,8 @@ done
 module use /g/data/v10/public/modules/modulefiles
 module load "$MODULE"
 
-# If aws cli is not installed, exit
-aws --version 2> /dev/null || exit 0;
+# If aws cli is not installed, exit with command command not found status
+aws --version 2> /dev/null || exit 1;
 
 # Get the latest csv file from the coherence directory
 file=$(find /g/data/v10/work/coherence/ -type f -name '*.csv' -print | sort | tail -n -1)
@@ -71,15 +74,14 @@ if [[ -s ~/.aws/credentials ]]; then
         MSG="$email_content"
 
         PAYLOAD="payload={\"text\": \"$MSG\"}"
-        DEA_ORCHESTRATION_WEBHOOK=https://hooks.slack.com/services/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
 
         # Send slack notification to '#dea-orchestration' channel about new CSV file that has been pushed to s3 bucket
         curl -X POST --data-urlencode "$PAYLOAD" "$DEA_ORCHESTRATION_WEBHOOK"
     else
         echo "'$profilename' profile does not exist in '~/.aws/credentials' file"
-        exit 0
+        exit 1
     fi
 else
     echo "'~/.aws/credentials' file not found"
-    exit 0
+    exit 1
 fi
