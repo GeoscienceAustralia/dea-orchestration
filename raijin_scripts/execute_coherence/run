@@ -13,7 +13,7 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
-        --timerange )           shift
+        --timequery )           shift
                                 RANGE_EXP=$1
                                 ;;
         * )                     exit 0
@@ -48,6 +48,6 @@ echo "Starting coherence process......"
 ##################################################################################################
 qsub -V -N dea-coherence -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" \
     -o "$WORKDIR" -e "$WORKDIR" -m abe -M nci.monitor@dea.ga.gov.au \
-    -- dea-coherence --check-siblings --check-locationless --check-downstream-ds "${RANGE_EXP}"
+    -- dea-coherence --check-siblings --check-locationless --check-downstream-ds '"${RANGE_EXP}"'
 
 EOF

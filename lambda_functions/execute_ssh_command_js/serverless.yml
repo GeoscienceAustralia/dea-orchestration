@@ -249,22 +249,27 @@ functions:
       cmd: 'execute_coherence --dea-module ${self:provider.environment.DEA_MODULE}
                               --queue ${self:provider.environment.QUEUE}
                               --project ${self:provider.environment.PROJECT}
-                              --timerange <%= timerange %>'
+                              --timequery <%= timequery %>'
     events:
       - schedule:
           rate: cron(00 09 ? * * *) # Run every day, at 07:00 pm Canberra time
-          enabled: false
+          enabled: true
           input:
-            timerange: "'\''time in 2018'\''"
+            timequery: "time in 2018"
   execute_notify_on_error_ds:
-    handler: handler.email_notification
-    description: Upload csv file to S3 and send an email, if coherence tool detects bad datasets in the database
+    handler: handler.execute_ssh_command
+    description: Detect CSV file containing discrepencies in database, upload CSV to S3 and notify (Slack and Email)
     environment:
-      cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}'
+      cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}
+                                       --awsprofile <%= awsprofile %>
+                                       --recemail <%= recemail %>'
     events:
       - schedule:
-          rate: cron(00 10 ? * * *) # Run every day, at 08:00 pm Canberra time
-          enabled: false
+          rate: cron(00 12 ? * * *) # Run every day, at 10:00 pm Canberra time
+          enabled: true
+          input:
+            awsprofile: default
+            recemail: nci.monitor@dea.ga.gov.au # Recepient's email address
   execute_clean:
     handler: handler.execute_ssh_command
     description: Execute dea-clean tool to clean the file on the disk
