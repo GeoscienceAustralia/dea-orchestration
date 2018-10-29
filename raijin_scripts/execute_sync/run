@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
         --trasharchived )       shift
                                 TRASH_ARC=$1
                                 ;;
-        * )                     exit 0
+        * )                     exit 1
     esac
     shift
 done
