@@ -7,7 +7,13 @@ while [[ $# -gt 0 ]]; do
         --dea-module )          shift
                                 MODULE=$1
                                 ;;
-        * )                     exit 1
+        --awsprofile )          shift
+                                AWS_PROFILE=$1
+                                ;;
+        --recemail )            shift
+                                RECP=$1
+                                ;;
+        * )                     exit 0
     esac
     shift
 done
@@ -29,42 +35,48 @@ filename=~/.aws/credentials
 
 datetime=$(date '+%F-%T')
 
-# Recepient's email address
-RECP=nci.monitor@dea.ga.gov.au
-
 # -s: Returns true if file exists and has a size > 0
 if [[ -s ~/.aws/credentials ]]; then
+    exists=
+    profilename="$AWS_PROFILE"
     while read -ra line; 
     do
         for word in "${line[@]}";
         do
-            [ "$word" = "[devProfile]" ] && exists="$word"
+            [ "$word" = "[$profilename]" ] && exists="$word"
         done;
     done < "$filename"
 
     if [ "$exists" ]
     then
-        aws configure list --profile devProfile
+        aws configure list --profile "$profilename"
 
-        s3_file=s3://dea-lambdas-dev/coherence/error_datasets_$(date '+%F').csv
+        s3_file=s3://dea-lambda/serverless/coherence/error_datasets_$(date '+%F').csv
 
         # Upload to aws s3
-        aws --profile devProfile s3 cp "$file" "$s3_file"
+        aws s3 --profile "$profilename" cp "$file" "$s3_file"
 
         # Email Content
-        email_content="
-         ${datetime} ----------------------------------- Begin -----------------------------------
-         ${datetime} Event: Erroneous_datasets_found_in_database (Reported by coherence tool)
-         ${datetime} ---------------------------- CSV File location ------------------------------
-         ${datetime}
-         ${datetime} NCI: ${file}
-         ${datetime} AWS S3: s3://dea-lambdas-dev/coherence/error_datasets_$(date '+%F').csv
-         ${datetime} 
-         ${datetime} ------------------------------------ End ------------------------------------"
+        email_content="$datetime
 
-        echo "$email_content" | mailx -s "Erroneous datasets detected ($datetime)" $RECP
+         Sub: Erroneous datasets found in database (Reported by coherence tool)
+
+         NCI file path: ${file}
+         AWS S3 url   : s3://dea-lambda/serverless/coherence/error_datasets_$(date '+%F').csv
+
+         "
+
+        # Send Email to the recepient email ID (mailx will not work in Raijin Login nodes)
+        echo "$email_content" | mailx -s "Erroneous datasets detected ($datetime)" "$RECP"
+        MSG="$email_content"
+
+        PAYLOAD="payload={\"text\": \"$MSG\"}"
+        DEA_ORCHESTRATION_WEBHOOK=https://hooks.slack.com/services/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
+
+        # Send slack notification to '#dea-orchestration' channel about new CSV file that has been pushed to s3 bucket
+        curl -X POST --data-urlencode "$PAYLOAD" "$DEA_ORCHESTRATION_WEBHOOK"
     else
-        echo "'devProfile' does not exist in '~/.aws/credentials' file"
+        echo "'$profilename' profile does not exist in '~/.aws/credentials' file"
         exit 0
     fi
 else
