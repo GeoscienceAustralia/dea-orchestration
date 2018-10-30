@@ -1,18 +1,11 @@
-"""
-AWS serverless lambda function that generate stac catalog file corresponding to yaml file
-upload event.
-"""
-
-import datetime
-import json
 from collections import OrderedDict
-from pathlib import Path
-
-import boto3
-import yaml
 from dateutil.parser import parse
-from parse import parse as pparse
 from pyproj import Proj, transform
+from pathlib import Path
+import datetime
+import yaml
+import json
+import boto3
 
 GLOBAL_CONFIG = {
     "homepage": "http://www.ga.gov.au/",
@@ -33,10 +26,7 @@ GLOBAL_CONFIG = {
         "scheme": "s3",
         "region": "ap-southeast-2",
         "requesterPays": "False"
-    },
-    "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover/fc/v2.2.0/ls5', 'fractional-cover/fc/v2.2.0/ls8']
+    }
 }
 
 PRODUCT_CONFIG = {
@@ -46,82 +36,40 @@ PRODUCT_CONFIG = {
             "confidence": "confidence",
             "wofs_filtered_summary": "wofs filtered summary"
         }
-    },
-    "wofs": {
-        "description": "WoFS algorithm ... ",
-        "bands": {
-            "water": "water",
-        }
-    },
-    "fractional_cover": {
-        "description": "The Fractional Cover (FC)",
-        "bands": {
-            "PV": "Photosynthetic Vegetation",
-            "NPV": "Non-Photosynthetic Vegetation",
-            "BS": "Bare Soil",
-            "UE": "Unmixing Error"
-        }
     }
 }
 
 
 def stac_handler(event, context):
     """
-    Receive Events about updated files in S3
     Assumed path structure would look like
-    dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
+    https://s3-ap-southeast-2.amazonaws.com/dea-public-data/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
-    s3_res = boto3.resource('s3')
+    s3 = boto3.resource('s3')
 
     # Extract message, i.e. yaml file href's
-    file_items = event.get('Records', [])
+    yaml_files = event.get(['Records'], [])
 
-    for file_item in file_items:
+    for yaml_file in yaml_files:
         # Load yaml file from s3
-        bucket, s3_key = get_bucket_and_key(file_item)
-
-        if not is_valid_yaml(s3_key):
-            continue
-
-        obj = s3_res.Object(bucket, s3_key)
+        yaml_file_ = Path(yaml_file)
+        # Is this robust?
+        bucket = yaml_file_.parts[2]
+        obj = s3.Object(bucket, yaml_file)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
-        s3_key_ = Path(s3_key)
-        stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
-        item_abs_path = f'{GLOBAL_CONFIG["aws-domain"]}/{stac_s3_key}'
-        parent_abs_path = get_stac_item_parent(s3_key)
-        stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
+        stac_json_path = f'{yaml_file_.parent}/{yaml_file_.stem}_STAC.json'
+        stac_item = stac_dataset(metadata_doc, stac_json_path)
 
         # Put STAC dict to s3
-        obj = s3_res.Object(bucket, stac_s3_key)
+        obj = s3.Object(bucket, stac_json_path)
         obj.put(Body=json.dumps(stac_item))
 
 
-def is_valid_yaml(s3_key):
-    """
-    Return whether the given key is valid
-    """
-
-    template = '{}x_{x}/y_{y}/{}.yaml'
-    return bool(sum([bool(pparse(p + template, s3_key)) for p in GLOBAL_CONFIG['aws-products']]))
-
-
-def get_bucket_and_key(message):
-    """
-    Parse the bucket and s3 key from the SQS message
-    """
-
-    s3_event = json.loads(message["body"])["Records"][0]
-    return s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
-
-
-def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
-    """
-    Returns a dict corresponding to a stac item catalog
-    """
+def stac_dataset(metadata_doc, stac_json_path):
 
     product = metadata_doc['product_type']
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
@@ -148,23 +96,25 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         ('properties', {
             'datetime': center_dt,
             'provider': GLOBAL_CONFIG['contact']['name'],
-            'license': GLOBAL_CONFIG['licence']['name'],
-            'copyright': GLOBAL_CONFIG['licence']['copyright'],
+            'license': GLOBAL_CONFIG['license']['name'],
+            'copyright': GLOBAL_CONFIG['license']['copyright'],
             'product_type': metadata_doc['product_type'],
             'homepage': GLOBAL_CONFIG['homepage']
         }),
-        ('links', [
-            {'href': item_abs_path, 'rel': 'self'},
-            {'href': parent_abs_path, 'rel': 'parent'}
-        ]),
+        ('provider', GLOBAL_CONFIG['provider']),
+        ('links', {
+            "self": {
+                'rel': 'self',
+                'href': stac_json_path
+            }
+        }),
         ('assets', {})
     ])
     bands = metadata_doc['image']['bands']
     for key in bands:
         path = metadata_doc['image']['bands'][key]['path']
-        key = PRODUCT_CONFIG[product]['bands'][key]
+        key = PRODUCT_CONFIG[product]['bands'][key] + ' GeoTIFF'
 
-        # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
         stac_item['assets'][key] = {
             'href': path,
             "required": 'true',
@@ -192,26 +142,3 @@ def valid_coord_to_geojson(valid_coord):
             "coordinates": valid_coord
         }
     }
-
-
-def get_stac_item_parent(s3_key):
-    """
-    Parse the parent stac catalog from the given s3 key
-    """
-    template = '{prefix}/x_{x}/y_{y}/{}'
-    params = pparse(template, s3_key).__dict__['named']
-    key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
-    return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
-
-
-def main():
-    import sys
-    infile, outfile = sys.argv[1], sys.argv[2]
-    with open(infile) as fin, open(outfile, 'w') as fout:
-        metadata_doc = yaml.safe_load(fin)
-        stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
-        json.dump(stac_doc, fout, indent=4)
-
-
-if __name__ == '__main__':
-    main()
