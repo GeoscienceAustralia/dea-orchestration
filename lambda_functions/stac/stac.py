@@ -36,6 +36,14 @@ PRODUCT_CONFIG = {
             "confidence": "confidence",
             "wofs_filtered_summary": "wofs filtered summary"
         }
+    },
+    "fractional_cover": {
+        "bands": {
+            "PV": "Photosynthetic Vegetation",
+            "NPV": "Non-Photosynthetic Vegetation",
+            "BS": "Bare Soil",
+            "UE": "Unmixing Error"
+        }
     }
 }
 
@@ -43,25 +51,26 @@ PRODUCT_CONFIG = {
 def stac_handler(event, context):
     """
     Assumed path structure would look like
-    https://s3-ap-southeast-2.amazonaws.com/dea-public-data/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
+    https://s3-ap-southeast-2.amazonaws.com/dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
     s3 = boto3.resource('s3')
 
     # Extract message, i.e. yaml file href's
-    yaml_files = event.get(['Records'], [])
+    file_items = event.get('Records', [])
 
-    for yaml_file in yaml_files:
+    for file_item in file_items:
         # Load yaml file from s3
-        yaml_file_ = Path(yaml_file)
+        yaml_file_ = Path(file_item)
         # Is this robust?
-        bucket = yaml_file_.parts[2]
-        obj = s3.Object(bucket, yaml_file)
+        bucket = yaml_file_.parts[0]
+        s3_key = Path(*yaml_file_.parts[1:])
+        obj = s3.Object(bucket, str(s3_key))
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
-        stac_json_path = f'{yaml_file_.parent}/{yaml_file_.stem}_STAC.json'
+        stac_json_path = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
         stac_item = stac_dataset(metadata_doc, stac_json_path)
 
         # Put STAC dict to s3
@@ -96,8 +105,8 @@ def stac_dataset(metadata_doc, stac_json_path):
         ('properties', {
             'datetime': center_dt,
             'provider': GLOBAL_CONFIG['contact']['name'],
-            'license': GLOBAL_CONFIG['license']['name'],
-            'copyright': GLOBAL_CONFIG['license']['copyright'],
+            'license': GLOBAL_CONFIG['licence']['name'],
+            'copyright': GLOBAL_CONFIG['licence']['copyright'],
             'product_type': metadata_doc['product_type'],
             'homepage': GLOBAL_CONFIG['homepage']
         }),

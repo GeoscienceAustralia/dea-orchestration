@@ -11,14 +11,13 @@ provider:
 
   iamRoleStatements:
     - Effect: "Allow"
-     Action:
+      Action:
        - "s3:GetObject"
        - "s3:PutObject"
-     Resource: "arn:aws:s3:::dea-public-data-dev/*"
+      Resource: "arn:aws:s3:::dea-public-data-dev/*"
 
 functions:
-  currentTime:
+  stac:
     handler: stac.stac_handler
     events:
-      - sqs:
-        arn:aws:sqs:region:ap-southeast-2:stac_catalog
+      - sqs: "arn:aws:sqs:region:ap-southeast-2:stac_catalog"
