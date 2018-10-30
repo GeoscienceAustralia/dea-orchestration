@@ -38,6 +38,7 @@ PRODUCT_CONFIG = {
         }
     },
     "fractional_cover": {
+        "description": "The Fractional Cover (FC)",
         "bands": {
             "PV": "Photosynthetic Vegetation",
             "NPV": "Non-Photosynthetic Vegetation",
