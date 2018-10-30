@@ -1,0 +1,24 @@
+service: stac-catalog-generator
+
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: python3.6
+
+  stage: dev
+  region: ap-southeast-2
+  profile: dev
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+       - "s3:GetObject"
+       - "s3:PutObject"
+      Resource: "arn:aws:s3:::dea-public-data-dev/*"
+
+functions:
+  stac:
+    handler: stac.stac_handler
+    events:
+      - sqs: "arn:aws:sqs:region:ap-southeast-2:stac_catalog"
