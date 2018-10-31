@@ -88,7 +88,7 @@ for _year in ${OBS_YEAR[@]}; do
                     echo "Submitting PBS job to create level 1 yaml files: ${OUTPUT_DIR}"
                     qsub -V -N "S2-L1-YAML" \
                         -W umask=33 \
-                        -q express \
+                        -q normal \
                         -l "walltime=24:00:00,mem=4GB,ncpus=1" \
                         -P "$PROJECT" \
                         -- s2-nci-processing generate-level1 \
