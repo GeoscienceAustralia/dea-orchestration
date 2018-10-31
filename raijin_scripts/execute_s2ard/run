@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # IF START DATE OFFSET IS DEFINED SHIFT START DATE BACK
-if [ ! -z "$FILE_MOD_START_OFFSET" ]; then
+if [ -n "$FILE_MOD_START_OFFSET" ]; then
     FILE_MOD_START="$(date -d"$FILE_MOD_START - $FILE_MOD_START_OFFSET days" +"%Y-%m-%d")"
 fi
 
@@ -64,7 +64,7 @@ if [ "$OBS_YEAR" == "current" ]; then
     OBS_YEAR="$( seq "$(date -d"$FILE_MOD_START" +"%Y")" "$(date -d"$FILE_MOD_END" +"%Y")")"
 elif [ "$OBS_YEAR" == "previous" ]; then
     OBS_YEAR="$( seq $S2_START_YEAR "$(date -d"$FILE_MOD_END - 1 year" +"%Y")" )"
-elif [ ! -z "$OBS_YEAR" ]; then
+elif [ -n "$OBS_YEAR" ]; then
     # Turn the year into an array
     OBS_YEAR="$( seq "$OBS_YEAR" "$OBS_YEAR" )"
 else
@@ -80,8 +80,8 @@ module use /g/data/v10/private/modules/modulefiles
 module load wagl/5.3.0
 
 
-# Queue each year individually to reduce run time and memory
-for _year in ${OBS_YEAR[@]}; do
+# Queue each year individually to reduce real time and total memory
+for _year in "${OBS_YEAR[@]}"; do
     case "$S2TASK" in
         "level1"    )
                     cd "$RUNDIR/level1"
