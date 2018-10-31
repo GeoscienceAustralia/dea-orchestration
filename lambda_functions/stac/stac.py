@@ -2,6 +2,7 @@ from collections import OrderedDict
 from dateutil.parser import parse
 from pyproj import Proj, transform
 from pathlib import Path
+from parse import parse as pparse
 import datetime
 import yaml
 import json
@@ -26,7 +27,8 @@ GLOBAL_CONFIG = {
         "scheme": "s3",
         "region": "ap-southeast-2",
         "requesterPays": "False"
-    }
+    },
+    "aws-domain": "https://data.dea.ga.gov.au"
 }
 
 PRODUCT_CONFIG = {
@@ -52,7 +54,7 @@ PRODUCT_CONFIG = {
 def stac_handler(event, context):
     """
     Assumed path structure would look like
-    https://s3-ap-southeast-2.amazonaws.com/dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
+    dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
@@ -71,15 +73,17 @@ def stac_handler(event, context):
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
-        stac_json_path = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
-        stac_item = stac_dataset(metadata_doc, stac_json_path)
+        stac_s3_key = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
+        item_abs_path = f'{GLOBAL_CONFIG["aws-domain"]}/{stac_s3_key}'
+        parent_abs_path = get_stac_item_parent(str(s3_key))
+        stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
         # Put STAC dict to s3
-        obj = s3.Object(bucket, stac_json_path)
+        obj = s3.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item))
 
 
-def stac_dataset(metadata_doc, stac_json_path):
+def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
 
     product = metadata_doc['product_type']
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
@@ -111,13 +115,10 @@ def stac_dataset(metadata_doc, stac_json_path):
             'product_type': metadata_doc['product_type'],
             'homepage': GLOBAL_CONFIG['homepage']
         }),
-        ('provider', GLOBAL_CONFIG['provider']),
-        ('links', {
-            "self": {
-                'rel': 'self',
-                'href': stac_json_path
-            }
-        }),
+        ('links', [
+            {'href': item_abs_path, 'rel': 'self'},
+            {'href': parent_abs_path, 'ref': 'parent'}
+        ]),
         ('assets', {})
     ])
     bands = metadata_doc['image']['bands']
@@ -125,6 +126,7 @@ def stac_dataset(metadata_doc, stac_json_path):
         path = metadata_doc['image']['bands'][key]['path']
         key = PRODUCT_CONFIG[product]['bands'][key] + ' GeoTIFF'
 
+        # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
         stac_item['assets'][key] = {
             'href': path,
             "required": 'true',
@@ -152,3 +154,10 @@ def valid_coord_to_geojson(valid_coord):
             "coordinates": valid_coord
         }
     }
+
+
+def get_stac_item_parent(s3_key):
+    template = '{prefix}/x_{x}/y_{y}/{}'
+    params = pparse(template, s3_key).__dict__['named']
+    key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+    return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
