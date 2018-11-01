@@ -92,7 +92,7 @@ echo "Read previous agdc_dataset product names and count before wofs process"
 echo "Connected to the database host name: $dbhostname"
 echo "Connected to the database port number: $dbport"
 echo "Connected to the database name: $dbname"
-psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+# psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
