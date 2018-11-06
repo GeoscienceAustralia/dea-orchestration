@@ -25,6 +25,20 @@ pytest -r sx --doctest-ignore-import-errors --durations=5 lambda_functions lambd
 
 set +x
 
+# Check the serverless configuration file
+if command -v serverless;
+then
+    set +ex
+    pushd "$PWD/lambda_functions/execute_ssh_command_js"
+    _TMP="$(mktemp -d)"
+    echo "writing temporary serverless artifacts to $_TMP"
+    serverless package -s prod -p "${_TMP}"  # test prod settinsg
+    _RET=$?
+    rm -rf "${_TMP}"  # clean up test directory
+    if [ $_RET -ne 0 ]; then echo "serverless failed to generate a package" && exit 1; fi
+    set -ex
+fi
+
 # If yamllint is available, validate yaml documents
 if command -v yamllint;
 then
