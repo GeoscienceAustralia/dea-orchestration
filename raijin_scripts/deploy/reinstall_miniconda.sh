@@ -19,7 +19,7 @@ then
     cd ~/.nvm || exit
     git checkout v0.33.11
 else
-    echo "~/.nvm directory already exists"
+    echo "$HOME/.nvm directory already exists"
 fi
 
 cd ~/.nvm || exit
