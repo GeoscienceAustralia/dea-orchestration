@@ -161,3 +161,32 @@ def get_stac_item_parent(s3_key):
     params = pparse(template, s3_key).__dict__['named']
     key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
     return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
+
+
+def update_parent_catalogs(s3_key, s3_resource, bucket):
+    """
+    Assumed structure:
+        root catalog
+            -> per product/catalog.json
+                -> x/catalog.json
+                    -> y/catalog.json
+    """
+
+    template = '{prefix}/x_{x}/y_{y}/{}'
+    params = pparse(template, s3_key).__dict__['named']
+    y_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+    y_obj = s3_resource.Object(bucket, y_catalog)
+    try:
+        y_catalog_json = jason.load(y_obj.get()['Body'].read().decode('utf-8'))
+
+        # update the y_catalog to reflect s3_key
+
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            # The object does not exist.
+            create_y_catalog(s3_key)
+        else:
+            # Something else has gone wrong.
+            raise
+
+    
