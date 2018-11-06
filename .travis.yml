@@ -26,7 +26,7 @@ install:
 
 script:
   - npm install -g serverless
-  - serverless plugin install --name serverless-pseudo-parameters
+  - pushd lambda_functions/execute_ssh_command_js && serverless plugin install --name serverless-pseudo-parameters && popd
   - ./scripts/check-code.sh
 
 before_deploy:
