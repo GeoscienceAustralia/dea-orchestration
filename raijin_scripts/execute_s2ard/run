@@ -97,7 +97,6 @@ for _year in "${OBS_YEAR[@]}"; do
                         --output-dir "$OUTPUT_DIR" \
                         --start-date "$FILE_MOD_START" \
                         --end-date "$FILE_MOD_END" \
-                        --dry-run
                     ;;
         "level2"    )
                     cd "$RUNDIR/level2"
