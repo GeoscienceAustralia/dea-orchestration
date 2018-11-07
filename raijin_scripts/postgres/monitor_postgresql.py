@@ -22,6 +22,7 @@ from elasticsearch import Elasticsearch
 
 ES_INDEX = 'metricbeat-dea-mon-'
 ES_HOST = 'search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com:443'
+BEAT_NAME = 'agdc-db.nci.org.au'
 
 
 def post_to_es(doc):
@@ -31,7 +32,9 @@ def post_to_es(doc):
     doc.update({
         '@timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         'beat': {
-            'version': 'dea-mon-0.1'
+            'version': 'dea-mon-0.1',
+            'name': BEAT_NAME,
+            'hostname': BEAT_NAME,
         }
     })
 
@@ -57,7 +60,6 @@ def loadavg(conn):
         'metricset': {
             'name': 'load',
             'module': 'system',
-            'host': 'agdc-db.nci.org.au:5432',
         },
         'system': {
             'load': {
@@ -87,7 +89,6 @@ def disk_space(conn):
             'metricset': {
                 'module': 'system',
                 'name': 'filesystem',
-                'host': 'agdc-db.nci.org.au:5432',
             },
             'system': {
                 'filesystem': {
@@ -98,7 +99,7 @@ def disk_space(conn):
                     'total': blocks,
                     'used': {
                         'bytes': used,
-                        'pct': percent_use
+                        'pct': (blocks - available) / blocks
                     }
                 }
             }
@@ -113,7 +114,6 @@ def network(conn):
                 'metricset': {
                     'module': 'system',
                     'name': 'network',
-                    'host': 'agdc-db.nci.org.au:5432',
                 },
                 'system': {
                     'network': {

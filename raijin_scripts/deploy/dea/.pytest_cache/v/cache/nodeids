@@ -1,0 +1,6 @@
+[
+  "datacube-ensure-user.py::test_no_pgpass",
+  "datacube-ensure-user.py::test_db_host_doesnot_match_productiondb",
+  "datacube-ensure-user.py::test_pgpass_empty",
+  "datacube-ensure-user.py::test_db_host_matches_productiondb"
+]
