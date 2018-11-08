@@ -40,7 +40,7 @@ provider:
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
     DEA_MODULE: dea/20181015
     PROJECT: v10
-    QUEUE: normal
+    QUEUE: express
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
@@ -253,10 +253,10 @@ functions:
                               --timequery "<%= timequery %>"'
     events:
       - schedule:
-          rate: cron(00 09 ? * * *) # Run every day, at 07:00 pm Canberra time
+          rate: cron(37 04 ? * * *) # Run every day, at 07:00 pm Canberra time
           enabled: true
           input:
-            timequery: 'time in 2018'
+            timequery: "2017 < time < 2018"
   execute_notify_on_error_ds:
     handler: handler.execute_ssh_command
     description: Detect CSV file containing discrepencies in database, upload CSV to S3 and notify (Slack and Email)
@@ -304,7 +304,7 @@ functions:
                           --obs-year <%= obs_year %>'
     events:
       - schedule:
-          rate: cron(17 05 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+          rate: cron(05 17 ? * FRI *) # Run every Friday at 3:05 AM, AEST
           enabled: false
           input:
             task: level1
@@ -315,7 +315,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(17 10 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+          rate: cron(10 17 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
           enabled: false
           input:
             task: level1
@@ -326,7 +326,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
       - schedule:
-          rate: cron(17 05 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+          rate: cron(05 17 ? * FRI *) # Run every Friday at 3:05 AM, AEST
           enabled: false
           input:
             task: level2
@@ -337,7 +337,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(17 10 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+          rate: cron(10 17 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
           enabled: false
           input:
             task: level2
@@ -347,3 +347,4 @@ functions:
             copy_parent_dir_count: 0 # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
+

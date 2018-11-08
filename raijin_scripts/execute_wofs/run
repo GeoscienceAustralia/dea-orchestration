@@ -89,10 +89,11 @@ datacube -vv system check
 echo ""
 echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before wofs process"
-echo "Connected to the database host name: $dbhostname"
-echo "Connected to the database port number: $dbport"
-echo "Connected to the database name: $dbname"
-# psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "Connected to the database host name: ${dbhostname}"
+echo "Connected to the database port number: ${dbport}"
+echo "Connected to the database name: ${dbname}"
+psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
+  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
@@ -100,5 +101,6 @@ echo "Executing wofs for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 # Run datacube-wofs submit two stage PBS job
 ##################################################################################################
-datacube-wofs submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
+datacube-wofs submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" \
+   --tag "${TAG}"
 EOF

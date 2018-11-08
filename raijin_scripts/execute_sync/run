@@ -36,6 +36,11 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# Override echo command to prepend timestamp before echo message
+echo() {
+    command echo "$(date '+%F_%T.%N')" "$@"
+}
+
 WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
 SYNC_CACHE="${WORKDIR}"/cache/
 SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
@@ -94,10 +99,11 @@ datacube -vv system check
 echo ""
 echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before sync process"
-echo "Connected to the database host name: $dbhostname"
-echo "Connected to the database port number: $dbport"
-echo "Connected to the database name: $dbname"
-# psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "Connected to the database host name: ${dbhostname}"
+echo "Connected to the database port number: ${dbport}"
+echo "Connected to the database name: ${dbname}"
+psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
+  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
@@ -105,5 +111,8 @@ echo "Starting Sync process......"
 ##################################################################################################
 # Run dea-sync process
 ##################################################################################################
-qsub -V -N dea-sync -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -m ae -M nci.monitor@dea.ga.gov.au -P "${PROJECT}" -o "$WORKDIR" -e "$WORKDIR" -- dea-sync -vvv --cache-folder "$WORKDIR"/cache -j 4 --log-queries "$TRASH_ARCHIVED" --update-locations --index-missing ${PATHS_TO_PROCESS[@]}
+qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -m ae \
+   -M nci.monitor@dea.ga.gov.au -P "${PROJECT}" -o ${WORKDIR} -e ${WORKDIR} \
+   -- dea-sync -vvv --cache-folder ${WORKDIR}/cache -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
+   --index-missing ${PATHS_TO_PROCESS[@]}
 EOF
