@@ -79,7 +79,7 @@ APP_CONFIG=$(datacube-fc list | grep "${PRODUCT}")
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
-echo Loading module "${MODULE}"
+echo Loading module ${MODULE}
 echo ""
 
 # Check if we can connect to the database
@@ -89,10 +89,11 @@ datacube -vv system check
 echo ""
 echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before fractional cover process"
-echo "Connected to the database host name: $dbhostname"
-echo "Connected to the database port number: $dbport"
-echo "Connected to the database name: $dbname"
-# psql -h "${dbhostname}" -p "${dbport}" -d "${dbname}" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "Connected to the database host name: ${dbhostname}"
+echo "Connected to the database port number: ${dbport}"
+echo "Connected to the database name: ${dbname}"
+psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
+  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
@@ -100,5 +101,5 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 # Run datacube-fc submit two stage PBS job
 ##################################################################################################
-datacube-fc submit -v -v --project "${PROJECT}" --queue "${QUEUE}" --year "${YEAR}" --app-config "${APP_CONFIG}" --tag "${TAG}"
+datacube-fc submit -v -v --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --tag ${TAG}
 EOF
