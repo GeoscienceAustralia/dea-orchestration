@@ -85,6 +85,9 @@ def stac_handler(event, context):
         obj = s3.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item))
 
+        # Update parent catalogs
+        update_parent_catalogs(stac_s3_key, s3, bucket)
+
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
 
@@ -175,14 +178,6 @@ def update_parent_catalogs(s3_key, s3_resource, bucket):
                     -> y/catalog.json
     """
 
-    # Update x catalogs
-    update_x_catalog(s3_key, s3_resource, bucket)
-
-    # add an item link to y_catalog
-    add_to_y_catalog(s3_key, s3_resource, bucket)
-
-
-def add_to_y_catalog(s3_key, s3_resource, bucket):
     template = '{prefix}/x_{x}/y_{y}/{}'
     params = pparse(template, s3_key).__dict__['named']
     y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
@@ -190,16 +185,15 @@ def add_to_y_catalog(s3_key, s3_resource, bucket):
 
     try:
         # load y catalog dict
-        y_catalog = json.load(y_obj.get()['Body'].read().decode('utf-8'))
+        y_catalog = json.loads(y_obj.get()['Body'].read().decode('utf-8'))
 
-    except ClientError as e:
+    except s3_resource.meta.client.exceptions.NoSuchKey as e:
 
-        if e.response['Error']['Code'] == "404":
-            # The object does not exist.
-            y_catalog = create_y_catalog(params["prefix"], params["x"], params["y"])
-        else:
-            # Something else has gone wrong.
-            raise
+        # The object does not exist.
+        y_catalog = create_y_catalog(params["prefix"], params["x"], params["y"])
+
+        # Potentially x catalog may not exist
+        update_x_catalog(s3_key, s3_resource, bucket)
 
     # Create item link
     item = {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{s3_key}',
@@ -243,14 +237,10 @@ def update_x_catalog(s3_key, s3_resource, bucket):
         # load x catalog dict
         x_catalog = json.load(x_obj.get()['Body'].read().decode('utf-8'))
 
-    except ClientError as e:
+    except s3_resource.meta.client.exceptions.NoSuchKey as e:
 
-        if e.response['Error']['Code'] == "404":
-            # The object does not exist.
-            x_catalog = create_x_catalog(params["prefix"], params["x"])
-        else:
-            # Something else has gone wrong.
-            raise
+        # The object does not exist.
+        x_catalog = create_x_catalog(params["prefix"], params["x"])
 
     # search y catalog link
     for link in x_catalog["links"]:
