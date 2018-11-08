@@ -217,7 +217,7 @@ def create_y_catalog(prefix, x, y):
     y_catalog_name = f'{prefix}/x_{x}/y_{y}/catalog.json'
     x_catalog_name = f'{prefix}/x_{x}/catalog.json'
     return OrderedDict([
-        ('name', y_catalog_name),
+        ('name', f'{prefix}/x_{x}/y_{y}'),
         ('description', 'List of items'),
         ('links', [
             {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{y_catalog_name}',
@@ -265,5 +265,18 @@ def update_x_catalog(s3_key, s3_resource, bucket):
 
 
 def create_x_catalog(prefix, x):
+    # ToDo: check product catalog name/parent to x
 
-    pass
+    x_catalog_name = f'{prefix}/x_{x}/catalog.json'
+    return OrderedDict([
+        ('name', f'{prefix}/x_{x}'),
+        ('description', 'List of Sub Directories'),
+        ('links', [
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
+             'ref': 'self'},
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{prefix}/catalog.json',
+             'rel': 'parent'},
+            {'href': GLOBAL_CONFIG["root-catalog"],
+             'rel': 'root'}
+        ])
+        ])
