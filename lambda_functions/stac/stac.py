@@ -217,7 +217,7 @@ def create_y_catalog(prefix, x, y):
     y_catalog_name = f'{prefix}/x_{x}/y_{y}/catalog.json'
     x_catalog_name = f'{prefix}/x_{x}/catalog.json'
     return OrderedDict([
-        ('name', y_catalog_name),
+        ('name', f'{prefix}/x_{x}/y_{y}'),
         ('description', 'List of items'),
         ('links', [
             {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{y_catalog_name}',
@@ -231,5 +231,52 @@ def create_y_catalog(prefix, x, y):
 
 
 def update_x_catalog(s3_key, s3_resource, bucket):
+    template = '{prefix}/x_{x}/y_{y}/{}'
+    params = pparse(template, s3_key).__dict__['named']
+    y_catalog_name_abs = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+    y_catalog_name_rel_to_x = f'y_{params["y"]}/catalog.json'
+    x_catalog_name = f'{params["prefix"]}/x_{params["x"]}/catalog.json'
+    x_obj = s3_resource.Object(bucket, x_catalog_name)
 
-    pass
+    try:
+
+        # load x catalog dict
+        x_catalog = json.load(x_obj.get()['Body'].read().decode('utf-8'))
+
+    except ClientError as e:
+
+        if e.response['Error']['Code'] == "404":
+            # The object does not exist.
+            x_catalog = create_x_catalog(params["prefix"], params["x"])
+        else:
+            # Something else has gone wrong.
+            raise
+
+    # search y catalog link
+    for link in x_catalog["links"]:
+        if link["href"] in (y_catalog_name_abs, y_catalog_name_rel_to_x):
+            return
+
+    # y catalog link not found so update it
+    x_catalog["links"].append({ "href": y_catalog_name_abs, "rel": "child"})
+
+    # Write back x catalog
+    x_obj.put(Body=json.dumps(x_catalog))
+
+
+def create_x_catalog(prefix, x):
+    # ToDo: check product catalog name/parent to x
+
+    x_catalog_name = f'{prefix}/x_{x}/catalog.json'
+    return OrderedDict([
+        ('name', f'{prefix}/x_{x}'),
+        ('description', 'List of Sub Directories'),
+        ('links', [
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
+             'ref': 'self'},
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{prefix}/catalog.json',
+             'rel': 'parent'},
+            {'href': GLOBAL_CONFIG["root-catalog"],
+             'rel': 'root'}
+        ])
+        ])
