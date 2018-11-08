@@ -231,5 +231,29 @@ def create_y_catalog(prefix, x, y):
 
 
 def update_x_catalog(s3_key, s3_resource, bucket):
+    template = '{prefix}/x_{x}/y_{y}/{}'
+    params = pparse(template, s3_key).__dict__['named']
+    y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+    x_catalog_name = f'{params["prefix"]}/x_{params["x"]}/catalog.json'
+    x_obj = s3_resource.Object(bucket, x_catalog_name)
+
+    try:
+
+        # load x catalog dict
+        x_catalog = json.load(x_obj.get()['Body'].read().decode('utf-8'))
+
+    except ClientError as e:
+
+        if e.response['Error']['Code'] == "404":
+            # The object does not exist.
+            x_catalog = create_x_catalog(params["prefix"], params["x"])
+        else:
+            # Something else has gone wrong.
+            raise
+
+    # ToDo: verify and update
+
+
+def create_x_catalog(prefix, x):
 
     pass
