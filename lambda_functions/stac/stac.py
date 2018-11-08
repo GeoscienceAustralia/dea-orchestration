@@ -7,6 +7,8 @@ import datetime
 import yaml
 import json
 import boto3
+from botocore.exceptions import ClientError
+
 
 GLOBAL_CONFIG = {
     "homepage": "http://www.ga.gov.au/",
@@ -28,7 +30,8 @@ GLOBAL_CONFIG = {
         "region": "ap-southeast-2",
         "requesterPays": "False"
     },
-    "aws-domain": "https://data.dea.ga.gov.au"
+    "aws-domain": "https://data.dea.ga.gov.au",
+    "root-catalog": "https://data.dea.ga.gov.au/catalog.json"
 }
 
 PRODUCT_CONFIG = {
@@ -172,21 +175,61 @@ def update_parent_catalogs(s3_key, s3_resource, bucket):
                     -> y/catalog.json
     """
 
+    # Update x catalogs
+    update_x_catalog(s3_key, s3_resource, bucket)
+
+    # add an item link to y_catalog
+    add_to_y_catalog(s3_key, s3_resource, bucket)
+
+
+def add_to_y_catalog(s3_key, s3_resource, bucket):
     template = '{prefix}/x_{x}/y_{y}/{}'
     params = pparse(template, s3_key).__dict__['named']
-    y_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
-    y_obj = s3_resource.Object(bucket, y_catalog)
+    y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+    y_obj = s3_resource.Object(bucket, y_catalog_name)
+
     try:
-        y_catalog_json = jason.load(y_obj.get()['Body'].read().decode('utf-8'))
+        # load y catalog dict
+        y_catalog = json.load(y_obj.get()['Body'].read().decode('utf-8'))
 
-        # update the y_catalog to reflect s3_key
+    except ClientError as e:
 
-    except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             # The object does not exist.
-            create_y_catalog(s3_key)
+            y_catalog = create_y_catalog(params["prefix"], params["x"], params["y"])
         else:
             # Something else has gone wrong.
             raise
 
-    
+    # Create item link
+    item = {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{s3_key}',
+            'rel': 'item'}
+
+    # Add item to catalog
+    y_catalog["links"].append(item)
+
+    # Put y_catalog dict to s3
+    obj = s3_resource.Object(bucket, y_catalog_name)
+    obj.put(Body=json.dumps(y_catalog))
+
+
+def create_y_catalog(prefix, x, y):
+    y_catalog_name = f'{prefix}/x_{x}/y_{y}/catalog.json'
+    x_catalog_name = f'{prefix}/x_{x}/catalog.json'
+    return OrderedDict([
+        ('name', y_catalog_name),
+        ('description', 'List of items'),
+        ('links', [
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{y_catalog_name}',
+             'ref': 'self'},
+            {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
+             'rel': 'parent'},
+            {'href': GLOBAL_CONFIG["root-catalog"],
+             'rel': 'root'}
+        ])
+        ])
+
+
+def update_x_catalog(s3_key, s3_resource, bucket):
+
+    pass
