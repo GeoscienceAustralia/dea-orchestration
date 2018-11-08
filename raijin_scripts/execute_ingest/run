@@ -27,6 +27,11 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# Override echo command to prepend timestamp before echo message
+echo() {
+    command echo "$(date '+%F_%T.%N')" "$@"
+}
+
 WORKDIR=/g/data/v10/work/ingest/"${PRODUCT}"/$(date '+%FT%H%M')
 SUBMISSION_LOG="${WORKDIR}"/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
@@ -70,7 +75,7 @@ cd "${WORKDIR}"
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
-echo Loading module "${MODULE}"
+echo Loading module ${MODULE}
 echo ""
 
 # Check if we can connect to the database
@@ -80,10 +85,11 @@ datacube -vv system check
 echo ""
 echo "**********************************************************************"
 echo "Read previous agdc_dataset product names and count before ingest process"
-echo "Connected to the database host name: $dbhostname"
-echo "Connected to the database port number: $dbport"
-echo "Connected to the database name: $dbname"
-# psql -h "${dbhostname}" -p "${dbport}"  -d "${dbname}"  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+echo "Connected to the database host name: ${dbhostname}"
+echo "Connected to the database port number: ${dbport}"
+echo "Connected to the database name: ${dbname}"
+psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
+  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 echo ""
@@ -91,5 +97,6 @@ echo "Executing ingest for ${YEAR} ${PRODUCT}"
 ##################################################################################################
 # Run dea-submit-ingest process
 ##################################################################################################
-yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --allow-product-changes --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
+yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --allow-product-changes \
+  --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF

@@ -13,6 +13,9 @@ while [[ $# -gt 0 ]]; do
         --project )             shift
                                 PROJECT=$1
                                 ;;
+        --product )             shift
+                                PRODUCT=$1
+                                ;;
         --timequery )           shift
                                 RANGE_EXP=$1
                                 ;;
@@ -30,12 +33,17 @@ echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
 
+PRODUCT_QUERY=''
+if [ "$PRODUCT" ]; then
+   PRODUCT_QUERY="product=$PRODUCT"
+fi
+
 cd "${WORKDIR}"
 
 nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging into: ${SUBMISSION_LOG}"
 echo ""
-echo Loading module "${MODULE}"
+echo Loading module ${MODULE}
 echo ""
 
 # Check if we can connect to the database
@@ -46,8 +54,8 @@ echo "Starting coherence process......"
 ##################################################################################################
 # Qsub dea-coherence process
 ##################################################################################################
-qsub -V -N dea-coherence -q "${QUEUE}" -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" \
-    -o "$WORKDIR" -e "$WORKDIR" -m abe -M nci.monitor@dea.ga.gov.au \
-    -- dea-coherence --check-siblings --check-locationless --check-downstream-ds '"${RANGE_EXP}"'
+qsub -V -N dea-coherence -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=25GB,ncpus=1 -P ${PROJECT} \
+    -o ${WORKDIR} -e ${WORKDIR} -m abe -M nci.monitor@dea.ga.gov.au \
+    -- dea-coherence --check-downstream --check-locationless --check-ancestors ${PRODUCT_QUERY} '${RANGE_EXP}'
 
 EOF
