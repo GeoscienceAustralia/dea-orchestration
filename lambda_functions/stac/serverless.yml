@@ -2,13 +2,24 @@ service: stac-catalog-generator
 
 frameworkVersion: ">=1.2.0 <2.0.0"
 
+custom:
+  Stage: dev
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+  CustEnv:
+    s3Bucket:
+      prod: "dea-lambda"
+      dev: "dea-lambdas-dev"
+  pythonRequirements:
+    fileName: requirements.txt
+
 provider:
   name: aws
   runtime: python3.6
-
-  stage: dev
+  profile: ${self:custom.profiles.${self:custom.Stage}}
+  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   region: ap-southeast-2
-  profile: dev
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -16,9 +27,19 @@ provider:
        - "s3:GetObject"
        - "s3:PutObject"
       Resource: "arn:aws:s3:::dea-public-data-dev/*"
+    - Effect: "Allow"
+      Action:
+        - "sqs:ReceiveMessage"
+        - "sqs:DeleteMessage"
+        - "sqs:GetQueueAttributes"
+      Resource: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
 
 functions:
   stac:
     handler: stac.stac_handler
     events:
-      - sqs: "arn:aws:sqs:region:ap-southeast-2:stac_catalog"
+      - sqs:
+        arn: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
+        batchSize: 10
+plugins:
+  - serverless-python-requirements
