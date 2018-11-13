@@ -40,7 +40,7 @@ provider:
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
     DEA_MODULE: dea/20181015
     PROJECT: v10
-    QUEUE: express
+    QUEUE: normal
   region: ap-southeast-2
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   stackTags:
@@ -75,7 +75,7 @@ functions:
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
-    description: Execute dea-sync tool to sync datasets from the specified path
+    description: Sync landsat 7/8 scenes
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -243,20 +243,22 @@ functions:
             product: wofs_albers
             tag: '2018'
   execute_coherence:
-    # execute_coherence shall not be used on nbar/nbart/pq albers products
+    # Note: Keep `--timequery` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
-    description: Execute dea-coherence tool to check the database inconsistencies (duplicates, siblings, locationless)
+    description: Execute dea-coherence tool to report archived/locationless parent and their derived datasets
     environment:
       cmd: 'execute_coherence --dea-module ${self:provider.environment.DEA_MODULE}
                               --queue ${self:provider.environment.QUEUE}
                               --project ${self:provider.environment.PROJECT}
-                              --timequery "<%= timequery %>"'
+                              --product <%= product %>
+                              --timequery <%= timequery %>'
     events:
       - schedule:
-          rate: cron(37 04 ? * * *) # Run every day, at 07:00 pm Canberra time
+          rate: cron(00 09 ? * TUE *) # Run every Tuesday, at 07:00 pm Canberra time
           enabled: true
           input:
-            timequery: "2017 < time < 2018"
+            timequery: 'time in 2018'
+            product: all
   execute_notify_on_error_ds:
     handler: handler.execute_ssh_command
     description: Detect CSV file containing discrepencies in database, upload CSV to S3 and notify (Slack and Email)
@@ -275,21 +277,24 @@ functions:
             awsprofile: default
             recemail: nci.monitor@dea.ga.gov.au # Recepient's email address
   execute_clean:
+    # Note: Keep `--search-paths` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
-    description: Execute dea-clean tool to clean the file on the disk
+    description: Execute dea-clean tool to trash files on disk whose index were archived at least 3 days ago
     environment:
       cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
                           --queue ${self:provider.environment.QUEUE}
                           --project ${self:provider.environment.PROJECT}
-                          --min-trash-age-hours <%= mintrashage %>
-                          --search-string <%= searchstr %>'
+                          --min-trash-age <%= min_trash_age %>
+                          --search-paths <%= search_paths %>'
     events:
       - schedule:
-          rate: cron(00 11 ? * SUN *) # Run every Sunday, at 09:00 pm Canberra time
-          enabled: false
+          rate: cron(00 13 ? * TUE *) # Run every Tuesday, at 11:00 pm Canberra time
+          enabled: true
           input:
-            mintrashage: 10
-            searchstr: ls8_nbar_albers
+            min_trash_age: 72 # 72 hours
+            search_paths: /g/data/rs0/datacube/002/
+                          /g/data/fk4/datacube/002/FC/
+                          /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/
   execute_s2ard:
     handler: handler.execute_ssh_command
     environment:
@@ -347,4 +352,3 @@ functions:
             copy_parent_dir_count: 0 # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
-

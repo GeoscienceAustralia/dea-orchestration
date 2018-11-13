@@ -77,7 +77,7 @@ exports.execute_ssh_command = (event, context, callback) => {
                                    console.log(`STDERR: ${stderr}`);
                                    console.log(`SSH returncode: ${code}`);
                                    //  Return error with error information back to the caller
-                                   callback(`Failed to execute SSH command, ${stderr}`);
+                                   callback(`Failed to execute, ${command}, command`);
                         }
                      }
                    })
