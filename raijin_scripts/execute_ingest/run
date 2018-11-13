@@ -1,28 +1,31 @@
 #!/bin/bash
 set -eu
 
-while [[ $# -gt 0 ]]; do
+while [[ "$#" -gt 0 ]]; do
     key="$1"
-    case ${key} in
+    case "${key}" in
         --year )                shift
-                                YEAR=$1
+                                YEAR="$1"
                                 ;;
         --product )             shift
-                                PRODUCT=$1
+                                PRODUCT="$1"
                                 ;;
         --dea-module )          shift
-                                MODULE=$1
+                                MODULE="$1"
                                 ;;
         --queue )               shift
-                                QUEUE=$1
+                                QUEUE="$1"
                                 ;;
         --stage )               shift
-                                STAGE=$1
+                                STAGE="$1"
                                 ;;
         --project )             shift
-                                PROJECT=$1
+                                PROJECT="$1"
                                 ;;
-        * )                     exit 1
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
     esac
     shift
 done
@@ -49,23 +52,23 @@ while read -r LINE; do
   if [[ "$count" -eq 1 ]]
   then
       dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
+      count="$((count+1))"
   elif [[ "$count" -eq 2 ]]
   then
       dbport="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
+      count="$((count+1))"
   elif [[ "$count" -eq 3 ]]
   then
       dbname="$(cut -d' ' -f2 <<<"$LINE")"
-      count=$((count+1))
+      count="$((count+1))"
   fi
 
   if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
-      count=$((count+1))
+      count="$((count+1))"
   fi
 
   if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
-      count=$((count+1))
+      count="$((count+1))"
   fi
 done  < "$DATACUBE_CONFIG_PATH"
 

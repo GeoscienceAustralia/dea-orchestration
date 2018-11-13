@@ -1,41 +1,65 @@
 #!/bin/bash
-
 set -eu
 
-
-while [[ $# -gt 0 ]]; do
+while [[ "$#" -gt 0 ]]; do
     key="$1"
-    case ${key} in
-        --min-trash-age-hours ) shift
-                                MIN_TRASH_AGE=$1
-                                ;;
-        --search-string )       shift
-                                SEARCH_STRING=$1
-                                ;;
+    case "${key}" in
         --dea-module )          shift
-                                DEA_MODULE=$1
+                                MODULE="$1"
                                 ;;
         --queue )               shift
-                                QUEUE=$1
+                                QUEUE="$1"
                                 ;;
         --project )             shift
-                                PROJECT=$1
+                                PROJECT="$1"
                                 ;;
-        * )                     exit 1
+        --min-trash-age )       shift
+                                TRASH_AGE="$1"
+                                ;;
+        --search-paths )        shift
+                                SEARCH_PATHS="$*"
+                                break # Last input argument and hence exiting while loop
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
     esac
     shift
 done
 
+WORKDIR=/g/data/v10/work/archive/clean/$(date '+%Y-%m')
+SUBMISSION_LOG="$WORKDIR"/dea-clean_$(date '+%F_%T').log
 
-echo Loading module "${DEA_MODULE}"
-echo Submitting PBS job to run dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
+mkdir -p "${WORKDIR}"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
-module use /g/data/v10/private/modules/modulefiles
+module load "${MODULE}"
 
-module load "${DEA_MODULE}"
+MIN_TRASH_AGE="--min-trash-age-hours ${TRASH_AGE}"
 
-mkdir -p /g/data/v10/work/clean_pbs_logs/
-cd /g/data/v10/work/clean_pbs_logs/
+cd "${WORKDIR}"
 
-qsub -V -N dea-clean -q "${QUEUE}" -W umask=33 -l wd,walltime=5:00:00,mem=25GB,ncpus=1 -P "${PROJECT}" -- dea-clean indexed --min-trash-age-hours "${MIN_TRASH_AGE}" "${SEARCH_STRING}"
+echo Submitting PBS job to run dea-clean archived "${MIN_TRASH_AGE}" "${SEARCH_PATHS}"
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+echo "Logging into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module ${MODULE}
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+echo ""
+echo "Starting dea-clean process......"
+
+##################################################################################################
+# Qsub dea-clean process
+##################################################################################################
+qsub -V -N dea-clean -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=25GB,ncpus=1 -P ${PROJECT} \
+-o ${WORKDIR} -e ${WORKDIR} -m abe -M nci.monitor@dea.ga.gov.au \
+-- dea-clean archived --dry-run ${MIN_TRASH_AGE} ${SEARCH_PATHS}
+
+EOF

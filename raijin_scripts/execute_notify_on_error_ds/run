@@ -1,22 +1,26 @@
 #!/bin/bash
 set -eu
 
-while [[ $# -gt 0 ]]; do
+while [[ "$#" -gt 0 ]]; do
     key="$1"
-    case ${key} in
+    case "${key}" in
         --dea-module )          shift
-                                MODULE=$1
+                                MODULE="$1"
                                 ;;
         --webhook )             shift
-                                DEA_ORCHESTRATION_WEBHOOK=$1
+                                DEA_ORCHESTRATION_WEBHOOK="$1"
                                 ;;
         --awsprofile )          shift
-                                AWS_PROFILE=$1
+                                AWS_PROFILE="$1"
                                 ;;
         --recemail )            shift
-                                RECP=$1
+                                RECP="$1"
                                 ;;
-        * )                     exit 1
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+
     esac
     shift
 done
@@ -28,15 +32,15 @@ module load "$MODULE"
 aws --version 2> /dev/null || exit 1;
 
 # Get the latest csv file from the coherence directory
-file=$(find /g/data/v10/work/coherence/ -type f -name '*.csv' -print | sort | tail -n -1)
-num_rows=$(head "$file" | wc -l)
+file="$(find /g/data/v10/work/coherence/ -type f -name '*.csv' -print | sort | tail -n -1)"
+num_rows="$(head "$file" | wc -l)"
 
 # Check if we have any bad datasets in the csv file
 [ "$num_rows" -lt 2 ] && echo "No bad datasets found within the database" && exit 0;
 
 filename=~/.aws/credentials
 
-datetime=$(date '+%F-%T')
+datetime="$(date '+%F-%T')"
 
 # -s: Returns true if file exists and has a size > 0
 if [[ -s ~/.aws/credentials ]]; then
