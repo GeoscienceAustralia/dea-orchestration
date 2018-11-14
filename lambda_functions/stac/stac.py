@@ -7,7 +7,6 @@ import datetime
 import yaml
 import json
 import boto3
-from botocore.exceptions import ClientError
 
 
 GLOBAL_CONFIG = {
@@ -248,7 +247,7 @@ def update_x_catalog(s3_key, s3_resource, bucket):
             return
 
     # y catalog link not found so update it
-    x_catalog["links"].append({ "href": y_catalog_name_abs, "rel": "child"})
+    x_catalog["links"].append({"href": y_catalog_name_abs, "rel": "child"})
 
     # Write back x catalog
     x_obj.put(Body=json.dumps(x_catalog))
