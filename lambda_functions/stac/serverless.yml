@@ -11,6 +11,8 @@ custom:
     s3Bucket:
       prod: "dea-lambda"
       dev: "dea-lambdas-dev"
+  pythonRequirements:
+    fileName: requirements.txt
 
 provider:
   name: aws
@@ -39,3 +41,5 @@ functions:
       - sqs:
         arn: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
         batchSize: 10
+plugins:
+  - serverless-python-requirements
