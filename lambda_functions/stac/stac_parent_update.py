@@ -147,11 +147,11 @@ if __name__ == '__main__':
 
     full_inventory = list_inventory(manifest, s3=s3)
     # ToDo: Verify config consistency with inventory list
-    s3_resource = boto3.resource('s3')
+    s3_res = boto3.resource('s3')
 
     for item in full_inventory:
         if Path(item.Key).suffix == '.yaml':
             # Update parent catalogs
             s3_key_ = Path(item.Key)
             stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
-            update_parent_catalogs(stac_s3_key, s3_resource, item.Bucket)
+            update_parent_catalogs(stac_s3_key, s3_res, item.Bucket)
