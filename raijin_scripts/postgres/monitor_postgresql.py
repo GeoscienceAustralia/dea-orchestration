@@ -15,12 +15,14 @@ TODO: RAM Monitoring
 """
 import copy
 import json
+import sys
 from datetime import datetime
 
 from functools import wraps
 import psycopg2
 import psycopg2.extras
 from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.events import EVENT_JOB_ERROR
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 
@@ -32,6 +34,13 @@ BEAT_NAME = 'agdc-db.nci.org.au'
 def main():
     setup_es_mapping()
     scheduler = BlockingScheduler()
+
+    def quit_on_exception(event):
+        if event.exception:
+            print(event)
+            sys.exit()
+
+    scheduler.add_listener(quit_on_exception, EVENT_JOB_ERROR)
 
     with psycopg2.connect(host="agdc-db.nci.org.au", database="datacube") as conn:
         scheduler.add_job(loadavg, 'interval', seconds=30, args=[conn])
