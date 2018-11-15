@@ -67,17 +67,15 @@ def stac_handler(event, context):
 
     for file_item in file_items:
         # Load yaml file from s3
-        yaml_file_ = Path(file_item)
-        # Is this robust?
-        bucket = yaml_file_.parts[0]
-        s3_key = Path(*yaml_file_.parts[1:])
-        obj = s3.Object(bucket, str(s3_key))
+        bucket, s3_key = get_bucket_and_key(file_item)
+        obj = s3.Object(bucket, s3_key)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
-        stac_s3_key = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
+        s3_key_ = Path(s3_key)
+        stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
         item_abs_path = f'{GLOBAL_CONFIG["aws-domain"]}/{stac_s3_key}'
-        parent_abs_path = get_stac_item_parent(str(s3_key))
+        parent_abs_path = get_stac_item_parent(s3_key)
         stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
         # Put STAC dict to s3
@@ -86,6 +84,11 @@ def stac_handler(event, context):
 
         # Update parent catalogs
         update_parent_catalogs(stac_s3_key, s3, bucket)
+
+
+def get_bucket_and_key(message):
+    s3_event = json.loads(message["body"])["Records"][0]
+    return s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
 
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
