@@ -17,6 +17,7 @@ import copy
 import json
 from datetime import datetime
 
+from functools import wraps
 import psycopg2
 import psycopg2.extras
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -39,6 +40,18 @@ def main():
         scheduler.add_job(cpu_usage, 'interval', seconds=30, args=[conn])
         scheduler.add_job(disk_space, 'interval', minutes=5, args=[conn])
         scheduler.start()
+
+
+def pg_retry(func):
+    @wraps(func)
+    def inner(conn):
+        try:
+            return func(conn)
+        except psycopg2.InternalError:
+            conn.abort()
+            return func(conn)
+
+    return inner
 
 
 def setup_es_mapping():
@@ -72,6 +85,7 @@ def post_to_es(doc):
     es.indices.refresh(index=index)
 
 
+@pg_retry
 def loadavg(conn):
     # create a cursor
     with conn.cursor() as cur:
@@ -108,6 +122,7 @@ def loadavg(conn):
 cpu0 = None
 
 
+@pg_retry
 def cpu_usage(conn):
     global cpu0
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
@@ -162,6 +177,7 @@ def cpu_usage(conn):
         })
 
 
+@pg_retry
 def mem_usage(conn):
     # See https://access.redhat.com/solutions/406773
     with conn.cursor() as cur:
@@ -204,6 +220,7 @@ def mem_usage(conn):
     })
 
 
+@pg_retry
 def disk_space(conn):
     with conn.cursor() as cur:
         cur.execute('select * from deamonitoring.disk_free_space()')
@@ -254,6 +271,7 @@ def disk_space(conn):
     })
 
 
+@pg_retry
 def network(conn):
     with conn.cursor() as cur:
         cur.execute('select * from deamonitoring.net_if_stats()')
