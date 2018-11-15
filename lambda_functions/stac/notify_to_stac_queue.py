@@ -28,4 +28,7 @@ if __name__ == '__main__':
     for item in full_inventory:
         if Path(item.Key).suffix == '.yaml':
             # send a message to SQS
-            response = sqs.send_message(MessageBody=json.dumps(create_s3_event_message(item.Bucket, item.Key)))
+            response = sqs.send_message(
+                QueueUrl="https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue",
+                MessageBody=json.dumps(create_s3_event_message(item.Bucket, item.Key))
+            )
