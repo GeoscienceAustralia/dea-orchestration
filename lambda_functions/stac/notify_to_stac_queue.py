@@ -11,8 +11,23 @@ from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 
 
-def create_s3_event_message(bucket, s3_key):
-    return {"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]}
+def s3_key_to_stac_queue(sqs_client, queue_url, bucket, s3_key):
+    s3_event_message = {"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]}
+    # send a message to SQS
+    return sqs_client.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(s3_event_message)
+    )
+
+
+def process_list(s3_keys):
+    sqs = boto3.client('sqs')
+
+    for item in s3_keys:
+        if Path(item.Key).suffix == '.yaml':
+            # send a message to SQS
+            s3_key_to_stac_queue(sqs, "https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue",
+                                 item.Bucket, item.Key)
 
 
 if __name__ == '__main__':
@@ -21,14 +36,7 @@ if __name__ == '__main__':
 
     s3 = make_s3_client()
 
-    full_inventory = list_inventory(manifest, s3=s3)
+    process_list(list_inventory(manifest, s3=s3))
 
-    sqs = boto3.client('sqs')
 
-    for item in full_inventory:
-        if Path(item.Key).suffix == '.yaml':
-            # send a message to SQS
-            response = sqs.send_message(
-                QueueUrl="https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue",
-                MessageBody=json.dumps(create_s3_event_message(item.Bucket, item.Key))
-            )
+
