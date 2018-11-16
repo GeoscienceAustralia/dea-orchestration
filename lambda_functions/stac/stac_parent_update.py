@@ -1,12 +1,9 @@
 from collections import OrderedDict
-from dateutil.parser import parse
-from pyproj import Proj, transform
 from pathlib import Path
 from parse import parse as pparse
-import datetime
-import yaml
 import json
 import boto3
+import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 
@@ -139,19 +136,40 @@ def create_x_catalog(prefix, x):
         ])
 
 
-if __name__ == '__main__':
-    manifest = 's3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/'
-    # manifest += '2018-10-13T08-00Z/manifest.json' ## force for now, because of dev account permissions
+def update_parents_all(s3_keys, bucket):
 
-    s3 = make_s3_client()
-
-    full_inventory = list_inventory(manifest, s3=s3)
-    # ToDo: Verify config consistency with inventory list
     s3_res = boto3.resource('s3')
 
-    for item in full_inventory:
-        if Path(item.Key).suffix == '.yaml':
+    for item in s3_keys:
+        if Path(item).suffix == '.yaml':
             # Update parent catalogs
-            s3_key_ = Path(item.Key)
-            stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
-            update_parent_catalogs(stac_s3_key, s3_res, item.Bucket)
+            s3_key = Path(item)
+            stac_s3_key = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
+            update_parent_catalogs(stac_s3_key, s3_res, bucket)
+
+
+@click.command()
+@click.option('--inventory-manifest', '-i', help="The manifest of AWS inventory list")
+@click.option('--bucket', '-b', required=True, help="AWS bucket")
+@click.argument('s3-keys', nargs=-1, type=click.Path())
+def cli(inventory_manifest, bucket, s3_keys):
+    """
+    Update parent catalogs of datasets based on s3 keys having suffux .yaml
+    """
+    assert not (inventory_manifest and s3_keys), "Use one of inventory-manifest or s3-keys"
+
+    def _shed_bucket(keys):
+        for item in keys:
+            yield item.Key
+
+    if not s3_keys:
+        if not inventory_manifest:
+            inventory_manifest = 's3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/'
+        s3 = make_s3_client()
+        s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
+
+    update_parents_all(s3_keys, bucket)
+
+
+if __name__ == '__main__':
+    cli()
