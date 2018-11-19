@@ -55,6 +55,7 @@ PRODUCT_CONFIG = {
 
 def stac_handler(event, context):
     """
+    Receive Events about updated files in S3
     Assumed path structure would look like
     dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
