@@ -114,7 +114,7 @@ class CatalogUpdater:
         """
 
         s3_res = boto3.resource('s3')
-        for y_catalog_name in self.y_catalogs.keys():
+        for y_catalog_name in self.y_catalogs:
             obj = s3_res.Object(bucket, y_catalog_name)
 
             try:
@@ -190,7 +190,7 @@ class CatalogUpdater:
         """
 
         s3_res = boto3.resource('s3')
-        for x_catalog_name in self.x_catalogs.keys():
+        for x_catalog_name in self.x_catalogs:
             obj = s3_res.Object(bucket, x_catalog_name)
 
             try:
