@@ -1,6 +1,24 @@
 service: stac-catalog-generator
 
 frameworkVersion: ">=1.2.0 <2.0.0"
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
 
 custom:
   Stage: dev

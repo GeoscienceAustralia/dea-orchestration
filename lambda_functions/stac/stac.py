@@ -1,12 +1,13 @@
-from collections import OrderedDict
-from dateutil.parser import parse
-from pyproj import Proj, transform
-from pathlib import Path
-from parse import parse as pparse
 import datetime
-import yaml
 import json
+from collections import OrderedDict
+from pathlib import Path
+
 import boto3
+import yaml
+from dateutil.parser import parse
+from parse import parse as pparse
+from pyproj import Proj, transform
 
 
 GLOBAL_CONFIG = {
@@ -94,7 +95,6 @@ def get_bucket_and_key(message):
 
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
-
     product = metadata_doc['product_type']
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
                                      ['projection']['valid_data']
