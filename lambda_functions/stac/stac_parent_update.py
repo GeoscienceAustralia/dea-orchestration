@@ -28,27 +28,27 @@ GLOBAL_CONFIG = {
         "requesterPays": "False"
     },
     "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json"
+    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
+    "aws-products": ['WOfS', 'fractional-cover', 'geomedian-australia']
 }
 
 
 @click.command()
-@click.option('--inventory-manifest', '-i', help="The manifest of AWS inventory list")
+@click.option('--inventory-manifest', '-i',
+              default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
+              help="The manifest of AWS inventory list")
 @click.option('--bucket', '-b', required=True, help="AWS bucket")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(inventory_manifest, bucket, s3_keys):
     """
     Update parent catalogs of datasets based on s3 keys having suffux .yaml
     """
-    assert not (inventory_manifest and s3_keys), "Use one of inventory-manifest or s3-keys"
 
     def _shed_bucket(keys):
         for item in keys:
             yield item.Key
 
     if not s3_keys:
-        if not inventory_manifest:
-            inventory_manifest = 's3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/'
         s3 = make_s3_client()
         s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
 
@@ -68,6 +68,15 @@ class CatalogUpdater:
     def __init__(self):
         self.y_catalogs = {}
         self.x_catalogs = {}
+        self.top_level_catalogs = {}
+
+    @staticmethod
+    def valid_yaml_key(s3_key):
+        """
+        Return whether the key is a valid key, i.e. belong to right product category and extension is .yaml
+        """
+        s3_key_ = Path(s3_key)
+        return s3_key_.parts[0] in GLOBAL_CONFIG['aws-products'] and s3_key_.suffix == '.yaml'
 
     def update_parents_all(self, s3_keys, bucket):
         """
@@ -75,13 +84,15 @@ class CatalogUpdater:
         """
 
         for item in s3_keys:
-            s3_key = Path(item)
-            if s3_key.suffix == '.yaml':
+            if self.valid_yaml_key(item):
+                s3_key = Path(item)
                 # Collate parent catalog links
                 self.add_to_y_catalog_links(f'{s3_key.parent}/{s3_key.stem}_STAC.json')
 
         # Update catalog files in s3 bucket now
-        self.update_all_s3(bucket)
+        self.update_all_y_s3(bucket)
+        self.update_all_x_s3(bucket)
+        self.update_all_top_level_s3(bucket)
 
     def add_to_y_catalog_links(self, s3_key):
         """
@@ -90,13 +101,17 @@ class CatalogUpdater:
 
         template = '{prefix}/x_{x}/y_{y}/{}'
         params = pparse(template, s3_key).__dict__['named']
-        y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
 
-        # No addition if exists
-        if self.y_catalogs.get(y_catalog_name):
-            self.y_catalogs[y_catalog_name].add(s3_key)
-        else:
-            self.y_catalogs[y_catalog_name] = {s3_key}
+        if params.get('prefix') and params.get('x') and params.get('y'):
+            y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+
+            if self.y_catalogs.get(y_catalog_name):
+                self.y_catalogs[y_catalog_name].add(s3_key)
+            else:
+                self.y_catalogs[y_catalog_name] = {s3_key}
+
+            # Add the y catalog name to the corresponding x catalog
+            self.add_to_x_catalog_links(y_catalog_name)
 
     @staticmethod
     def _shed_domain_from_link(link):
@@ -108,7 +123,7 @@ class CatalogUpdater:
         params = pparse(template, link).__dict__['named']
         return params['key']
 
-    def update_all_s3(self, bucket):
+    def update_all_y_s3(self, bucket):
         """
         Update all the catalogs in S3 that has updated links
         """
@@ -117,34 +132,15 @@ class CatalogUpdater:
         for y_catalog_name in self.y_catalogs:
             obj = s3_res.Object(bucket, y_catalog_name)
 
-            try:
-                # load catalog dict
-                y_catalog = json.loads(obj.get()['Body'].read().decode('utf-8'))
+            y_catalog = self.create_y_catalog(y_catalog_name)
 
-            except s3_res.meta.client.exceptions.NoSuchKey as e:
-
-                # The object does not exist.
-                y_catalog = self.create_y_catalog(y_catalog_name)
-
-                # Potentially x catalog link may not exist
-                self.add_to_x_catalog_links(y_catalog_name)
-
-            # existing links in the catalog file
-            existing_links = {self._shed_domain_from_link(link['href']) for link in y_catalog['links']}
-
-            # New links to be added
-            new_links = self.y_catalogs[y_catalog_name] - existing_links
-
-            # update the links
-            for link in new_links:
+            # Add the links
+            for link in self.y_catalogs[y_catalog_name]:
                 y_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'item'})
 
             # Put y_catalog dict to s3
             obj = s3_res.Object(bucket, y_catalog_name)
             obj.put(Body=json.dumps(y_catalog))
-
-        # Update all x catalogs in s3
-        self.update_all_x_s3(bucket)
 
     @staticmethod
     def create_y_catalog(y_catalog_name):
@@ -178,11 +174,16 @@ class CatalogUpdater:
         params = pparse(template, y_catalog_name_abs).__dict__['named']
         x_catalog_name = f'{params["prefix"]}/x_{params["x"]}/catalog.json'
 
-        # No addition if exists
         if self.x_catalogs.get(x_catalog_name):
             self.x_catalogs[x_catalog_name].add(y_catalog_name_abs)
         else:
             self.x_catalogs[x_catalog_name] = {y_catalog_name_abs}
+
+        # Add x catalog link to product catalog
+        if self.top_level_catalogs.get(params['prefix']):
+            self.top_level_catalogs[params['prefix']].add(x_catalog_name)
+        else:
+            self.top_level_catalogs[params['prefix']] = {x_catalog_name}
 
     def update_all_x_s3(self, bucket):
         """
@@ -191,25 +192,11 @@ class CatalogUpdater:
 
         s3_res = boto3.resource('s3')
         for x_catalog_name in self.x_catalogs:
-            obj = s3_res.Object(bucket, x_catalog_name)
 
-            try:
-                # load catalog dict
-                x_catalog = json.loads(obj.get()['Body'].read().decode('utf-8'))
-
-            except s3_res.meta.client.exceptions.NoSuchKey as e:
-
-                # The object does not exist.
-                x_catalog = self.create_x_catalog(x_catalog_name)
-
-            # existing links in the catalog file
-            existing_links = {self._shed_domain_from_link(link['href']) for link in x_catalog["links"]}
-
-            # New links to be added
-            new_links = self.x_catalogs[x_catalog_name] - existing_links
+            x_catalog = self.create_x_catalog(x_catalog_name)
 
             # update the links
-            for link in new_links:
+            for link in self.x_catalogs[x_catalog_name]:
                 x_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'child'})
 
             # Put x_catalog dict to s3
@@ -237,6 +224,36 @@ class CatalogUpdater:
                  'rel': 'root'}
             ])
         ])
+
+    def update_all_top_level_s3(self, bucket):
+
+        s3_res = boto3.resource('s3')
+
+        for top_level in self.top_level_catalogs:
+            product_name = Path(top_level).parts[0]
+            top_level_catalog_name = f'{top_level}/catalog.json'
+
+            # create the top level catalog
+            top_level_catalog = OrderedDict([
+                ('name', top_level),
+                ('description', 'List of Sub Directories'),
+                ('links', [
+                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{top_level_catalog_name}',
+                     'ref': 'self'},
+                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{product_name}/catalog.json',
+                     'rel': 'parent'},
+                    {'href': GLOBAL_CONFIG["root-catalog"],
+                     'rel': 'root'}
+                ])
+            ])
+
+            # Update the links
+            for link in self.top_level_catalogs[top_level]:
+                top_level_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'child'})
+
+            # Put top level catalog to s3
+            obj = s3_res.Object(bucket, top_level_catalog_name)
+            obj.put(Body=json.dumps(top_level_catalog))
 
 
 if __name__ == '__main__':
