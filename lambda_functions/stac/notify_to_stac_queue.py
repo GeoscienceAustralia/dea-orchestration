@@ -1,10 +1,10 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 import boto3
+import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
-
-import click
 
 
 def s3_key_to_stac_queue(sqs_client, queue_url, bucket, s3_key):

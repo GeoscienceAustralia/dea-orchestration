@@ -41,6 +41,12 @@ PRODUCT_CONFIG = {
             "wofs_filtered_summary": "wofs filtered summary"
         }
     },
+    "wofs": {
+        "description": "WoFS algorithm ... ",
+        "bands": {
+            "water": "water",
+        }
+    },
     "fractional_cover": {
         "description": "The Fractional Cover (FC)",
         "bands": {
@@ -173,3 +179,16 @@ def get_stac_item_parent(s3_key):
     params = pparse(template, s3_key).__dict__['named']
     key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
     return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
+
+
+def main():
+    import sys
+    infile, outfile = sys.argv[1:]
+    with open(infile) as fin, open(outfile, 'w') as fout:
+        metadata_doc = yaml.safe_load(fin)
+        stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
+        json.dump(stac_doc, fout, indent=4)
+
+
+if __name__ == '__main__':
+    main()
