@@ -69,7 +69,7 @@ class CatalogUpdater:
     def __init__(self):
         self.y_catalogs = {}
         self.x_catalogs = {}
-        self.product_catalogs = {}
+        self.top_level_catalogs = {}
 
     @staticmethod
     def valid_yaml_key(s3_key):
@@ -93,6 +93,7 @@ class CatalogUpdater:
         # Update catalog files in s3 bucket now
         self.update_all_y_s3(bucket)
         self.update_all_x_s3(bucket)
+        self.update_all_top_level_s3(bucket)
 
     def add_to_y_catalog_links(self, s3_key):
         """
@@ -179,8 +180,11 @@ class CatalogUpdater:
         else:
             self.x_catalogs[x_catalog_name] = {y_catalog_name_abs}
 
-        # ToDo: Add to product catalog
-        # self.product_catalog_links.add(x_catalog_name)
+        # Add x catalog link to product catalog
+        if self.top_level_catalogs.get(params['prefix']):
+            self.top_level_catalogs[params['prefix']].add(x_catalog_name)
+        else:
+            self.top_level_catalogs[params['prefix']] = {x_catalog_name}
 
     def update_all_x_s3(self, bucket):
         """
@@ -189,7 +193,6 @@ class CatalogUpdater:
 
         s3_res = boto3.resource('s3')
         for x_catalog_name in self.x_catalogs:
-            obj = s3_res.Object(bucket, x_catalog_name)
 
             x_catalog = self.create_x_catalog(x_catalog_name)
 
@@ -222,6 +225,36 @@ class CatalogUpdater:
                  'rel': 'root'}
             ])
         ])
+
+    def update_all_top_level_s3(self, bucket):
+
+        s3_res = boto3.resource('s3')
+
+        for top_level in self.top_level_catalogs:
+            product_name = Path(top_level).parts[0]
+            top_level_catalog_name = f'{top_level}/catalog.json'
+
+            # create the top level catalog
+            top_level_catalog = OrderedDict([
+                ('name', top_level),
+                ('description', 'List of Sub Directories'),
+                ('links', [
+                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{top_level_catalog_name}',
+                     'ref': 'self'},
+                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{product_name}/catalog.json',
+                     'rel': 'parent'},
+                    {'href': GLOBAL_CONFIG["root-catalog"],
+                     'rel': 'root'}
+                ])
+            ])
+
+            # Update the links
+            for link in self.top_level_catalogs[top_level]:
+                top_level_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'child'})
+
+            # Put top level catalog to s3
+            obj = s3_res.Object(bucket, top_level_catalog_name)
+            obj.put(Body=json.dumps(top_level_catalog))
 
 
 if __name__ == '__main__':
