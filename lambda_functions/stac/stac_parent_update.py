@@ -34,22 +34,21 @@ GLOBAL_CONFIG = {
 
 
 @click.command()
-@click.option('--inventory-manifest', '-i', help="The manifest of AWS inventory list")
+@click.option('--inventory-manifest', '-i',
+              default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
+              help="The manifest of AWS inventory list")
 @click.option('--bucket', '-b', required=True, help="AWS bucket")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(inventory_manifest, bucket, s3_keys):
     """
     Update parent catalogs of datasets based on s3 keys having suffux .yaml
     """
-    assert not (inventory_manifest and s3_keys), "Use one of inventory-manifest or s3-keys"
 
     def _shed_bucket(keys):
         for item in keys:
             yield item.Key
 
     if not s3_keys:
-        if not inventory_manifest:
-            inventory_manifest = 's3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/'
         s3 = make_s3_client()
         s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
 
