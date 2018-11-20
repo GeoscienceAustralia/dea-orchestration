@@ -9,7 +9,6 @@ from dateutil.parser import parse
 from parse import parse as pparse
 from pyproj import Proj, transform
 
-
 GLOBAL_CONFIG = {
     "homepage": "http://www.ga.gov.au/",
     "licence": {
@@ -40,6 +39,12 @@ PRODUCT_CONFIG = {
         "bands": {
             "confidence": "confidence",
             "wofs_filtered_summary": "wofs filtered summary"
+        }
+    },
+    "wofs": {
+        "description": "WoFS algorithm ... ",
+        "bands": {
+            "water": "water",
         }
     },
     "fractional_cover": {
@@ -127,7 +132,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         }),
         ('links', [
             {'href': item_abs_path, 'rel': 'self'},
-            {'href': parent_abs_path, 'ref': 'parent'}
+            {'href': parent_abs_path, 'rel': 'parent'}
         ]),
         ('assets', {})
     ])
@@ -174,3 +179,16 @@ def get_stac_item_parent(s3_key):
     params = pparse(template, s3_key).__dict__['named']
     key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
     return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
+
+
+def main():
+    import sys
+    infile, outfile = sys.argv[1:]
+    with open(infile) as fin, open(outfile, 'w') as fout:
+        metadata_doc = yaml.safe_load(fin)
+        stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
+        json.dump(stac_doc, fout, indent=4)
+
+
+if __name__ == '__main__':
+    main()
