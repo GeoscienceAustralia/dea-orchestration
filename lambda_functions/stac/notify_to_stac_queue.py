@@ -26,28 +26,26 @@ def messages_to_sqs(s3_keys, bucket, queue_url):
 
 
 @click.command()
-@click.option('--inventory-manifest', '-i', help="The manifest of AWS inventory list")
-@click.option('--queue-url', '-q', help="AWS sqs url")
+@click.option('--inventory-manifest', '-i',
+              default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
+              help="The manifest of AWS inventory list")
+@click.option('--queue-url', '-q', default='https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue',
+              help="AWS sqs url")
 @click.option('--bucket', '-b', required=True, help="AWS bucket")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(inventory_manifest, queue_url, bucket, s3_keys):
     """
     Send messages (yaml s3 keys) to stac_queue
     """
-    assert not (inventory_manifest and s3_keys), "Use one of inventory-manifest or s3-keys"
 
     def _shed_bucket(keys):
         for item in keys:
             yield item.Key
 
     if not s3_keys:
-        if not inventory_manifest:
-            inventory_manifest = 's3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/'
         s3 = make_s3_client()
         s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
 
-    if not queue_url:
-        queue_url = "https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue"
     messages_to_sqs(s3_keys, bucket, queue_url)
 
 
