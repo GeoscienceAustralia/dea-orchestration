@@ -9,7 +9,6 @@ from dateutil.parser import parse
 from parse import parse as pparse
 from pyproj import Proj, transform
 
-
 GLOBAL_CONFIG = {
     "homepage": "http://www.ga.gov.au/",
     "licence": {
@@ -127,7 +126,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         }),
         ('links', [
             {'href': item_abs_path, 'rel': 'self'},
-            {'href': parent_abs_path, 'ref': 'parent'}
+            {'href': parent_abs_path, 'rel': 'parent'}
         ]),
         ('assets', {})
     ])
