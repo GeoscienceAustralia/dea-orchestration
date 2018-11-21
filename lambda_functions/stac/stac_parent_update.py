@@ -29,7 +29,7 @@ GLOBAL_CONFIG = {
     },
     "aws-domain": "https://data.dea.ga.gov.au",
     "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['WOfS', 'fractional-cover', 'geomedian-australia']
+    "aws-products": ['fractional-cover']
 }
 
 
@@ -83,8 +83,20 @@ class CatalogUpdater:
         Update corresponding parent catalogs of the given list of yaml files
         """
 
+        if __debug__:
+            s3_res = boto3.resource('s3')
+
         for item in s3_keys:
             if self.valid_yaml_key(item):
+
+                if __debug__:
+                    # Add only if the item exists in the bucket
+                    obj = s3_res.Object(bucket, item)
+                    try:
+                        obj.get()
+                    except s3_res.meta.client.exceptions.NoSuchKey as e:
+                        continue
+
                 s3_key = Path(item)
                 # Collate parent catalog links
                 self.add_to_y_catalog_links(f'{s3_key.parent}/{s3_key.stem}_STAC.json')
