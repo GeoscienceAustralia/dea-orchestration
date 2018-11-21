@@ -57,7 +57,7 @@ provider:
       - "arn:aws:s3:::${self:custom.inventoryBucket}"
    - Effect: "Allow"
      Action: "s3:PutObjectAcl"
-     Resource: "arn:aws:s3:::${self:custom.inventoryBucket}"
+     Resource: "arn:aws:s3:::${self:custom.inventoryBucket}/*"
 
 functions:
   generateListing:
