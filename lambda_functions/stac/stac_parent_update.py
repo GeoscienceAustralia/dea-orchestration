@@ -29,7 +29,7 @@ GLOBAL_CONFIG = {
     },
     "aws-domain": "https://data.dea.ga.gov.au",
     "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover']
+    "aws-products": ['WOfS/summary']
 }
 
 
@@ -44,13 +44,15 @@ def cli(inventory_manifest, bucket, s3_keys):
     Update parent catalogs of datasets based on s3 keys having suffux .yaml
     """
 
-    def _shed_bucket(keys):
+    def _shed_bucket_and_validate(keys):
         for item in keys:
-            yield item.Key
+            s3_key_ = Path(item.Key)
+            if bool(sum([p in item.Key for p in GLOBAL_CONFIG['aws-products']])) and s3_key_.suffix == '.yaml':
+                yield item.Key
 
     if not s3_keys:
         s3 = make_s3_client()
-        s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
+        s3_keys = _shed_bucket_and_validate(list_inventory(inventory_manifest, s3=s3))
 
     CatalogUpdater().update_parents_all(s3_keys, bucket)
 
@@ -70,36 +72,15 @@ class CatalogUpdater:
         self.x_catalogs = {}
         self.top_level_catalogs = {}
 
-    @staticmethod
-    def valid_yaml_key(s3_key):
-        """
-        Return whether the key is a valid key, i.e. belong to right product category and extension is .yaml
-        """
-        s3_key_ = Path(s3_key)
-        return s3_key_.parts[0] in GLOBAL_CONFIG['aws-products'] and s3_key_.suffix == '.yaml'
-
     def update_parents_all(self, s3_keys, bucket):
         """
         Update corresponding parent catalogs of the given list of yaml files
         """
 
-        if __debug__:
-            s3_res = boto3.resource('s3')
-
         for item in s3_keys:
-            if self.valid_yaml_key(item):
-
-                if __debug__:
-                    # Add only if the item exists in the bucket
-                    obj = s3_res.Object(bucket, item)
-                    try:
-                        obj.get()
-                    except s3_res.meta.client.exceptions.NoSuchKey as e:
-                        continue
-
-                s3_key = Path(item)
-                # Collate parent catalog links
-                self.add_to_y_catalog_links(f'{s3_key.parent}/{s3_key.stem}_STAC.json')
+            s3_key = Path(item)
+            # Collate parent catalog links
+            self.add_to_y_catalog_links(f'{s3_key.parent}/{s3_key.stem}_STAC.json')
 
         # Update catalog files in s3 bucket now
         self.update_all_y_s3(bucket)
@@ -112,9 +93,11 @@ class CatalogUpdater:
         """
 
         template = '{prefix}/x_{x}/y_{y}/{}'
-        params = pparse(template, s3_key).__dict__['named']
+        params = pparse(template, s3_key)
+        if params:
+            params = params.__dict__['named']
 
-        if params.get('prefix') and params.get('x') and params.get('y'):
+        if params and params.get('prefix') and params.get('x') and params.get('y'):
             y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
 
             if self.y_catalogs.get(y_catalog_name):
