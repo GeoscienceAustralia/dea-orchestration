@@ -139,7 +139,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
     bands = metadata_doc['image']['bands']
     for key in bands:
         path = metadata_doc['image']['bands'][key]['path']
-        key = PRODUCT_CONFIG[product]['bands'][key] + ' GeoTIFF'
+        key = PRODUCT_CONFIG[product]['bands'][key]
 
         # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
         stac_item['assets'][key] = {
