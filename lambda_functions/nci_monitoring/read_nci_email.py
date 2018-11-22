@@ -64,7 +64,7 @@ def handler(event, context):
     Ref: https://aws.amazon.com/blogs/
            1) compute/fanout-s3-event-notifications-to-multiple-endpoints/
            2) database/indexing-metadata-in-amazon-elasticsearch-service-using-aws-lambda-and-python/
-           
+
            The Python handler code does the following:
                 a) Fetch PBS related information from the email body upon S3 event
                 b) Connects to the Amazon ES domain endpoint
@@ -81,7 +81,7 @@ def handler(event, context):
         job_id = job_name = exe_status = "NA", "NA", "NA"
         mem_used = vmem_used = "0kb", "0kb"
         # TODO
-        # Fetch number of dataset processed by the PBS job and 
+        # Fetch number of dataset processed by the PBS job and
         # calculate datasets processing efficiency. And write the updated metadata
         # document into AWS ES.
         # ndatasets = datasets_eff = "NA", "NA"
