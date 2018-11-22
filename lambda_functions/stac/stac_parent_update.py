@@ -46,8 +46,8 @@ def cli(inventory_manifest, bucket, s3_keys):
 
     def _shed_bucket_and_validate(keys):
         for item in keys:
-            s3_key_ = Path(item.Key)
-            if bool(sum([p in item.Key for p in GLOBAL_CONFIG['aws-products']])) and s3_key_.suffix == '.yaml':
+            template = '{}x_{x}/y_{y}/{}.yaml'
+            if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
                 yield item.Key
 
     if not s3_keys:
