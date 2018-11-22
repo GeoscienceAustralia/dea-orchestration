@@ -1,10 +1,35 @@
 import json
 from pathlib import Path
-
+from parse import parse as pparse
 import boto3
 import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
+
+GLOBAL_CONFIG = {
+    "homepage": "http://www.ga.gov.au/",
+    "licence": {
+        "name": "CC BY Attribution 4.0 International License",
+        "link": "https://creativecommons.org/licenses/by/4.0/",
+        "short_name": "CCA 4.0",
+        "copyright": "DEA, Geoscience Australia"
+    },
+    "contact": {
+        "name": "Geoscience Australia",
+        "organization": "Commonwealth of Australia",
+        "email": "sales@ga.gov.au",
+        "phone": "+61 2 6249 9966",
+        "url": "http://www.ga.gov.au"
+    },
+    "provider": {
+        "scheme": "s3",
+        "region": "ap-southeast-2",
+        "requesterPays": "False"
+    },
+    "aws-domain": "https://data.dea.ga.gov.au",
+    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
+    "aws-products": ['WOfS/summary']
+}
 
 
 def s3_key_to_stac_queue(sqs_client, queue_url, bucket, s3_key):
@@ -38,13 +63,15 @@ def cli(inventory_manifest, queue_url, bucket, s3_keys):
     Send messages (yaml s3 keys) to stac_queue
     """
 
-    def _shed_bucket(keys):
+    def _shed_bucket_and_validate(keys):
         for item in keys:
-            yield item.Key
+            template = '{}x_{x}/y_{y}/{}.yaml'
+            if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
+                yield item.Key
 
     if not s3_keys:
         s3 = make_s3_client()
-        s3_keys = _shed_bucket(list_inventory(inventory_manifest, s3=s3))
+        s3_keys = _shed_bucket_and_validate(list_inventory(inventory_manifest, s3=s3))
 
     messages_to_sqs(s3_keys, bucket, queue_url)
 
