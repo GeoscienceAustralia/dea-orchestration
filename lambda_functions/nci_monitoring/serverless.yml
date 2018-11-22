@@ -7,7 +7,7 @@
 #
 #    Sequence of steps before and after sls deploy:
 #      1) npm install
-#      2) sls deploy -vv -s prod
+#      2) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
 #      3) Enable and attach event notifications for the desired S3 Bucket to the lambda function
 #          (Ref: https://docs.aws.amazon.com/AmazonS3/latest/user-guide/enable-event-notifications.html)
 #      4) sls s3deploy
