@@ -25,7 +25,7 @@ GLOBAL_CONFIG = {
     },
     "aws-domain": "https://data.dea.ga.gov.au",
     "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['WOfS', 'fractional-cover', 'geomedian-australia']
+    "aws-products": ['fractional-cover/fc/v2.2.0/ls8']
 }
 
 
@@ -38,7 +38,8 @@ def delete_stac_catalog_parents():
         s3_key_file = Path(item.Key)
 
         # add to delete list
-        if s3_key_file.name == 'catalog.json' and s3_key_file.parts[0] in GLOBAL_CONFIG['aws-products']:
+        if s3_key_file.name == 'catalog.json' and bool(sum([p in item.Key for p in GLOBAL_CONFIG['aws-products']])):
+            print(item.Key)
             delete_files['Objects'].append(dict(Key=item.Key))
 
         # flush out the delete list if aws limit (1000) reached
