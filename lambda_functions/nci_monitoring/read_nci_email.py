@@ -114,7 +114,7 @@ def handler(event, context):
                     job_name = line.split(": ")[1]
                 elif "Execution" in line or "execution" in line:
                     exe_status = line
-                    logger.info(f"{exe_status}%")
+                    logger.info(f"{exe_status}")
                 elif "Exit_status" in line:
                     exit_status = line.split("=")[1]
                 elif "resources_used.mem" in line:
