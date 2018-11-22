@@ -147,7 +147,8 @@ class CatalogUpdater:
         prefix, x, y = params['prefix'], params['x'], params['y']
         x_catalog_name = f'{prefix}/x_{x}/catalog.json'
         return OrderedDict([
-            ('name', f'{prefix}/x_{x}/y_{y}'),
+            ('stac_version', '0.6.0'),
+            ('id', f'{prefix}/x_{x}/y_{y}'),
             ('description', 'List of items'),
             ('links', [
                 {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{y_catalog_name}',
@@ -207,7 +208,8 @@ class CatalogUpdater:
         params = pparse(template, x_catalog_name).named
         prefix, x = params['prefix'], params['x']
         return OrderedDict([
-            ('name', f'{prefix}/x_{x}'),
+            ('stac_version', '0.6.0'),
+            ('id', f'{prefix}/x_{x}'),
             ('description', 'List of Sub Directories'),
             ('links', [
                 {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
@@ -229,7 +231,8 @@ class CatalogUpdater:
 
             # create the top level catalog
             top_level_catalog = OrderedDict([
-                ('name', top_level),
+                ('stac_version', '0.6.0'),
+                ('id', top_level),
                 ('description', 'List of Sub Directories'),
                 ('links', [
                     {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{top_level_catalog_name}',
