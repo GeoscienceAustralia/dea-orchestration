@@ -95,9 +95,8 @@ class CatalogUpdater:
         template = '{prefix}/x_{x}/y_{y}/{}'
         params = pparse(template, s3_key)
         if params:
-            params = params.__dict__['named']
+            params = params.named
 
-        if params and params.get('prefix') and params.get('x') and params.get('y'):
             y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
 
             if self.y_catalogs.get(y_catalog_name):
@@ -115,7 +114,7 @@ class CatalogUpdater:
         """
 
         template = GLOBAL_CONFIG['aws-domain'] + '/{key}'
-        params = pparse(template, link).__dict__['named']
+        params = pparse(template, link).named
         return params['key']
 
     def update_all_y_s3(self, bucket):
@@ -144,7 +143,7 @@ class CatalogUpdater:
         """
 
         template = '{prefix}/x_{x}/y_{y}/{}'
-        params = pparse(template, y_catalog_name).__dict__['named']
+        params = pparse(template, y_catalog_name).named
         prefix, x, y = params['prefix'], params['x'], params['y']
         x_catalog_name = f'{prefix}/x_{x}/catalog.json'
         return OrderedDict([
@@ -166,7 +165,7 @@ class CatalogUpdater:
         """
 
         template = '{prefix}/x_{x}/{}'
-        params = pparse(template, y_catalog_name_abs).__dict__['named']
+        params = pparse(template, y_catalog_name_abs).named
         x_catalog_name = f'{params["prefix"]}/x_{params["x"]}/catalog.json'
 
         if self.x_catalogs.get(x_catalog_name):
@@ -205,7 +204,7 @@ class CatalogUpdater:
         """
 
         template = '{prefix}/x_{x}/{}'
-        params = pparse(template, x_catalog_name).__dict__['named']
+        params = pparse(template, x_catalog_name).named
         prefix, x = params['prefix'], params['x']
         return OrderedDict([
             ('name', f'{prefix}/x_{x}'),
