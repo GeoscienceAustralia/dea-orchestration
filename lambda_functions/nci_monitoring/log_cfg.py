@@ -3,7 +3,7 @@ import sys
 """
 All lambda methods use this loging config.
 Provides a single place where all log config/level/formatting is setup so that one
-can see source file, line numbers, and any other desired log fields. 
+can see source file, line numbers, and any other desired log fields.
 """
 logger = logging.getLogger()
 for h in logger.handlers:
@@ -21,4 +21,3 @@ logging.getLogger('paramiko').setLevel(logging.WARN)
 logging.getLogger('raijin_ssh').setLevel(logging.WARN)
 logging.getLogger('urllib3').setLevel(logging.WARN)
 logging.getLogger('elasticsearch').setLevel(logging.WARN)
-
