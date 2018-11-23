@@ -1,42 +1,29 @@
+import copy
 import logging
-import boto3
 import urllib
 from datetime import datetime
-import copy
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
+
+import boto3
+
+from .es_connection import get_es_connection
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
 ES_INDEX = 'nci-monitor-'
-ES_HOST = 'search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com'
-AWS_REGION = 'ap-southeast-2'
-ES_PORT = 443
-SIZE = {'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
+SIZE = {'KB': 1024, 'MB': 1024 ** 2, 'GB': 1024 ** 3, 'TB': 1024 ** 4}
 
 S3 = boto3.resource('s3')
 
 
 def _push_metadata_to_es(doc):
-    LOG.info('Connecting to the ES Endpoint, {%s}:{%s}', ES_HOST, ES_PORT)
-    credentials = boto3.Session().get_credentials()
-    auth = AWS4Auth(credentials.access_key, credentials.secret_key,
-                    AWS_REGION, 'es', session_token=credentials.token)
-
-    # Connect to the Amazon ES domain endpoint
-    es = Elasticsearch(
-        hosts=[{'host': ES_HOST, 'port': ES_PORT}],
-        http_auth=auth,
-        use_ssl=True,
-        verify_certs=True,
-        connection_class=RequestsHttpConnection)
+    es = get_es_connection()
 
     now = datetime.utcnow()
     doc = copy.deepcopy(doc)
     doc.update({
         '@timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        })
+    })
 
     LOG.info(doc)
     index = ES_INDEX + now.strftime('%Y-%m-%d')
@@ -144,8 +131,8 @@ def handler(event, context):
                         },
                         'details': {
                             'job_efficiency (%)': job_efficiency,
-                            'memory (MB)': float(mem_used.split("kb")[0])/SIZE['MB'],
-                            'virtual_memory (MB)': float(vmem_used.split("kb")[0])/SIZE['MB'],
+                            'memory (MB)': float(mem_used.split("kb")[0]) / SIZE['MB'],
+                            'virtual_memory (MB)': float(vmem_used.split("kb")[0]) / SIZE['MB'],
                             'ncpus': int(ncpus),
                             # TODO
                             # 'ndatasets_processed': ndatasets,
