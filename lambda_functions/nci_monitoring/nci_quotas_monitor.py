@@ -22,7 +22,7 @@ CLOUDWATCH_MAX_SEND = 20
 ES_INDEX = 'nci-quotausage-'
 ES_DOC_TYPE = 'nci_quota_usage'
 
-cloudwatch = boto3.client('cloudwatch')
+CLOUDWATCH = boto3.client('cloudwatch')
 
 logger.debug("loading module")
 
@@ -82,7 +82,7 @@ def upload_to_cloudwatch_metrics(usage):
     chunked_metrics = [cloud_metrics[x:x + CLOUDWATCH_MAX_SEND]
                        for x in range(0, len(cloud_metrics), CLOUDWATCH_MAX_SEND)]
     for some_cloud_metrics in chunked_metrics:
-        cloudwatch.put_metric_data(
+        CLOUDWATCH.put_metric_data(
             Namespace=CLOUDWATCH_NAMESPACE,
             MetricData=some_cloud_metrics
         )

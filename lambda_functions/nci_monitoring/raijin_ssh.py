@@ -5,7 +5,7 @@ from io import StringIO
 import boto3
 import paramiko
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 DEFAULT_SSM_USER_PATH = os.environ['SSM_USER_PATH']
 
@@ -38,7 +38,7 @@ def exec_command(command):
         script_output = stdout.read().decode('ascii')
         script_error = stderr.read().decode('ascii')
     except Exception as e:
-        logger.error(str(e))
+        LOG.error(str(e))
         raise e
     finally:
         if stdin:
@@ -47,16 +47,16 @@ def exec_command(command):
             stderr.close()
 
     if exit_code != 0:
-        logger.error('%s: EXIT_CODE: %s', command, exit_code)
+        LOG.error('%s: EXIT_CODE: %s', command, exit_code)
         if script_error:
-            logger.error('%s: %s', command, script_error)
+            LOG.error('%s: %s', command, script_error)
     else:
         if script_error:
             # command exited successfully; treat messages as warnings
-            logger.warning('%s: %s', command, script_error)
+            LOG.warning('%s: %s', command, script_error)
 
     if script_output:
-        logger.debug('%s: %s', command, script_output)
+        LOG.debug('%s: %s', command, script_output)
 
     return script_output, script_error, exit_code
 
