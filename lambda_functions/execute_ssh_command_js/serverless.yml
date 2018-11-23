@@ -279,7 +279,7 @@ functions:
   execute_clean:
     # Note: Keep `--search-paths` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
-    description: Execute dea-clean tool to trash files on disk whose index were archived at least 3 days ago
+    description: Execute dea-clean tool to list things to be cleaned, not go and automatically delete files
     environment:
       cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
                           --queue ${self:provider.environment.QUEUE}
