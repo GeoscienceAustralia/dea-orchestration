@@ -1,11 +1,21 @@
+"""
+Update parent catalogs based on .yaml files corresponding to datasets uploaded in s3. File lists are
+obtained from s3 inventory lists. Incremental updates can be done by using the 'from-date' option to limit
+the selected dataset yaml files modified by a date later than the specified date. Updated catalog files
+are uploaded to the specified bucket.
+
+The s3 yaml file list is obtained from s3 inventory list unless a file list is provided in the command line.
+"""
+
 from collections import OrderedDict
 from pathlib import Path
-from parse import parse as pparse
 import json
+from parse import parse as pparse
 import boto3
 import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
+from pandas import Timestamp
 
 GLOBAL_CONFIG = {
     "homepage": "http://www.ga.gov.au/",
@@ -29,33 +39,61 @@ GLOBAL_CONFIG = {
     },
     "aws-domain": "https://data.dea.ga.gov.au",
     "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover/fc/v2.2.0/ls8']
+    "aws-products": ['fractional-cover/fc/v2.2.0/ls5']
 }
+
+
+def check_date(context, param, value):
+    """
+    Click callback to validate a date string
+    """
+    try:
+        return Timestamp(value)
+    except ValueError as error:
+        raise ValueError('Date must be valid string for pandas Timestamp') from error
 
 
 @click.command()
 @click.option('--inventory-manifest', '-i',
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
               help="The manifest of AWS inventory list")
-@click.option('--bucket', '-b', required=True, help="AWS bucket")
+@click.option('--bucket', '-b', required=True, help="AWS bucket to upload to")
+@click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
-def cli(inventory_manifest, bucket, s3_keys):
+def cli(inventory_manifest, bucket, from_date, s3_keys):
     """
-    Update parent catalogs of datasets based on s3 keys having suffux .yaml
+    Update parent catalogs of datasets based on s3 keys having suffix .yaml
     """
-
-    def _shed_bucket_and_validate(keys):
-        for item in keys:
-            template = '{}x_{x}/y_{y}/{}.yaml'
-            if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
-                print(item.Key)
-                yield item.Key
 
     if not s3_keys:
-        s3 = make_s3_client()
-        s3_keys = _shed_bucket_and_validate(list_inventory(inventory_manifest, s3=s3))
+        s3_client = make_s3_client()
+        s3_keys = list_inventory(inventory_manifest, s3=s3_client)
+        if from_date:
+            s3_keys = incremental_list(s3_keys, from_date)
+        s3_keys = shed_bucket_and_validate(s3_keys)
 
     CatalogUpdater().update_parents_all(s3_keys, bucket)
+
+
+def shed_bucket_and_validate(keys):
+    """
+    Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
+    """
+    for item in keys:
+        template = '{}x_{x}/y_{y}/{}.yaml'
+        if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
+            yield item.Key
+
+
+def incremental_list(inventory_s3_keys, from_date):
+    """
+    Filter the given generator list with items having LastModifiedDate attribute to a generator with the
+    last modified date later than the given date
+    """
+    for item in inventory_s3_keys:
+        time_modified = Timestamp(item.LastModifiedDate)
+        if from_date < time_modified:
+            yield item
 
 
 class CatalogUpdater:
@@ -223,6 +261,9 @@ class CatalogUpdater:
         ])
 
     def update_all_top_level_s3(self, bucket):
+        """
+        Update all the parent catalogs one level above x dir in s3
+        """
 
         s3_res = boto3.resource('s3')
 
