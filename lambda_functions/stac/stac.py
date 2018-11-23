@@ -1,3 +1,8 @@
+"""
+AWS serverless lambda function that generate stac catalog file corresponding to yaml file
+upload event.
+"""
+
 import datetime
 import json
 from collections import OrderedDict
@@ -67,7 +72,7 @@ def stac_handler(event, context):
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
-    s3 = boto3.resource('s3')
+    s3_res = boto3.resource('s3')
 
     # Extract message, i.e. yaml file href's
     file_items = event.get('Records', [])
@@ -75,7 +80,7 @@ def stac_handler(event, context):
     for file_item in file_items:
         # Load yaml file from s3
         bucket, s3_key = get_bucket_and_key(file_item)
-        obj = s3.Object(bucket, s3_key)
+        obj = s3_res.Object(bucket, s3_key)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
@@ -86,7 +91,7 @@ def stac_handler(event, context):
         stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
         # Put STAC dict to s3
-        obj = s3.Object(bucket, stac_s3_key)
+        obj = s3_res.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item))
 
 
@@ -100,6 +105,10 @@ def get_bucket_and_key(message):
 
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
+    """
+    Returns a dict corresponding to a stac item catalog
+    """
+
     product = metadata_doc['product_type']
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
                                      ['projection']['valid_data']
@@ -183,7 +192,7 @@ def get_stac_item_parent(s3_key):
 
 def main():
     import sys
-    infile, outfile = sys.argv[1:]
+    infile, outfile = sys.argv[1], sys.argv[2]
     with open(infile) as fin, open(outfile, 'w') as fout:
         metadata_doc = yaml.safe_load(fin)
         stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
