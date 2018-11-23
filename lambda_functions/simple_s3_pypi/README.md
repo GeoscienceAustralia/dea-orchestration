@@ -1,13 +1,11 @@
+# Simple S3 Triggers
+
+This directory contains code for 2 x lambda functions:
+
+## Generate Listing
+
 This Lambda is responsible for maintaining a simple python package
 server hosted on S3.
-
-Originally we attempted to use s3pypi to build and upload packages,
-and also maintain the essential `index.html` pages.
-
-However, it causes a few issues. It doesn't play nicely with Fractional Cover
-which needs to build a binary package from some Fortran sources. And more importantly
-it has a very strict and hard coded restriction on package version numbers,
-which causes most of our packages to go unlisted.
 
 Rather than attempting to fix those problems. This takes a new approach,
 similar to [s3-directory-listing](https://github.com/razorjack/s3-directory-listing),
@@ -20,21 +18,26 @@ deployment tools.
 We can follow [PEP 503 - Simple Repository API](https://www.python.org/dev/peps/pep-0503/)
 and maybe eventually include extra niceties like checksum hashes.
 
+## Make Public
+
+Configured to make any object placed into `dea-public-inventory` public.
+
+It's the simplest way to make a public inventory. Objects aren't owned by the bucket owner,
+so permissions set on the bucket don't apply to the objects.
+
+
+
+
+
 ## Installation Instructions
 
-1) Deploy using serverless
 
-```bash
-    sls deploy
+```shell
+sls deploy && sls s3deploy
 ```
-
-2) Add a policy to the target bucket if public read access is required
-
-3) Add an Event to the bucket to call the lambda function
 
 
 ## Problems
 
- * _Need to
  * _Need to switch to SNS with a fanout, since can't double up on
 Events on the same bucket_

@@ -2,37 +2,35 @@ service: s3-directory-list
 
 plugins:
   - serverless-plugin-existing-s3
+  - serverless-pseudo-parameters
 
 custom:
   bucketName: datacube-core-deployment
+  inventoryBucket: dea-public-data-inventory
+
+package:
+  exclude:
+    - node_modules/**
+    - .terraform/**
+
 
 provider:
   name: aws
   runtime: python3.6
   memorySize: 128
 
-  stage: dev
+  stage: prod
   region: ap-southeast-2
+  deploymentBucket: dea-lambda
 
 
   iamRoleStatements:
    - Effect: "Allow"
      Action:
        - "s3:ListBucket"
-     Resource: {"Fn::Join": ["", ["arn:aws:s3:::", {"Ref": "ServerlessDeploymentBucket"}]]}
-   - Effect: "Allow"
-     Action:
-       - "s3:PutObject"
      Resource:
-       Fn::Join:
-         - ""
-         - - "arn:aws:s3:::"
-           - "Ref": "ServerlessDeploymentBucket"
-           - "/*"
-   - Effect: "Allow"
-     Action:
-       - "s3:ListBucket"
-     Resource: "arn:aws:s3:::${self:custom.bucketName}"
+       - "arn:aws:s3:::${self:custom.bucketName}"
+       - "arn:aws:s3:::${self:custom.inventoryBucket}"
    - Effect: "Allow"
      Action:
        - "s3:GetObject"
@@ -41,7 +39,12 @@ provider:
    - Effect: "Allow"
      Action:
       - "s3:PutBucketNotification"
-     Resource: "arn:aws:s3:::${self:custom.bucketName}"
+     Resource:
+      - "arn:aws:s3:::${self:custom.bucketName}"
+      - "arn:aws:s3:::${self:custom.inventoryBucket}"
+   - Effect: "Allow"
+     Action: "s3:PutObjectAcl"
+     Resource: "arn:aws:s3:::${self:custom.inventoryBucket}/*"
 
 functions:
   generateListing:
@@ -52,3 +55,10 @@ functions:
           events:
             - s3:ObjectCreated:*
             - s3:ObjectRemoved:*
+  makePublic:
+    handler: make_public.make_public
+    events:
+      - existingS3:
+          bucket: ${self:custom.inventoryBucket}
+          events:
+            - s3:ObjectCreated:*
