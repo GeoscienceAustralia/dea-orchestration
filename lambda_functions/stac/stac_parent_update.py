@@ -29,7 +29,7 @@ GLOBAL_CONFIG = {
     },
     "aws-domain": "https://data.dea.ga.gov.au",
     "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['WOfS/summary']
+    "aws-products": ['fractional-cover/fc/v2.2.0/ls8']
 }
 
 
@@ -48,6 +48,7 @@ def cli(inventory_manifest, bucket, s3_keys):
         for item in keys:
             template = '{}x_{x}/y_{y}/{}.yaml'
             if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
+                print(item.Key)
                 yield item.Key
 
     if not s3_keys:
