@@ -1,7 +1,12 @@
+"""
+Update parent catalogs based on .yaml files corresponding to datasets uploaded in s3. File lists are
+obtained from s3 inventory lists.
+"""
+
 from collections import OrderedDict
 from pathlib import Path
-from parse import parse as pparse
 import json
+from parse import parse as pparse
 import boto3
 import click
 from dea.aws import make_s3_client
@@ -35,10 +40,13 @@ GLOBAL_CONFIG = {
 
 
 def check_date(context, param, value):
+    """
+    Click callback to validate a date string
+    """
     try:
         return Timestamp(value)
-    except ValueError:
-        raise
+    except ValueError as error:
+        raise ValueError('Date must be valid string for pandas Timestamp') from error
 
 
 @click.command()
@@ -54,8 +62,8 @@ def cli(inventory_manifest, bucket, from_date, s3_keys):
     """
 
     if not s3_keys:
-        s3 = make_s3_client()
-        s3_keys = list_inventory(inventory_manifest, s3=s3)
+        s3_client = make_s3_client()
+        s3_keys = list_inventory(inventory_manifest, s3=s3_client)
         if from_date:
             s3_keys = incremental_list(s3_keys, from_date)
         s3_keys = shed_bucket_and_validate(s3_keys)
@@ -249,6 +257,9 @@ class CatalogUpdater:
         ])
 
     def update_all_top_level_s3(self, bucket):
+        """
+        Update all the parent catalogs one level above x dir in s3
+        """
 
         s3_res = boto3.resource('s3')
 

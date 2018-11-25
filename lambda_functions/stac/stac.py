@@ -1,3 +1,7 @@
+"""
+AWS serverless lambda function that generate stac catalog file corresponding to yaml file
+upload event.
+"""
 import datetime
 import json
 from collections import OrderedDict
@@ -100,6 +104,10 @@ def get_bucket_and_key(message):
 
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
+    """
+    Returns a dict corresponding to a stac item catalog
+    """
+
     product = metadata_doc['product_type']
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
                                      ['projection']['valid_data']
@@ -183,7 +191,7 @@ def get_stac_item_parent(s3_key):
 
 def main():
     import sys
-    infile, outfile = sys.argv[1:]
+    infile, outfile = sys.argv[1], sys.argv[2]
     with open(infile) as fin, open(outfile, 'w') as fout:
         metadata_doc = yaml.safe_load(fin)
         stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
