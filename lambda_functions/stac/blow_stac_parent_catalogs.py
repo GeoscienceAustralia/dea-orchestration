@@ -1,3 +1,8 @@
+"""
+Delete parent catalog files in s3 bucket that correspond to given product prefix.
+The list of files with names 'catalog.json' is obtained from s3 inventory lists.
+"""
+
 from pathlib import Path
 import boto3
 from dea.aws import make_s3_client
