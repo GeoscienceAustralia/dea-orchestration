@@ -35,7 +35,8 @@ GLOBAL_CONFIG = {
         "requesterPays": "False"
     },
     "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json"
+    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
+    "aws-products": ['fractional-cover/fc/v2.2.0/ls5', 'fractional-cover/fc/v2.2.0/ls8']
 }
 
 PRODUCT_CONFIG = {
@@ -80,6 +81,10 @@ def stac_handler(event, context):
     for file_item in file_items:
         # Load yaml file from s3
         bucket, s3_key = get_bucket_and_key(file_item)
+
+        if not is_valid_yaml(s3_key):
+            continue
+
         obj = s3_res.Object(bucket, s3_key)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
@@ -93,6 +98,15 @@ def stac_handler(event, context):
         # Put STAC dict to s3
         obj = s3_res.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item))
+
+
+def is_valid_yaml(s3_key):
+    """
+    Return whether the given key is valid
+    """
+
+    template = '{}x_{x}/y_{y}/{}.yaml'
+    return bool(sum([bool(pparse(p + template, s3_key)) for p in GLOBAL_CONFIG['aws-products']]))
 
 
 def get_bucket_and_key(message):
