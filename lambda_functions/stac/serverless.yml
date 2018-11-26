@@ -5,9 +5,6 @@ plugins:
   - serverless-python-requirements
   - serverless-pseudo-parameters
 
-custom:
-  pythonRequirements:
-    dockerizePip: non-linux
 package:
   exclude:
     - node_modules/**
@@ -19,7 +16,6 @@ package:
     - package-lock.json
     - requirements.txt
 
-
 custom:
   Stage: dev
   profiles:
@@ -30,6 +26,7 @@ custom:
       prod: "dea-lambda"
       dev: "dea-lambdas-dev"
   pythonRequirements:
+    dockerizePip: non-linux
     fileName: requirements.txt
 
 provider:
