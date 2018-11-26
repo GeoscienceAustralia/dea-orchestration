@@ -82,7 +82,7 @@ def shed_bucket_and_validate(keys):
     """
     Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
     """
-    
+
     for item in keys:
         template = '{}x_{x}/y_{y}/{}.yaml'
         if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
