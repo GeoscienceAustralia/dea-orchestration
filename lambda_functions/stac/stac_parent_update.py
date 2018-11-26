@@ -1,6 +1,10 @@
 """
 Update parent catalogs based on .yaml files corresponding to datasets uploaded in s3. File lists are
-obtained from s3 inventory lists.
+obtained from s3 inventory lists. Incremental updates can be done by using the 'from-date' option to limit
+the selected dataset yaml files modified by a date later than the specified date. Updated catalog files
+are uploaded to the specified bucket.
+
+The s3 yaml file list is obtained from s3 inventory list unless a file list is provided in the command line.
 """
 
 from collections import OrderedDict
@@ -53,7 +57,7 @@ def check_date(context, param, value):
 @click.option('--inventory-manifest', '-i',
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
               help="The manifest of AWS inventory list")
-@click.option('--bucket', '-b', required=True, help="AWS bucket")
+@click.option('--bucket', '-b', required=True, help="AWS bucket to upload to")
 @click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(inventory_manifest, bucket, from_date, s3_keys):
