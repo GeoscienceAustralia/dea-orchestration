@@ -38,7 +38,7 @@ def main():
     def quit_on_exception(event):
         if event.exception:
             print(event)
-            sys.exit()
+            scheduler.shutdown()
 
     scheduler.add_listener(quit_on_exception, EVENT_JOB_ERROR)
 
