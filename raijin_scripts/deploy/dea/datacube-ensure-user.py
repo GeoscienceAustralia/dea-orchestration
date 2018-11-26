@@ -43,7 +43,6 @@ initially used to access the Data Cube, onto the current system.
 
 class CredentialsNotFound(Exception):
     """ Empty class for credentials not found exceptions """
-    pass
 
 
 def print_stderr(msg):
