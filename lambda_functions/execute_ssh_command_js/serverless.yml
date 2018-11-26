@@ -297,6 +297,7 @@ functions:
                           /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/
   execute_s2ard:
     handler: handler.execute_ssh_command
+    description: Entrypoints for Sentinel-2 level-1 yaml generation and level-2 processing
     environment:
       cmd: 'execute_s2ard --project ${self:provider.environment.PROJECT}
                           --level1-dir <%= level1_dir %>
@@ -309,44 +310,44 @@ functions:
                           --obs-year <%= obs_year %>'
     events:
       - schedule:
-          rate: cron(05 17 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+          rate: cron(1 05 ? * TUE *) # Run weekly at 11:05AM AEST
           enabled: false
           input:
             task: level1
-            start_date_offset: 8 # TODAY - 1 day buffer - 7 days to process
+            start_date_offset: 7 # Process last 7 days up until 00:00 Tuesday
             days_to_process: 7
             output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
             copy_parent_dir_count: 1
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(10 17 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+          rate: cron(1 10 1 * ? *) # Run on the 1st of every month at 11:10 AM AEST
           enabled: false
           input:
             task: level1
-            start_date_offset: 32 # TODAY - 1 day buffer - 31 days to process
+            start_date_offset: 31 # Process last 31 days up until 00:00 TODAY
             days_to_process: 31
             output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
             copy_parent_dir_count: 1
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
       - schedule:
-          rate: cron(05 17 ? * FRI *) # Run every Friday at 3:05 AM, AEST
+          rate: cron(1 05 ? * SAT *) # Run every Saturday at 11:05 AM, AEST
           enabled: false
           input:
             task: level2
-            start_date_offset: 35 # TODAY - 28 day buffer - 7 days to process
+            start_date_offset: 12 # Process from Monday 00:00 to Monday 00:00
             days_to_process: 7
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
             copy_parent_dir_count: 0 # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(10 17 28 * ? *) # Run on the 28th of every month at 3:10 AM, AEST
+          rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3pm
           enabled: false
           input:
             task: level2
-            start_date_offset: 59 # TODAY - 28 day buffer - 31 days to process
+            start_date_offset: 35 # Kicks off re-processing for the past month for previous years on the 5th
             days_to_process: 31
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
             copy_parent_dir_count: 0 # IGNORED FOR L2
