@@ -31,7 +31,7 @@ custom:
 provider:
   name: aws
   runtime: nodejs6.10
-  timeout: 300 # 5 minutes. Default is 6 seconds
+  timeout: 300  # 5 minutes. Default is 6 seconds
   profile: ${self:custom.profiles.${self:custom.Stage}}
   environment:
     hostkey: 'orchestrator.raijin.users.default.host'
@@ -69,7 +69,7 @@ functions:
       pkey: 'orchestrator.raijin.users.git_pull.pkey'
     events:
       - schedule:
-          rate: cron(00 10 ? * FRI,SAT,SUN *) # Run every Friday-Sunday, at 08:00 pm Canberra time
+          rate: cron(00 10 ? * FRI,SAT,SUN *)  # Run every Friday-Sunday, at 08:00 pm Canberra time
           enabled: true
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
@@ -86,7 +86,7 @@ functions:
                          --trasharchived <%= trasharchived %>'
     events:
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -94,7 +94,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -102,7 +102,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -110,7 +110,7 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbart/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -118,7 +118,7 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbar/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -126,7 +126,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -134,7 +134,7 @@ functions:
             path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/2018/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -142,7 +142,7 @@ functions:
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbart/'
             trasharchived: no
       - schedule:
-          rate: cron(10 10 ? * FRI *) # Run every Friday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -161,37 +161,37 @@ functions:
                            --product <%= product %>'
     events:
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_nbart_albers
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_nbar_albers
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_pq_albers
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls7_nbart_albers
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls7_nbar_albers
       - schedule:
-          rate: cron(15 10 ? * SAT *) # Run every Saturday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -209,14 +209,14 @@ functions:
                                      --tag <%= tag %>'
     events:
       - schedule:
-          rate: cron(15 10 ? * SUN *) # Run every Sunday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
             product: ls8_fc_albers
             tag: 'ls8_fc2018'
       - schedule:
-          rate: cron(15 10 ? * SUN *) # Run every Sunday, at 08:15 pm Canberra time
+          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -235,7 +235,7 @@ functions:
                          --tag <%= tag %>'
     events:
       - schedule:
-          rate: cron(20 10 ? * SUN *) # Run every Sunday, at 08:20 pm Canberra time
+          rate: cron(20 10 ? * SUN *)  # Run every Sunday, at 08:20 pm Canberra time
           enabled: true
           input:
             year: 2018
@@ -253,7 +253,7 @@ functions:
                               --timequery <%= timequery %>'
     events:
       - schedule:
-          rate: cron(00 09 ? * TUE *) # Run every Tuesday, at 07:00 pm Canberra time
+          rate: cron(00 09 ? * TUE *)  # Run every Tuesday, at 07:00 pm Canberra time
           enabled: true
           input:
             timequery: 'time in 2018'
@@ -270,11 +270,11 @@ functions:
 
     events:
       - schedule:
-          rate: cron(00 12 ? * * *) # Run every day, at 10:00 pm Canberra time
+          rate: cron(00 12 ? * * *)  # Run every day, at 10:00 pm Canberra time
           enabled: true
           input:
             awsprofile: default
-            recemail: nci.monitor@dea.ga.gov.au # Recepient's email address
+            recemail: nci.monitor@dea.ga.gov.au  # Recepient's email address
   execute_clean:
     # Note: Keep `--search-paths` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
@@ -287,10 +287,10 @@ functions:
                           --search-paths <%= search_paths %>'
     events:
       - schedule:
-          rate: cron(00 13 ? * TUE *) # Run every Tuesday, at 11:00 pm Canberra time
+          rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
           enabled: true
           input:
-            min_trash_age: 72 # 72 hours
+            min_trash_age: 72  # 72 hours
             search_paths: /g/data/rs0/datacube/002/
                           /g/data/fk4/datacube/002/FC/
                           /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/
@@ -338,7 +338,7 @@ functions:
             start_date_offset: 12 # Process from Monday 00:00 to Monday 00:00
             days_to_process: 7
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
-            copy_parent_dir_count: 0 # IGNORED FOR L2
+            copy_parent_dir_count: 0  # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
@@ -349,6 +349,6 @@ functions:
             start_date_offset: 35 # Kicks off re-processing for the past month for previous years on the 5th
             days_to_process: 31
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
-            copy_parent_dir_count: 0 # IGNORED FOR L2
+            copy_parent_dir_count: 0  # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous

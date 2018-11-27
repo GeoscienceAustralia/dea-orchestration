@@ -38,8 +38,8 @@ package:
 provider:
   name: aws
   runtime: python3.6
-  timeout: 60 # 60 seconds. Default is 6 seconds
-  memorySize: 128 # in MB, default is 1024
+  timeout: 60  # 60 seconds. Default is 6 seconds
+  memorySize: 128  # in MB, default is 1024
   stage: prod
   # Since SES is not supported in Sydney region, all emails are pushed to the
   # S3 bucket in us-west-2 region.
