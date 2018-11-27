@@ -22,16 +22,16 @@ root-catalog: "https://data.dea.ga.gov.au/catalog.json"
 aws-products: ['fractional-cover/fc/v2.2.0/ls5', 'fractional-cover/fc/v2.2.0/ls8']
 
 products:
-  - wofs_filtered_summary:
+  wofs_filtered_summary:
     description: "Wofs Filtered Summary algorithm ... "
     bands:
       confidence: "confidence"
       wofs_filtered_summary: "wofs filtered summary"
-  - wofs:
+  wofs:
     description: "WoFS algorithm ... "
     bands:
       water: "water"
-  - fractional_cover:
+  fractional_cover:
     description: "The Fractional Cover (FC)"
     bands:
       PV: "Photosynthetic Vegetation"
