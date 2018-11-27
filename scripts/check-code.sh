@@ -5,7 +5,6 @@ set -eu
 set -x
 {
     readarray -t PY_FILES < <(find raijin_scripts lambda_functions ! -path '*node_modules*' -name '*.py')
-    PY_FILES+=(lambda_modules/*/*)
 } &> /dev/null
 
 export PYTHONPATH=$PWD/lambda_modules/dea_es:$PWD/lambda_modules/dea_raijin${PYTHONPATH:+:${PYTHONPATH}}
@@ -32,7 +31,7 @@ then
     pushd "$PWD/lambda_functions/execute_ssh_command_js"
     _TMP="$(mktemp -d)"
     echo "writing temporary serverless artifacts to $_TMP"
-    serverless package -s prod -p "${_TMP}"  # test prod settinsg
+    serverless package -s prod -p "${_TMP}"  # test prod setting
     _RET=$?
     rm -rf "${_TMP}"  # clean up test directory
     if [ $_RET -ne 0 ]; then echo "serverless failed to generate a package" && exit 1; fi
