@@ -1,9 +1,9 @@
 homepage: "http://www.ga.gov.au/"
 
-licence:
-  name: "CC BY Attribution 4.0 International License"
-  link: "https://creativecommons.org/licenses/by/4.0/"
-  short_name: "CCA 4.0"
+license:
+  name: "Creative Commons Attribution 4.0 International"
+  link: "https://spdx.org/licenses/CC-BY-4.0.html#licenseText"
+  short_name: "CC-BY-4.0"
   copyright: "DEA, Geoscience Australia"
 
 contact:
@@ -19,23 +19,110 @@ provider:
   requesterPays: "False"
 aws-domain: "https://data.dea.ga.gov.au"
 root-catalog: "https://data.dea.ga.gov.au/catalog.json"
-aws-products: ['fractional-cover/fc/v2.2.0/ls5', 'fractional-cover/fc/v2.2.0/ls8']
+aus-extent:
+  spatial: [108, -45, 155, -10]
+  temporal: [null, null]
 
 products:
-  wofs_filtered_summary:
-    description: "Wofs Filtered Summary algorithm ... "
-    bands:
-      confidence: "confidence"
-      wofs_filtered_summary: "wofs filtered summary"
-  wofs:
-    description: "WoFS algorithm ... "
-    bands:
-      water: "water"
-  fractional_cover:
-    description: "The Fractional Cover (FC)"
-    bands:
-      PV: "Photosynthetic Vegetation"
-      NPV: "Non-Photosynthetic Vegetation"
-      BS: "Bare Soil"
-      UE: "Unmixing Error"
+  - name: wofs_filtered_summary
+    prefix: WOfS/filtered_summary/v2.1.0/combined
+    product_type: wofs_filtered_summary
+    description: 'Water Observations from Space Statistics confidence filtered.
 
+      In previous versions of WOfS, the basic water classifications, statistical summaries
+      and confidence products were contained within one product with several datasets. As of
+      version 2.1.5, WOfS is split into three products: Water Observation Feature Layers
+      (WO_25_2.1.5), Summary Statistics (WO-STATS_25_2.1.5), and Filtered Summary Statistics
+      (WO-FILT-STATS_25_2.1.5).
+
+      This product is Water Observations from Space - Filtered Statistics (WO-FILT-STATS),
+      consisting of a Confidence layer that compares the WO-STATS water summary to other
+      national water datasets, and the Filtered Water Summary which uses the Confidence to
+      mask areas of the WO-STATS water summary where Confidence is low. The Filtered Water
+      Summary provides the long term understanding of the recurrence of water in the
+      landscape, with much of the noise due to misclassification filtered out.
+
+      WO-FILT-STATS consists of the following datasets:
+
+      Confidence: the degree of agreement between water shown in the Water Summary
+                  and other national datasets. The Confidence layer provides understanding of
+                  whether the water shown in the Water Summary agrees with where water should
+                  exist in the landscape, such as due to sloping land or whether water has been
+                  detected in a location by other means.
+
+      Filtered Water Summary: A simplified version of the Water Summary, showing the
+                  frequency of water observations where the Confidence is above a cutoff level.
+                  This layer gives a noise-reduced view of surface water across Australia.
+                  Even though confidence filtering is applied to the Filtered Water Summary, some cloud
+                  and shadow, and sensor noise does persist.'
+    extent:
+      spatial: [113, -44, 153, -10]
+      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
+  - name: wofs_albers
+    prefix: WOfS/WOFLs/v2.1.5/combined
+    product_type: wofs
+    description: 'Historic Flood Mapping Water Observations from Space'
+    extent:
+      spatial: [113, -44, 153, -10]
+      temporal: ["1987-01-01T00:00:00Z", null]
+  - name: wofs_statistical_summary
+    prefix: WOfS/summary/v2.1.0/combined
+    product_type:
+    description: 'Water Observations from Space Statistics'
+    extent:
+      spatial: [113, -44, 153, -10]
+      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
+  - name: wofs_annual_summary
+    prefix: WOfS/annual_summary/v2.1.5/combined
+    product_type:
+    description: 'Water Observations from Space Annual Statistics'
+    extent:
+      spatial: [113, -44, 153, -10]
+      temporal: ["1987-01-01T00:00:00Z", null]
+  - name: ls5_fc_albers
+    prefix: fractional-cover/fc/v2.2.0/ls5
+    product_type: fractional_cover
+    description: 'Landsat 5 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
+    extent:
+      spatial: [110, -45, 155, -9]
+      temporal: ["1986-01-01T00:00:00Z", "2011-12-01T00:00:00Z"]
+  - name: ls7_fc_albers
+    prefix: fractional-cover/fc/v2.2.0/ls7
+    product_type: fractional_cover
+    description: 'Landsat 7 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
+    extent:
+      spatial: [110, -45, 155, -9]
+      temporal: ["1999-07-01T00:00:00Z", null]
+  - name: ls8_fc_albers
+    prefix: fractional-cover/fc/v2.2.0/ls8
+    product_type:
+    description: 'Landsat 8 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
+    extent:
+      spatial: [109, -46, 157, -9]
+      temporal: ["2013-03-01T00:00:00Z", null]
+  - name: fc_percentile_annual
+    prefix: fractional-cover/fc-percentile/annual/v2.1.0/combined
+    product_type: fractional_cover_statistical_summary
+    description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
+    (EPSG:3577)'
+  - name: fc_percentile_seasonal
+    prefix: fractional-cover/fc-percentile/seasonal/v2.1.0/combined
+    product_type: fractional_cover_statistical_summary
+    description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
+    (EPSG:3577)'
+  - name: ls8_barest_earth_mosaic
+    prefix: bare-earth/summary/v2.1.0/L8
+    description: 'Landsat-8 Barest Earth pixel composite mosaic 25 metre, 25km tile,
+    Australian Albers Equal Area projection (EPSG:3577)'
+  - name: ls5_nbart_geomedian_annual
+    prefix: geomedian-australia/v2.1.0/L5
+    description: 'Landsat-5 Surface Reflectance Geometric Median 25 metre, 100km tile,
+    Australian Albers Equal Area projection (EPSG:3577)'
+  - name: ls7_nbart_geomedian_annual
+    prefix: geomedian-australia/v2.1.0/L7
+    description: 'Landsat-7 Surface Reflectance Geometric Median 25 metre, 100km tile,
+    Australian Albers Equal Area projection (EPSG:3577)'
+  - name: ls8_nbart_geomedian_annual
+    prefix: geomedian-australia/v2.1.0/L8
+    description: 'Landsat-8 Surface Reflectance Geometric Median 25 metre, 100km tile,
+    Australian Albers Equal Area projection (EPSG:3577)'

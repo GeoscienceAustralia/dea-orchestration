@@ -10,37 +10,13 @@ The s3 yaml file list is obtained from s3 inventory list unless a file list is p
 from collections import OrderedDict
 from pathlib import Path
 import json
+import yaml
 from parse import parse as pparse
 import boto3
 import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 from pandas import Timestamp
-
-GLOBAL_CONFIG = {
-    "homepage": "http://www.ga.gov.au/",
-    "licence": {
-        "name": "CC BY Attribution 4.0 International License",
-        "link": "https://creativecommons.org/licenses/by/4.0/",
-        "short_name": "CCA 4.0",
-        "copyright": "DEA, Geoscience Australia"
-    },
-    "contact": {
-        "name": "Geoscience Australia",
-        "organization": "Commonwealth of Australia",
-        "email": "sales@ga.gov.au",
-        "phone": "+61 2 6249 9966",
-        "url": "http://www.ga.gov.au"
-    },
-    "provider": {
-        "scheme": "s3",
-        "region": "ap-southeast-2",
-        "requesterPays": "False"
-    },
-    "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover/fc/v2.2.0/ls5']
-}
 
 
 def check_date(context, param, value):
@@ -54,34 +30,39 @@ def check_date(context, param, value):
 
 
 @click.command()
+@click.option('--config', type=click.Path(exists=True), default='stac_config.yaml', help='The config file')
 @click.option('--inventory-manifest', '-i',
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
               help="The manifest of AWS inventory list")
 @click.option('--bucket', '-b', required=True, help="AWS bucket to upload to")
 @click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
-def cli(inventory_manifest, bucket, from_date, s3_keys):
+def cli(config, inventory_manifest, bucket, from_date, s3_keys):
     """
     Update parent catalogs of datasets based on s3 keys having suffix .yaml
     """
+
+    with open(config, 'r') as cfg_file:
+        cfg = yaml.load(cfg_file)
 
     if not s3_keys:
         s3_client = make_s3_client()
         s3_keys = list_inventory(inventory_manifest, s3=s3_client)
         if from_date:
             s3_keys = incremental_list(s3_keys, from_date)
-        s3_keys = shed_bucket_and_validate(s3_keys)
+        s3_keys = remove_bucket_and_validate(s3_keys, cfg)
 
-    CatalogUpdater().update_parents_all(s3_keys, bucket)
+    CatalogUpdater(cfg).update_parents_all(s3_keys, bucket)
 
 
-def shed_bucket_and_validate(keys):
+def remove_bucket_and_validate(keys, cfg):
     """
     Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
     """
+    products = [p['prefix'] for p in cfg['products'] if p['prefix']]
     for item in keys:
         template = '{}x_{x}/y_{y}/{}.yaml'
-        if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
+        if bool(sum([bool(pparse(p + template, item.Key)) for p in products])):
             yield item.Key
 
 
@@ -106,7 +87,8 @@ class CatalogUpdater:
                         -> y/catalog.json
     """
 
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.y_catalogs = {}
         self.x_catalogs = {}
         self.top_level_catalogs = {}
@@ -146,16 +128,6 @@ class CatalogUpdater:
             # Add the y catalog name to the corresponding x catalog
             self.add_to_x_catalog_links(y_catalog_name)
 
-    @staticmethod
-    def _shed_domain_from_link(link):
-        """
-        Remove AWS domain part from the s3 link
-        """
-
-        template = GLOBAL_CONFIG['aws-domain'] + '/{key}'
-        params = pparse(template, link).named
-        return params['key']
-
     def update_all_y_s3(self, bucket):
         """
         Update all the catalogs in S3 that has updated links
@@ -169,14 +141,13 @@ class CatalogUpdater:
 
             # Add the links
             for link in self.y_catalogs[y_catalog_name]:
-                y_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'item'})
+                y_catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'item'})
 
             # Put y_catalog dict to s3
             obj = s3_res.Object(bucket, y_catalog_name)
-            obj.put(Body=json.dumps(y_catalog))
+            obj.put(Body=json.dumps(y_catalog), ContentType='application/json')
 
-    @staticmethod
-    def create_y_catalog(y_catalog_name):
+    def create_y_catalog(self, y_catalog_name):
         """
         Create a y catalog dict
         """
@@ -190,11 +161,11 @@ class CatalogUpdater:
             ('id', f'{prefix}/x_{x}/y_{y}'),
             ('description', 'List of items'),
             ('links', [
-                {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{y_catalog_name}',
+                {'href': f'{self.config["aws-domain"]}/{y_catalog_name}',
                  'ref': 'self'},
-                {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
+                {'href': f'{self.config["aws-domain"]}/{x_catalog_name}',
                  'rel': 'parent'},
-                {'href': GLOBAL_CONFIG["root-catalog"],
+                {'href': self.config["root-catalog"],
                  'rel': 'root'}
             ])
             ])
@@ -231,14 +202,13 @@ class CatalogUpdater:
 
             # update the links
             for link in self.x_catalogs[x_catalog_name]:
-                x_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'child'})
+                x_catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'child'})
 
             # Put x_catalog dict to s3
             obj = s3_res.Object(bucket, x_catalog_name)
-            obj.put(Body=json.dumps(x_catalog))
+            obj.put(Body=json.dumps(x_catalog), ContentType='application/json')
 
-    @staticmethod
-    def create_x_catalog(x_catalog_name):
+    def create_x_catalog(self, x_catalog_name):
         """
         Create a x catalog dict
         """
@@ -251,48 +221,75 @@ class CatalogUpdater:
             ('id', f'{prefix}/x_{x}'),
             ('description', 'List of Sub Directories'),
             ('links', [
-                {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{x_catalog_name}',
+                {'href': f'{self.config["aws-domain"]}/{x_catalog_name}',
                  'ref': 'self'},
-                {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{prefix}/catalog.json',
+                {'href': f'{self.config["aws-domain"]}/{prefix}/catalog.json',
                  'rel': 'parent'},
-                {'href': GLOBAL_CONFIG["root-catalog"],
+                {'href': self.config["root-catalog"],
                  'rel': 'root'}
             ])
         ])
 
+    def search_product_in_config(self, prefix):
+        """
+        Search the product list in the config and return the product dict
+        that matches the given prefix.
+        """
+
+        for product_dict in self.config['products']:
+            if product_dict.get('prefix'):
+                if product_dict['prefix'] in prefix:
+                    return product_dict
+        return None
+
     def update_all_top_level_s3(self, bucket):
         """
-        Update all the parent catalogs one level above x dir in s3
+        Update all the parent catalogs one level above x dir in s3. These are
+        STAC collection catalogs. Please see
+        https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md
+        for details.
         """
 
         s3_res = boto3.resource('s3')
 
         for top_level in self.top_level_catalogs:
-            product_name = Path(top_level).parts[0]
+            product_type = Path(top_level).parts[0]
             top_level_catalog_name = f'{top_level}/catalog.json'
+            info = self.search_product_in_config(top_level)
+
+            # get extents from config
+            extent = info.get('extent')
+            spatial_extent = self.config['aus-extent']['spatial']
+            temporal_extent = self.config['aus-extent']['temporal']
+            spatial_extent = extent.get('spatial', spatial_extent) if extent else spatial_extent
+            temporal_extent = extent.get('temporal', temporal_extent) if extent else temporal_extent
 
             # create the top level catalog
             top_level_catalog = OrderedDict([
                 ('stac_version', '0.6.0'),
-                ('id', top_level),
-                ('description', 'List of Sub Directories'),
-                ('links', [
-                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{top_level_catalog_name}',
-                     'ref': 'self'},
-                    {'href': f'{GLOBAL_CONFIG["aws-domain"]}/{product_name}/catalog.json',
-                     'rel': 'parent'},
-                    {'href': GLOBAL_CONFIG["root-catalog"],
-                     'rel': 'root'}
-                ])
-            ])
+                ('id', info['name']),
+                ('description', info['description'])])
+            if info.get('keywords'):
+                top_level_catalog['keywords'] = info['keywords']
+            if info.get('version'):
+                top_level_catalog['version'] = info['version']
+            top_level_catalog['license'] = self.config['license']['short_name']
+            if info.get('providers'):
+                top_level_catalog['providers'] = info.get('providers')
+            top_level_catalog['extent'] = {'spatial': spatial_extent, 'temporal': temporal_extent}
+            top_level_catalog['links'] = [
+                {'href': f'{self.config["aws-domain"]}/{top_level_catalog_name}', 'ref': 'self'},
+                {'href': f'{self.config["aws-domain"]}/{product_type}/catalog.json', 'rel': 'parent'},
+                {'href': self.config["root-catalog"], 'rel': 'root'}
+            ]
 
             # Update the links
             for link in self.top_level_catalogs[top_level]:
-                top_level_catalog['links'].append({'href': f'{GLOBAL_CONFIG["aws-domain"]}/{link}', 'rel': 'child'})
+                top_level_catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'child'})
 
             # Put top level catalog to s3
             obj = s3_res.Object(bucket, top_level_catalog_name)
-            obj.put(Body=json.dumps(top_level_catalog))
+            obj.put(Body=json.dumps(top_level_catalog), ContentType='application/json')
 
 
 if __name__ == '__main__':
