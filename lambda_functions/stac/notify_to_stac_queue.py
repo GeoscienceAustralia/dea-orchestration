@@ -13,35 +13,11 @@ import json
 from pathlib import Path
 from parse import parse as pparse
 import boto3
+import yaml
 import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 from pandas import Timestamp
-
-GLOBAL_CONFIG = {
-    "homepage": "http://www.ga.gov.au/",
-    "licence": {
-        "name": "CC BY Attribution 4.0 International License",
-        "link": "https://creativecommons.org/licenses/by/4.0/",
-        "short_name": "CCA 4.0",
-        "copyright": "DEA, Geoscience Australia"
-    },
-    "contact": {
-        "name": "Geoscience Australia",
-        "organization": "Commonwealth of Australia",
-        "email": "sales@ga.gov.au",
-        "phone": "+61 2 6249 9966",
-        "url": "http://www.ga.gov.au"
-    },
-    "provider": {
-        "scheme": "s3",
-        "region": "ap-southeast-2",
-        "requesterPays": "False"
-    },
-    "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover/fc/v2.2.0/ls8']
-}
 
 
 def check_date(context, param, value):
@@ -55,6 +31,7 @@ def check_date(context, param, value):
 
 
 @click.command()
+@click.option('--config', type=click.Path(exists=True), default='stac_config.yaml', help='The config file')
 @click.option('--inventory-manifest', '-i',
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
               help="The manifest of AWS inventory list")
@@ -63,29 +40,32 @@ def check_date(context, param, value):
 @click.option('--bucket', '-b', required=True, help="AWS bucket")
 @click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
 @click.argument('s3-keys', nargs=-1, type=click.Path())
-def cli(inventory_manifest, queue_url, bucket, from_date, s3_keys):
+def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys):
     """
     Send messages (yaml s3 keys) to stac_queue
     """
+
+    with open(config, 'r') as cfg_file:
+        cfg = yaml.load(cfg_file)
 
     if not s3_keys:
         s3_client = make_s3_client()
         s3_keys = list_inventory(inventory_manifest, s3=s3_client)
         if from_date:
             s3_keys = incremental_list(s3_keys, from_date)
-        s3_keys = shed_bucket_and_validate(s3_keys)
+        s3_keys = remove_bucket_and_validate(s3_keys, cfg)
 
     messages_to_sqs(s3_keys, bucket, queue_url)
 
 
-def shed_bucket_and_validate(keys):
+def remove_bucket_and_validate(keys, cfg):
     """
     Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
     """
 
     for item in keys:
         template = '{}x_{x}/y_{y}/{}.yaml'
-        if bool(sum([bool(pparse(p + template, item.Key)) for p in GLOBAL_CONFIG['aws-products']])):
+        if bool(sum([bool(pparse(p + template, item.Key)) for p in cfg['aws-products']])):
             yield item.Key
 
 

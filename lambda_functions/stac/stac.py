@@ -14,55 +14,11 @@ from dateutil.parser import parse
 from parse import parse as pparse
 from pyproj import Proj, transform
 
-GLOBAL_CONFIG = {
-    "homepage": "http://www.ga.gov.au/",
-    "licence": {
-        "name": "CC BY Attribution 4.0 International License",
-        "link": "https://creativecommons.org/licenses/by/4.0/",
-        "short_name": "CCA 4.0",
-        "copyright": "DEA, Geoscience Australia"
-    },
-    "contact": {
-        "name": "Geoscience Australia",
-        "organization": "Commonwealth of Australia",
-        "email": "sales@ga.gov.au",
-        "phone": "+61 2 6249 9966",
-        "url": "http://www.ga.gov.au"
-    },
-    "provider": {
-        "scheme": "s3",
-        "region": "ap-southeast-2",
-        "requesterPays": "False"
-    },
-    "aws-domain": "https://data.dea.ga.gov.au",
-    "root-catalog": "https://data.dea.ga.gov.au/catalog.json",
-    "aws-products": ['fractional-cover/fc/v2.2.0/ls5', 'fractional-cover/fc/v2.2.0/ls8']
-}
+S3_RES = boto3.resource('s3')
 
-PRODUCT_CONFIG = {
-    "wofs_filtered_summary": {
-        "description": "Wofs Filtered Summary algorithm ... ",
-        "bands": {
-            "confidence": "confidence",
-            "wofs_filtered_summary": "wofs filtered summary"
-        }
-    },
-    "wofs": {
-        "description": "WoFS algorithm ... ",
-        "bands": {
-            "water": "water",
-        }
-    },
-    "fractional_cover": {
-        "description": "The Fractional Cover (FC)",
-        "bands": {
-            "PV": "Photosynthetic Vegetation",
-            "NPV": "Non-Photosynthetic Vegetation",
-            "BS": "Bare Soil",
-            "UE": "Unmixing Error"
-        }
-    }
-}
+# Read the config file
+with open('stac_config.yaml', 'r') as cfg_file:
+    CFG = yaml.load(cfg_file)
 
 
 def stac_handler(event, context):
@@ -72,8 +28,6 @@ def stac_handler(event, context):
     dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
             LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
-
-    s3_res = boto3.resource('s3')
 
     # Extract message, i.e. yaml file href's
     file_items = event.get('Records', [])
@@ -85,18 +39,18 @@ def stac_handler(event, context):
         if not is_valid_yaml(s3_key):
             continue
 
-        obj = s3_res.Object(bucket, s3_key)
+        obj = S3_RES.Object(bucket, s3_key)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
         s3_key_ = Path(s3_key)
         stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
-        item_abs_path = f'{GLOBAL_CONFIG["aws-domain"]}/{stac_s3_key}'
+        item_abs_path = f'{CFG["aws-domain"]}/{stac_s3_key}'
         parent_abs_path = get_stac_item_parent(s3_key)
         stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
         # Put STAC dict to s3
-        obj = s3_res.Object(bucket, stac_s3_key)
+        obj = S3_RES.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item))
 
 
@@ -106,7 +60,7 @@ def is_valid_yaml(s3_key):
     """
 
     template = '{}x_{x}/y_{y}/{}.yaml'
-    return bool(sum([bool(pparse(p + template, s3_key)) for p in GLOBAL_CONFIG['aws-products']]))
+    return bool(sum([bool(pparse(p + template, s3_key)) for p in CFG['aws-products']]))
 
 
 def get_bucket_and_key(message):
@@ -147,11 +101,11 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         ('geometry', geodata['geometry']),
         ('properties', {
             'datetime': center_dt,
-            'provider': GLOBAL_CONFIG['contact']['name'],
-            'license': GLOBAL_CONFIG['licence']['name'],
-            'copyright': GLOBAL_CONFIG['licence']['copyright'],
+            'provider': CFG['contact']['name'],
+            'license': CFG['licence']['name'],
+            'copyright': CFG['licence']['copyright'],
             'product_type': metadata_doc['product_type'],
-            'homepage': GLOBAL_CONFIG['homepage']
+            'homepage': CFG['homepage']
         }),
         ('links', [
             {'href': item_abs_path, 'rel': 'self'},
@@ -162,7 +116,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
     bands = metadata_doc['image']['bands']
     for key in bands:
         path = metadata_doc['image']['bands'][key]['path']
-        key = PRODUCT_CONFIG[product]['bands'][key]
+        key = CFG['products'][product]['bands'][key]
 
         # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
         stac_item['assets'][key] = {
@@ -201,7 +155,7 @@ def get_stac_item_parent(s3_key):
     template = '{prefix}/x_{x}/y_{y}/{}'
     params = pparse(template, s3_key).__dict__['named']
     key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
-    return f'{GLOBAL_CONFIG["aws-domain"]}/{key_parent_catalog}'
+    return f'{CFG["aws-domain"]}/{key_parent_catalog}'
 
 
 def main():
