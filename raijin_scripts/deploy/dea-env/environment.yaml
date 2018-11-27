@@ -41,7 +41,7 @@ dependencies:
 - giflib
 - glib
 - glue-geospatial
-- graphviz # This is only graphviz itself, not the python bindings. The latter are in the pip section.
+- graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
 - hdf4
 - hdf5
 - h5py
@@ -83,7 +83,7 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-  #- mkl-service
+# - mkl-service
 - mkl
 - mkl_fft
 - mkl_random
