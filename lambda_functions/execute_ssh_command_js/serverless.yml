@@ -343,7 +343,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-        rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3:05pm
+          rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3:05pm
           enabled: false
           input:
             task: level2
