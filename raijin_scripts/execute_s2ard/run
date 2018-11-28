@@ -67,7 +67,7 @@ elif [ "$OBS_YEAR" == "previous" ]; then
     # Process all prior years; there should be less new datasets from previous periods
     _OBS_YEAR_START="${S2_START_YEAR}"
     _OBS_YEAR_END="$(date -d"$FILE_MOD_END - 1 year" +"%Y")"
-elif [ -z "${OBS_YEAR}" ]; then
+elif [ ! -z "${OBS_YEAR}" ]; then
     # If defined just process that year
     _OBS_YEAR_START="${OBS_YEAR}"
     _OBS_YEAR_END="${OBS_YEAR}"
