@@ -310,7 +310,7 @@ functions:
                           --obs-year <%= obs_year %>'
     events:
       - schedule:
-          rate: cron(1 05 ? * TUE *) # Run weekly at 11:05AM AEST
+          rate: cron(5 1 ? * TUE *) # Run weekly at 11:05AM AEST
           enabled: false
           input:
             task: level1
@@ -321,7 +321,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(1 10 1 * ? *) # Run on the 1st of every month at 11:10 AM AEST
+          rate: cron(10 1 1 * ? *) # Run on the 1st of every month at 11:10 AM AEST
           enabled: false
           input:
             task: level1
@@ -332,7 +332,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
       - schedule:
-          rate: cron(1 05 ? * SAT *) # Run every Saturday at 11:05 AM, AEST
+          rate: cron(5 1 ? * SAT *) # Run every Saturday at 11:05 AM, AEST
           enabled: false
           input:
             task: level2
@@ -343,7 +343,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3pm
+        rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3:05pm
           enabled: false
           input:
             task: level2
