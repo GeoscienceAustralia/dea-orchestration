@@ -60,16 +60,21 @@ if [ -z "$FILE_MOD_END" ]; then
 fi
 
 if [ "$OBS_YEAR" == "current" ]; then
-    # uses seq to handle end of year periods where it would be ideal to process both years
-    OBS_YEAR="$( seq "$(date -d"$FILE_MOD_START" +"%Y")" "$(date -d"$FILE_MOD_END" +"%Y")")"
+    # Calculates start and end years from the observation window to hand Dec - Jan window
+    _OBS_YEAR_START="$(date -d"$FILE_MOD_START" +"%Y")"
+    _OBS_YEAR_END="$(date -d"$FILE_MOD_END" +"%Y")"
 elif [ "$OBS_YEAR" == "previous" ]; then
-    OBS_YEAR="$( seq $S2_START_YEAR "$(date -d"$FILE_MOD_END - 1 year" +"%Y")" )"
-elif [ -n "$OBS_YEAR" ]; then
-    # Turn the year into an array
-    OBS_YEAR="$( seq "$OBS_YEAR" "$OBS_YEAR" )"
+    # Process all prior years; there should be less new datasets from previous periods
+    _OBS_YEAR_START="${S2_START_YEAR}"
+    _OBS_YEAR_END="$(date -d"$FILE_MOD_END - 1 year" +"%Y")"
+elif [ ! -z "${OBS_YEAR}" ]; then
+    # If defined just process that year
+    _OBS_YEAR_START="${OBS_YEAR}"
+    _OBS_YEAR_END="${OBS_YEAR}"
 else
-    # Process all
-    OBS_YEAR="$( seq $S2_START_YEAR "$(date -d"$FILE_MOD_END" +"%Y")" )"
+    # Process everything if not defined
+    _OBS_YEAR_START="${S2_START_YEAR}"
+    _OBS_YEAR_END="$(date -d"$FILE_MOD_END" +"%Y")"
 fi
 
 echo "Loading module wagl module"
@@ -81,7 +86,7 @@ module load wagl/5.3.0
 
 
 # Queue each year individually to reduce real time and total memory
-for _year in "${OBS_YEAR[@]}"; do
+for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
     case "$S2TASK" in
         "level1"    )
                     cd "$RUNDIR/level1"

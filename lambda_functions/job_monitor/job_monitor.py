@@ -16,7 +16,6 @@ GET_JOBINFOEXTRA_CMD = 'qstat -f {}'
 
 class NoJobInfoException(Exception):
     """raised when the application needs to exit early"""
-    pass
 
 
 class JobMonitorCommand(BaseCommand):
