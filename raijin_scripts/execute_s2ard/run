@@ -1,12 +1,31 @@
 #!/bin/bash
 
+# Finds files to process based on last modified time (polling for new files)
+# Calculates a range from FILE_MOD_[START,END,START_OFFSET] and DAYS_TO_PROCESS
+
 set -eu
 
 FILE_MOD_END=""
 FILE_MOD_START_OFFSET=""
+
+# OBS_YEAR is the observation year to process
 OBS_YEAR=""
+
+# PBS submit logs are stored in RUNDIR
 RUNDIR='/g/data/v10/work/s2_ard/pbs'
+
+# Starting year of sentinel-2 observations; used to process a range
 S2_START_YEAR=2015
+
+# WAGL logs are stored in this directory
+WAGL_LOGDIR='/g/data/v10/work/s2_ard/wagl'
+
+# WAGL partial and run intermediary state is stored in this location
+# TODO fix the fact that the project of the workdir is hardcoded
+WAGL_WORKDIR='/g/data/if87/workdir'
+
+# Defines PBS resources required to run the find command
+FIND_RESOURCES='walltime=24:00:00,mem=4GB,ncpus=1'
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -94,7 +113,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
                     qsub -V -N "S2-L1-YAML" \
                         -W umask=33 \
                         -q normal \
-                        -l "walltime=24:00:00,mem=4GB,ncpus=1" \
+                        -l "$FIND_RESOURCES" \
                         -P "$PROJECT" \
                         -- s2-nci-processing generate-level1 \
                         --level1-root "$INPUT_DIR/$_year" \
@@ -109,13 +128,13 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
                     qsub -V -N "S2-L2-ARD" \
                         -W umask=33 \
                         -q normal \
-                        -l "walltime=24:00:00,mem=4GB,ncpus=1" \
+                        -l "FIND_RESOURCES" \
                         -P "$PROJECT" \
                         -- s2-nci-processing process-level2 \
                         --level1-root "$INPUT_DIR/$_year" \
                         --pkgdir "$OUTPUT_DIR" \
-                        --logdir "/g/data/u46/users/av8534/temp/logdir" \
-                        --workdir "/g/data/u46/users/av8534/temp/workdir" \
+                        --logdir "$WAGL_LOGDIR" \
+                        --workdir "$WAGL_WORKDIR" \
                         --start-date "$FILE_MOD_START" \
                         --end-date "$FILE_MOD_END" \
                         --env "${WAGL_CFG_ROOT}/5.3.0/Sentinel-2/definitive.env" \
