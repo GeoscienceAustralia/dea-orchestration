@@ -120,7 +120,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
                         --copy-parent-dir-count "$COPY_PARENT_DIR_COUNT" \
                         --output-dir "$OUTPUT_DIR" \
                         --start-date "$FILE_MOD_START" \
-                        --end-date "$FILE_MOD_END" \
+                        --end-date "$FILE_MOD_END"
                     ;;
         "level2"    )
                     cd "$RUNDIR/level2"
@@ -128,7 +128,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
                     qsub -V -N "S2-L2-ARD" \
                         -W umask=33 \
                         -q normal \
-                        -l "FIND_RESOURCES" \
+                        -l "$FIND_RESOURCES" \
                         -P "$PROJECT" \
                         -- s2-nci-processing process-level2 \
                         --level1-root "$INPUT_DIR/$_year" \
