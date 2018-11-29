@@ -51,7 +51,7 @@ def stac_handler(event, context):
 
         # Put STAC dict to s3
         obj = S3_RES.Object(bucket, stac_s3_key)
-        obj.put(Body=json.dumps(stac_item))
+        obj.put(Body=json.dumps(stac_item), ContentType='application/json')
 
 
 def is_valid_yaml(s3_key):

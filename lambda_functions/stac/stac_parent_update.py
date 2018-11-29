@@ -144,7 +144,7 @@ class CatalogUpdater:
 
             # Put y_catalog dict to s3
             obj = s3_res.Object(bucket, y_catalog_name)
-            obj.put(Body=json.dumps(y_catalog))
+            obj.put(Body=json.dumps(y_catalog), ContentType='application/json')
 
     def create_y_catalog(self, y_catalog_name):
         """
@@ -205,7 +205,7 @@ class CatalogUpdater:
 
             # Put x_catalog dict to s3
             obj = s3_res.Object(bucket, x_catalog_name)
-            obj.put(Body=json.dumps(x_catalog))
+            obj.put(Body=json.dumps(x_catalog), ContentType='application/json')
 
     def create_x_catalog(self, x_catalog_name):
         """
@@ -261,7 +261,7 @@ class CatalogUpdater:
 
             # Put top level catalog to s3
             obj = s3_res.Object(bucket, top_level_catalog_name)
-            obj.put(Body=json.dumps(top_level_catalog))
+            obj.put(Body=json.dumps(top_level_catalog), ContentType='application/json')
 
 
 if __name__ == '__main__':
