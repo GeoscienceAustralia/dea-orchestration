@@ -1,0 +1,7 @@
+{
+  "Records": [
+    {
+      "body": "{\"Records\": [{\"s3\": {\"bucket\": {\"name\": \"dea-public-data-dev\"}, \"object\": {\"key\": \"fractional-cover/fc/v2.2.0/ls5/x_-5/y_-23/2010/02/13/LS5_TM_FC_3577_-5_-23_20100213122216.yaml\"}}}]}"
+    }
+  ]
+}

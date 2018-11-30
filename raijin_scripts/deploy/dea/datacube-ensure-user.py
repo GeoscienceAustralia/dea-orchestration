@@ -21,6 +21,8 @@ import psycopg2
 import pytest
 from boltons.fileutils import atomic_save
 
+# pylint: disable=W0107
+
 OLD_DB_HOST = '130.56.244.105'
 PASSWORD_LENGTH = 32
 
