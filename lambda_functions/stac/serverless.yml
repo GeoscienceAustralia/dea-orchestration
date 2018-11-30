@@ -1,0 +1,59 @@
+service: stac-catalog-generator
+
+frameworkVersion: ">=1.2.0 <2.0.0"
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
+custom:
+  Stage: dev
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+  CustEnv:
+    s3Bucket:
+      prod: "dea-lambda"
+      dev: "dea-lambdas-dev"
+  pythonRequirements:
+    dockerizePip: non-linux
+    fileName: requirements.txt
+
+provider:
+  name: aws
+  runtime: python3.6
+  profile: ${self:custom.profiles.${self:custom.Stage}}
+  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
+  region: ap-southeast-2
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+       - "s3:GetObject"
+       - "s3:PutObject"
+      Resource: "arn:aws:s3:::dea-public-data-dev/*"
+    - Effect: "Allow"
+      Action:
+        - "sqs:ReceiveMessage"
+        - "sqs:DeleteMessage"
+        - "sqs:GetQueueAttributes"
+      Resource: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
+
+functions:
+  stac:
+    handler: stac.stac_handler
+    events:
+      - sqs:
+        arn: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
+        batchSize: 10
+

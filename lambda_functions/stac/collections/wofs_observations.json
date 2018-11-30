@@ -1,0 +1,65 @@
+{
+  "stac_version": "0.6.0",
+  "id": "WOfS",
+  "title": "Water Observations from Space",
+  "description": "Water Observations from Space (WOfS) provides surface water observations derived from satellite imagery for all of Australia from 1986 to the present. The WOfS product allows users to get a better understanding of where water is normally present in a landscape, where water is seldom observed, and where inundation has occurred occasionally. WOfS displays the detected surface water from cloud-free Landsat observations for the whole of Australia.",
+  "license": "proprietary",
+  "version": "2.1.5",
+  "keywords": [
+    "water",
+    "eo",
+    "Australia",
+    "dea"
+  ],
+  "providers": [
+    {
+      "name": "USGS",
+      "url": "https://landsat.usgs.gov/",
+      "roles": [
+        "producer"
+      ]
+    },
+    {
+      "name": "Geoscience Australia",
+      "roles": [
+        "processor",
+        "licensor"
+      ],
+      "url": "http://www.ga.gov.au/"
+    },
+    {
+      "name": "Amazon Web Services",
+      "roles": ["host"]
+    }
+  ],
+  "extent": {
+    "spatial": [
+      113,
+      -44,
+      153,
+      -10
+    ],
+    "temporal": [
+      "1987-01-01T00:00:00Z",
+      null
+    ]
+  },
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://data.dea.ga.gov.au/WOfS/2.1.5/wofs_observations.json"
+    },
+    {
+      "rel": "parent",
+      "href": "https://data.dea.ga.gov.au/catalog.json"
+    },
+    {
+      "rel": "root",
+      "href": "https://data.dea.ga.gov.au/catalog.json"
+    },
+    {
+      "rel": "license",
+      "href": "http://creativecommons.org/licenses/by/4.0/"
+    }
+  ]
+}
