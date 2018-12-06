@@ -25,7 +25,7 @@ WAGL_LOGDIR='/g/data/v10/work/s2_ard/wagl'
 WAGL_WORKDIR='/g/data/if87/workdir'
 
 # Defines PBS resources required to run the find command
-FIND_RESOURCES='walltime=24:00:00,mem=4GB,ncpus=1'
+FIND_RESOURCES='walltime=48:00:00,mem=4GB,ncpus=1'
 
 while [[ $# -gt 0 ]]; do
     key="$1"
