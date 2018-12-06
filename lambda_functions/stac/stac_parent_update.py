@@ -92,6 +92,7 @@ class CatalogUpdater:
         self.y_catalogs = {}
         self.x_catalogs = {}
         self.top_level_catalogs = {}
+        self.catalogs = {}
 
     def update_parents_all(self, s3_keys, bucket):
         """
@@ -118,15 +119,15 @@ class CatalogUpdater:
         if params:
             params = params.named
 
-            y_catalog_name = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
+            y_catalog_prefix = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}'
 
-            if self.y_catalogs.get(y_catalog_name):
-                self.y_catalogs[y_catalog_name].add(s3_key)
+            if self.y_catalogs.get(y_catalog_prefix):
+                self.y_catalogs[y_catalog_prefix].add(s3_key)
             else:
-                self.y_catalogs[y_catalog_name] = {s3_key}
+                self.y_catalogs[y_catalog_prefix] = {s3_key}
 
             # Add the y catalog name to the corresponding x catalog
-            self.add_to_x_catalog_links(y_catalog_name)
+            self.add_to_x_catalog_links(f'{y_catalog_prefix}/catalog.json')
 
     def update_all_y_s3(self, bucket):
         """
@@ -134,41 +135,24 @@ class CatalogUpdater:
         """
 
         s3_res = boto3.resource('s3')
-        for y_catalog_name in self.y_catalogs:
-            obj = s3_res.Object(bucket, y_catalog_name)
+        for y_catalog_prefix in self.y_catalogs:
+            obj = s3_res.Object(bucket, y_catalog_prefix)
 
-            y_catalog = self.create_y_catalog(y_catalog_name)
+            # Create y catalog
+            template = '{prefix}/y_{y}'
+            params = pparse(template, y_catalog_prefix).named
+            y_catalog_parent_prefix = params['prefix']
+            y_catalog = self.create_catalog(y_catalog_prefix,
+                                            y_catalog_parent_prefix,
+                                            'List of items')
 
             # Add the links
-            for link in self.y_catalogs[y_catalog_name]:
+            for link in self.y_catalogs[y_catalog_prefix]:
                 y_catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'item'})
 
             # Put y_catalog dict to s3
-            obj = s3_res.Object(bucket, y_catalog_name)
+            obj = s3_res.Object(bucket, f'{y_catalog_prefix}/catalog.json')
             obj.put(Body=json.dumps(y_catalog), ContentType='application/json')
-
-    def create_y_catalog(self, y_catalog_name):
-        """
-        Create a y catalog dict
-        """
-
-        template = '{prefix}/x_{x}/y_{y}/{}'
-        params = pparse(template, y_catalog_name).named
-        prefix, x, y = params['prefix'], params['x'], params['y']
-        x_catalog_name = f'{prefix}/x_{x}/catalog.json'
-        return OrderedDict([
-            ('stac_version', '0.6.0'),
-            ('id', f'{prefix}/x_{x}/y_{y}'),
-            ('description', 'List of items'),
-            ('links', [
-                {'href': f'{self.config["aws-domain"]}/{y_catalog_name}',
-                 'ref': 'self'},
-                {'href': f'{self.config["aws-domain"]}/{x_catalog_name}',
-                 'rel': 'parent'},
-                {'href': self.config["root-catalog"],
-                 'rel': 'root'}
-            ])
-            ])
 
     def add_to_x_catalog_links(self, y_catalog_name_abs):
         """
@@ -177,18 +161,18 @@ class CatalogUpdater:
 
         template = '{prefix}/x_{x}/{}'
         params = pparse(template, y_catalog_name_abs).named
-        x_catalog_name = f'{params["prefix"]}/x_{params["x"]}/catalog.json'
+        x_catalog_prefix = f'{params["prefix"]}/x_{params["x"]}'
 
-        if self.x_catalogs.get(x_catalog_name):
-            self.x_catalogs[x_catalog_name].add(y_catalog_name_abs)
+        if self.x_catalogs.get(x_catalog_prefix):
+            self.x_catalogs[x_catalog_prefix].add(y_catalog_name_abs)
         else:
-            self.x_catalogs[x_catalog_name] = {y_catalog_name_abs}
+            self.x_catalogs[x_catalog_prefix] = {y_catalog_name_abs}
 
         # Add x catalog link to product catalog
         if self.top_level_catalogs.get(params['prefix']):
-            self.top_level_catalogs[params['prefix']].add(x_catalog_name)
+            self.top_level_catalogs[params['prefix']].add(f'{x_catalog_prefix}/catalog.json')
         else:
-            self.top_level_catalogs[params['prefix']] = {x_catalog_name}
+            self.top_level_catalogs[params['prefix']] = {f'{x_catalog_prefix}/catalog.json'}
 
     def update_all_x_s3(self, bucket):
         """
@@ -196,34 +180,37 @@ class CatalogUpdater:
         """
 
         s3_res = boto3.resource('s3')
-        for x_catalog_name in self.x_catalogs:
+        for x_catalog_prefix in self.x_catalogs:
 
-            x_catalog = self.create_x_catalog(x_catalog_name)
+            # Create x catalog
+            template = '{prefix}/x_{x}'
+            params = pparse(template, x_catalog_prefix).named
+            x_catalog_parent_prefix = params['prefix']
+            x_catalog = self.create_catalog(x_catalog_prefix,
+                                            x_catalog_parent_prefix,
+                                            'List of Sub Directories')
 
             # update the links
-            for link in self.x_catalogs[x_catalog_name]:
+            for link in self.x_catalogs[x_catalog_prefix]:
                 x_catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'child'})
 
             # Put x_catalog dict to s3
-            obj = s3_res.Object(bucket, x_catalog_name)
+            obj = s3_res.Object(bucket, f'{x_catalog_prefix}/catalog.json')
             obj.put(Body=json.dumps(x_catalog), ContentType='application/json')
 
-    def create_x_catalog(self, x_catalog_name):
+    def create_catalog(self, prefix, parent_prefix, description):
         """
-        Create a x catalog dict
+        Create a STAC catalog
         """
 
-        template = '{prefix}/x_{x}/{}'
-        params = pparse(template, x_catalog_name).named
-        prefix, x = params['prefix'], params['x']
         return OrderedDict([
             ('stac_version', '0.6.0'),
-            ('id', f'{prefix}/x_{x}'),
-            ('description', 'List of Sub Directories'),
+            ('id', prefix),
+            ('description', description),
             ('links', [
-                {'href': f'{self.config["aws-domain"]}/{x_catalog_name}',
-                 'ref': 'self'},
                 {'href': f'{self.config["aws-domain"]}/{prefix}/catalog.json',
+                 'ref': 'self'},
+                {'href': f'{self.config["aws-domain"]}/{parent_prefix}/catalog.json',
                  'rel': 'parent'},
                 {'href': self.config["root-catalog"],
                  'rel': 'root'}
