@@ -59,8 +59,11 @@ def is_valid_yaml(s3_key):
     Return whether the given key is valid
     """
 
-    template = '{}x_{x}/y_{y}/{}.yaml'
-    return bool(sum([bool(pparse(p + template, s3_key)) for p in [p_['prefix'] for p_ in CFG['products']] if p]))
+    s3_key_ = Path(s3_key)
+    for p in [p['prefix'] for p in CFG['products']]:
+        if p in str(s3_key_.parent) and p != str(s3_key_.parent):
+            return True
+    return False
 
 
 def get_bucket_and_key(message):
@@ -101,8 +104,8 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         ('properties', {
             'datetime': center_dt,
             'provider': CFG['contact']['name'],
-            'license': CFG['licence']['name'],
-            'copyright': CFG['licence']['copyright'],
+            'license': CFG['license']['name'],
+            'copyright': CFG['license']['copyright'],
             'product_type': metadata_doc['product_type'],
             'homepage': CFG['homepage']
         }),
@@ -148,10 +151,21 @@ def get_stac_item_parent(s3_key):
     """
     Parse the parent stac catalog from the given s3 key
     """
-    template = '{prefix}/x_{x}/y_{y}/{}'
-    params = pparse(template, s3_key).__dict__['named']
-    key_parent_catalog = f'{params["prefix"]}/x_{params["x"]}/y_{params["y"]}/catalog.json'
-    return f'{CFG["aws-domain"]}/{key_parent_catalog}'
+
+    for p in [p_ for p_ in CFG['products']]:
+        if p['prefix'] in s3_key:
+            template = p['catalog_structure'][-1]
+            template_ = '{prefix}/' + template + '/{}'
+            params = pparse(template_, s3_key)
+            if not params:
+                template_ = template + '/{}'
+                params = pparse(template_, s3_key)
+                if not params:
+                    raise NameError('Catalog template parsing error: ' + s3_key)
+                return template.format(**params.named) + '/catalog.json'
+            else:
+                return ('{prefix}/' + template).format(**params.named) + '/catalog.json'
+    raise NameError('Catalog template parsing error: No parent catalog for ' + s3_key)
 
 
 def main():
