@@ -1,3 +1,8 @@
+# Catalog structure:
+#     The template list is used purely for generating the catalog of catalogs structure
+#     This given lists specifies the intermediate catalog levels. Items come after the
+#     final list element, and there is always a collection at the top level.
+
 homepage: "http://www.ga.gov.au/"
 
 license:
@@ -58,26 +63,9 @@ products:
     extent:
       spatial: [113, -44, 153, -10]
       temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
-
-    # The following is used purely for generating the catalog of catalogs structure
-    # This given lists specifies the intermediate catalog levels. Items come after the
-    # final list element, and there is always a collection at the top level.
     catalog_structure:
       - x_{x}
       - x_{x}/y_{y}
-#      - x_(?P<x>.*)/y_(?P<y>.*)/catalog.json
-
-#  - name: mangrove_cover
-#    prefix: mangrove_cover
-#    catalog_structure:
-#      - collection.json
-#      - {x}_{y}/catalog.json
-#
-#  - name: s2-nbar-nrt
-#    prefix: L2/sentinel-2-nrt/S2MSIARD
-#    catalog_structure:
-#      - collection.json
-#      - {year-month-day}/catalog.json
 
   - name: wofs_albers
     prefix: WOfS/WOFLs/v2.1.5/combined
@@ -86,6 +74,9 @@ products:
     extent:
       spatial: [113, -44, 153, -10]
       temporal: ["1987-01-01T00:00:00Z", null]
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: wofs_statistical_summary
     prefix: WOfS/summary/v2.1.0/combined
@@ -94,6 +85,9 @@ products:
     extent:
       spatial: [113, -44, 153, -10]
       temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: wofs_annual_summary
     prefix: WOfS/annual_summary/v2.1.5/combined
@@ -102,6 +96,9 @@ products:
     extent:
       spatial: [113, -44, 153, -10]
       temporal: ["1987-01-01T00:00:00Z", null]
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls5_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls5
@@ -110,6 +107,9 @@ products:
     extent:
       spatial: [110, -45, 155, -9]
       temporal: ["1986-01-01T00:00:00Z", "2011-12-01T00:00:00Z"]
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls7_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls7
@@ -118,6 +118,9 @@ products:
     extent:
       spatial: [110, -45, 155, -9]
       temporal: ["1999-07-01T00:00:00Z", null]
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls8_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls8
@@ -126,9 +129,6 @@ products:
     extent:
       spatial: [109, -46, 157, -9]
       temporal: ["2013-03-01T00:00:00Z", null]
-    # The following is used purely for generating the catalog of catalogs structure
-    # This given lists specifies the intermediate catalog levels. Items come after the
-    # final list element, and there is always a collection at the top level.
     catalog_structure:
       - x_{x}
       - x_{x}/y_{y}
@@ -138,29 +138,95 @@ products:
     product_type: fractional_cover_statistical_summary
     description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
     (EPSG:3577)'
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: fc_percentile_seasonal
     prefix: fractional-cover/fc-percentile/seasonal/v2.1.0/combined
     product_type: fractional_cover_statistical_summary
     description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
     (EPSG:3577)'
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls8_barest_earth_mosaic
-    prefix: bare-earth/summary/v2.1.0/L8
+    prefix: bare-earth/summary/v2.1.1/L8
     description: 'Landsat-8 Barest Earth pixel composite mosaic 25 metre, 25km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls5_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L5
     description: 'Landsat-5 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
 
   - name: ls7_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L7
     description: 'Landsat-7 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
-    
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
+
   - name: ls8_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L8
     description: 'Landsat-8 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
+    catalog_structure:
+      - x_{x}
+      - x_{x}/y_{y}
+
+  - name: item_v2
+    prefix: item_v2/v2.0.1/relative
+    description: 'Intertidal Extents Model'
+    catalog_structure:
+      - lon_{lon}
+      - lon_{lon}/lat_{lat}
+
+  - name: item_v2_conf
+    prefix: item_v2/v2.0.1/confidence
+    description: 'Average ndwi Standard Deviation'
+    catalog_structure:
+      - lon_{lon}
+      - lon_{lon}/lat_{lat}
+
+  - name: multi-scale-topographic-position
+    prefix: multi-scale-topographic-position/v1.0.1
+    description: ''
+    catalog_structure:
+      - lon_{lon}
+      - lon_{lon}/lat_{lat}
+
+  - name: nidem
+    prefix: nidem/v1.0.0
+    description: 'nidem'
+    catalog_structure:
+      - lon_{lon}
+      - lon_{lon}/lat_{lat}
+
+  - name: weathering-intensity
+    prefix: weathering-intensity/v1.0.1
+    description: 'weathering-intensity'
+    catalog_structure:
+      - lon_{lon}
+      - lon_{lon}/lat_{lat}
+
+  - name: mangrove_cover
+    prefix: mangrove_cover
+    description: 'mangrove_cover'
+    catalog_structure:
+      - mangrove_cover/{x}_{y}
+
+  - name: sentinel-2-nrt
+    prefix: L2/sentinel-2-nrt
+    description: 's2-nbar-nrt'
+    catalog_structure:
+      - L2/sentinel-2-nrt/S2MSIARD
+      - L2/sentinel-2-nrt/S2MSIARD/{year:4}-{month:2}-{day:2}
