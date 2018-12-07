@@ -1,15 +1,14 @@
 {
-  "name": "nci_monitor",
+  "name": "nci-monitoring",
   "version": "1.0.0",
-  "description": "Monitor NCI Quotas and PBS Jobs on the NCI",
-  "main": "index.js",
+  "description": "Monitor NCI Quotas, PBS Jobs, and datasets processing information on the NCI",
+  "main": "nci_quotas_monitor.py, read_nci_email.py",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",
   "dependencies": {
-    "serverless-plugin-existing-s3": "^2.2.2",
     "serverless-pseudo-parameters": "^2.2.0",
     "serverless-python-requirements": "^4.2.5"
   }

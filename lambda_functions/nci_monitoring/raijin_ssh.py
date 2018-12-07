@@ -47,16 +47,16 @@ def exec_command(command):
             stderr.close()
 
     if exit_code != 0:
-        LOG.error('%s: EXIT_CODE: %s', command, exit_code)
+        LOG.error('COMMAND: %s, EXIT_CODE: %s', command, exit_code)
         if script_error:
             LOG.error('%s: %s', command, script_error)
     else:
         if script_error:
             # command exited successfully; treat messages as warnings
-            LOG.warning('%s: %s', command, script_error)
+            LOG.warning('COMMAND: %s, STD_ERR: %s', command, script_error)
 
     if script_output:
-        LOG.debug('%s: %s', command, script_output)
+        LOG.debug('COMMAND: %s, OUTPUT: %s', command, script_output)
 
     return script_output, script_error, exit_code
 
@@ -78,15 +78,15 @@ def get_ssm_parameter(name, with_decryption=True):
     response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
 
     if response:
-        return response['Parameters'][0]['Value']
+        try:
+            return response['Parameters'][0]['Value']
+        except (TypeError, IndexError):
+            LOG.error("AWS SSM parameter not found in {}".format(response))
+            raise
     raise AttributeError("Key '{}' not found in SSM".format(name))
 
 
 def connect():
-    # global _sshclient
-    # if _sshclient and _sshclient.get_transport().is_active():
-    #     return _sshclient
-    # else:
     ssh_config = ssh_config_from_ssm_user_path()
 
     with StringIO() as f:
