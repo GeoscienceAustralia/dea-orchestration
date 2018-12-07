@@ -6,17 +6,17 @@
 #    docs.serverless.com
 #
 #    Sequence of steps before and after sls deploy:
-#      1) npm install
-#      2) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
-#      3) Enable and attach event notifications for the desired S3 Bucket to the lambda function
-#          (Ref: https://docs.aws.amazon.com/AmazonS3/latest/user-guide/enable-event-notifications.html)
-#      4) sls s3deploy
-#          (Ref: https://github.com/matt-filion/serverless-external-s3-event)
+#      1) Create the SQS queue within your service (if sqs queue does not exist)
+#      2) Add permissions on the SQS queue to allow S3 to publish notifications
+#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html
+#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html
+#      3) Enable and attach event notifications for the desired S3 Bucket to SQS queue
+#      4) npm install
+#      5) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
 
-service: nci-monitor
+service: nci-monitoring
 
 plugins:
-  - serverless-plugin-existing-s3
   - serverless-python-requirements
   - serverless-pseudo-parameters
 
@@ -42,8 +42,8 @@ provider:
   memorySize: 128  # in MB, default is 1024
   stage: prod
   # Since SES is not supported in Sydney region, all emails are pushed to the
-  # S3 bucket in us-west-2 region.
-  # For s3 to trigger lambda function execution, both the lambda function and S3 bucket need to be in the same region.
+  # S3 bucket in us-west-2 region. For s3 to trigger SQS and SQS trigger lambda function execution, all the aws
+  # resources need to be in the same region as S3 bucket.
   region: us-west-2
   deploymentBucket: "dea-ncimonitoring"
 
@@ -67,8 +67,10 @@ provider:
     Resource: '*'
   - Effect: "Allow"
     Action:
-      - "s3:PutObject"
-      - "s3:PutBucketNotification"
+        - "sqs:SendMessage"  # Message added to the SQS queue
+    Resource: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:WaitForTheLogs"
+  - Effect: "Allow"
+    Action:
       - "s3:GetObject"
     Resource:
       Fn::Join:
@@ -87,15 +89,11 @@ functions:
     handler: nci_quotas_monitor.handler
     description: Record Quota/Usage for projects on the NCI into Cloudwatch Metrics and ElasticSearch
     events:
-      - schedule: rate(2 hours)
+      - schedule:
+          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
+          enabled: False
   read_nci_email:
     handler: read_nci_email.handler
-    description: Notify whenever an email is sent to nci monitoring S3 bucket
+    description: Process PBS jobs and dataset info, once an email is sent to nci monitoring S3 bucket
     events:
-      - existings3:
-          bucket: ${self:provider.deploymentBucket}
-          event:
-            - s3:ObjectCreated:*
-          rules:
-            # Call read_nci_email.handler lambda function whenever an object is created within NCIEmail folder
-            - prefix: NCIEmails/
+      - sqs: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:WaitForTheLogs"

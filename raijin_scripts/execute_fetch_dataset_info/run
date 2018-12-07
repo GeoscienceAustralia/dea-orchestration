@@ -1,0 +1,107 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --job-id )              shift
+                                JOB_ID="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+function get_data
+{
+  # -r, --recursive
+  # -w, --word-regexp
+  # -o, --only-matching
+  # -i, --ignore-case
+  grep -E -rwoi "$2" -e "$1" | cut -f2 -d':' | cut -f"$3" -d' ' | \
+  awk -v max=0 '{if($1>=max) {max=$1}} END {print max}'
+  return 0
+}
+
+function get_sync_data
+{
+  grep -rwoi "$2" -e "$1" | wc -l
+  return 0
+}
+
+function get_service_units
+{
+  grep -E -rwoi "$2" -e "$1" | cut -f3 -d':' | awk '{ SUM += $1;} END { print SUM }'
+  return 0
+}
+
+function get_ingest_data
+{
+  grep -E -rwoi "$2" -e "$1" | cut -f3 -d':' | \
+  awk -v max=0 '{if($1>=max) {max=$1}} END {print max}'
+  return 0
+}
+
+function print_output
+{
+  [[ -z "$2" ]] && echo "$1"=0 || echo "$1"="$2"
+  return 0
+}
+
+QSTAT_VAL=$(qstat -fx "${JOB_ID}" | tr -d '\n\t' | sed 's/ //g')
+LOG_DIR=$(echo "$QSTAT_VAL" | grep -zPo '(PBS_O_WORKDIR=.*,)' | cut -f1 -d',' | cut -f2 -d'=')
+
+_ndatasets_found=0
+_nfiles_created=0
+_nfiles_create_fail=0
+_nds_index_pass=0
+_nds_index_fail=0
+_service_units=0.0
+
+# Check for sync process
+CHECK_SYNC=$(get_sync_data '"collection":' "$LOG_DIR")
+
+if [[ $(find "$LOG_DIR") =~ .*\.(bin) ]]
+then
+    # Fetch ingest dataset processing information from the log files
+    _ndatasets_found=$(get_data '[0-9]{1,}[[:space:]]valid[[:space:]]files' "$LOG_DIR" 1)
+    _service_units=$(get_service_units 'Service Units:.*' "$LOG_DIR")
+    _nfiles_created=$(get_ingest_data 'completed:[[:space:]][0-9]{1,}' "$LOG_DIR" 2)
+    _nfiles_create_fail=$(( _ndatasets_found - _nfiles_created ))
+    _nds_index_pass=$(get_ingest_data 'successful:[[:space:]][0-9]{1,}' "$LOG_DIR" 2)
+    _nds_index_fail=$(( _ndatasets_found - _nds_index_pass ))
+elif [[ $(find "$LOG_DIR") =~ .*\.(e*|o*|OU) && "$CHECK_SYNC" -gt 0 ]]
+then
+    # Fetch Sync dataset processing information from the log files
+    _ndatasets_found=$(get_sync_data '"event":"mismatch.found"' "$LOG_DIR")
+    _service_units=$(get_service_units 'Service Units:.*' "$LOG_DIR")
+
+    nds_synced=$(get_sync_data '"event":"add_location"' "$LOG_DIR")
+    index_pass=$(get_sync_data '"event":"dataset[[:space:]]indexing[[:space:]]successful"' "$LOG_DIR")
+    _nds_index_pass=$(( index_pass + nds_synced ))
+
+    index_fail_path=$(get_sync_data '"event":"invalid_path"' "$LOG_DIR")
+    nds_not_trashed=$(get_sync_data '"name":"archived_dataset_on_disk"' "$LOG_DIR")
+    _nds_index_fail=$(( nds_not_trashed + index_fail_path ))
+elif  [[ $(find "$LOG_DIR") =~ .*\.(log) ]]
+then 
+    # Fetch WOfS/FC dataset processing information from the log files
+    _ndatasets_found=$(get_data 'Found[[:space:]][0-9]{1,}[[:space:]]tasks' "$LOG_DIR" 2)
+    _service_units=$(get_service_units 'Service Units:.*' "$LOG_DIR")
+    _nfiles_created=$(get_data '[0-9]{1,}[[:space:]]SUCCESS' "$LOG_DIR" 1)
+    _nfiles_create_fail=$(get_data '[0-9]{1,}[[:space:]]FAILED' "$LOG_DIR" 1)
+    _nds_index_pass=$(get_data '[0-9]{1,}[[:space:]]successful,' "$LOG_DIR" 1)
+    _nds_index_fail=$(get_data '[0-9]{1,}[[:space:]]failed' "$LOG_DIR" 1)
+fi
+
+print_output _ndatasets_found "$_ndatasets_found"
+print_output _nfiles_created "$_nfiles_created"
+print_output _nfiles_create_fail "$_nfiles_create_fail"
+print_output _nds_index_pass "$_nds_index_pass"                
+print_output _nds_index_fail "$_nds_index_fail"
+print_output _service_units "$_service_units"
+
