@@ -84,7 +84,7 @@ class CatalogUpdater:
 
     def __init__(self, config):
         self.config = config
-        self.catalogs_to_items = {}
+        self.items_catalogs = {}
         self.mid_level_catalogs = {}
         self.collection_catalogs = {}
 
@@ -103,19 +103,17 @@ class CatalogUpdater:
             s3_key = Path(item)
 
             # Add to top mid level catalog that got parent pointing to collection catalog
-            if len(prefixes) == 1:
-                child_catalog_name = f'{s3_key.parent}/{s3_key.stem}_STAC.json'
-            else:
+            if len(prefixes) > 1:
                 child_catalog_name = f'{prefixes[1]}/catalog.json'
-            self.add_to_catalog(self.mid_level_catalogs, prefixes[0],
-                                f'{collection_prefix}/catalog.json', child_catalog_name)
+                self.add_to_catalog(self.mid_level_catalogs, prefixes[0],
+                                    f'{collection_prefix}/catalog.json', child_catalog_name)
 
             # Add to last catalog level that hold links to items
             if len(prefixes) == 1:
                 parent_catalog_name = f'{collection_prefix}/catalog.json'
             else:
                 parent_catalog_name = f'{prefixes[-2]}/catalog.json'
-            self.add_to_catalog(self.catalogs_to_items, prefixes[-1],
+            self.add_to_catalog(self.items_catalogs, prefixes[-1],
                                 parent_catalog_name, f'{s3_key.parent}/{s3_key.stem}_STAC.json')
 
             # Add to in between top level and last level catalogs
@@ -133,7 +131,7 @@ class CatalogUpdater:
         # Update catalog files in s3 bucket now
         self.update_collection_catalogs(bucket)
         self.update_mid_level_catalogs(bucket)
-        self.update_catalogs_to_items(bucket)
+        self.update_items_catalogs(bucket)
 
     @staticmethod
     def get_prefixes(templates, item):
@@ -146,8 +144,13 @@ class CatalogUpdater:
             template_ = '{prefix}/' + template + '/{}'
             params = pparse(template_, item)
             if not params:
-                raise NameError('Catalog template parsing error: ' + item)
-            prefixes.append(('{prefix}/' + template).format(**params.named))
+                template_ = template + '/{}'
+                params = pparse(template_, item)
+                if not params:
+                    raise NameError('Catalog template parsing error: ' + item)
+                prefixes.append(template.format(**params.named))
+            else:
+                prefixes.append(('{prefix}/' + template).format(**params.named))
         return prefixes
 
     @staticmethod
@@ -183,21 +186,21 @@ class CatalogUpdater:
             obj = s3_res.Object(bucket, f'{catalog_prefix}/catalog.json')
             obj.put(Body=json.dumps(catalog), ContentType='application/json')
 
-    def update_catalogs_to_items(self, bucket):
+    def update_items_catalogs(self, bucket):
         """
         Update all the x catalogs in S3 that has updated links
         """
 
         s3_res = boto3.resource('s3')
-        for catalog_prefix in self.catalogs_to_items:
+        for catalog_prefix in self.items_catalogs:
 
             # Create catalog
             catalog = self.create_catalog(catalog_prefix,
-                                          self.catalogs_to_items[catalog_prefix]['parent'],
+                                          self.items_catalogs[catalog_prefix]['parent'],
                                           'List of items')
 
             # update the links
-            for link in self.catalogs_to_items[catalog_prefix]['links']:
+            for link in self.items_catalogs[catalog_prefix]['links']:
                 catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'item'})
 
             # Put catalog dict to s3
@@ -231,7 +234,7 @@ class CatalogUpdater:
 
         for product_dict in self.config['products']:
             if product_dict.get('prefix'):
-                if product_dict['prefix'] in prefix:
+                if product_dict['prefix'] in prefix or prefix in product_dict['prefix']:
                     return product_dict
         return None
 
@@ -270,11 +273,21 @@ class CatalogUpdater:
             if info.get('providers'):
                 collection_catalog['providers'] = info.get('providers')
             collection_catalog['extent'] = {'spatial': spatial_extent, 'temporal': temporal_extent}
-            collection_catalog['links'] = [
-                {'href': f'{self.config["aws-domain"]}/{collection_catalog_name}', 'ref': 'self'},
-                {'href': f'{self.config["aws-domain"]}/{product_type}/catalog.json', 'rel': 'parent'},
-                {'href': self.config["root-catalog"], 'rel': 'root'}
-            ]
+
+            if collection_catalog_name == f'{product_type}/catalog.json':
+                # Parent and root catalogs are same
+                collection_catalog['links'] = [
+                    {'href': f'{self.config["aws-domain"]}/{collection_catalog_name}', 'ref': 'self'},
+                    {'href': self.config["root-catalog"], 'rel': 'parent'},
+                    {'href': self.config["root-catalog"], 'rel': 'root'}
+                ]
+            else:
+                # We have a distinct product type directory which can hold the parent catalog
+                collection_catalog['links'] = [
+                    {'href': f'{self.config["aws-domain"]}/{collection_catalog_name}', 'ref': 'self'},
+                    {'href': f'{self.config["aws-domain"]}/{product_type}/catalog.json', 'rel': 'parent'},
+                    {'href': self.config["root-catalog"], 'rel': 'root'}
+                ]
 
             # Update the links
             for link in self.collection_catalogs[collection_prefix]:
