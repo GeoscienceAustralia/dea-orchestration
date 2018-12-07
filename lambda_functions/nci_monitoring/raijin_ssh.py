@@ -81,7 +81,7 @@ def get_ssm_parameter(name, with_decryption=True):
         try:
             return response['Parameters'][0]['Value']
         except (TypeError, IndexError):
-            LOG.error("AWS SSM parameter not found in {}".format(response))
+            LOG.error("AWS SSM parameter not found in '%s'", response)
             raise
     raise AttributeError("Key '{}' not found in SSM".format(name))
 
