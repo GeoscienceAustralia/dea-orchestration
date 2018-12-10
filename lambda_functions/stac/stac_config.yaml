@@ -31,7 +31,7 @@ aus-extent:
 products:
   - name: wofs_filtered_summary
     prefix: WOfS/filtered_summary/v2.1.0/combined
-    product_type: wofs_filtered_summary
+    product_suit: WOfS
     description: 'Water Observations from Space Statistics confidence filtered.
 
       In previous versions of WOfS, the basic water classifications, statistical summaries
@@ -69,7 +69,7 @@ products:
 
   - name: wofs_albers
     prefix: WOfS/WOFLs/v2.1.5/combined
-    product_type: wofs
+    product_suit: WOfS
     description: 'Historic Flood Mapping Water Observations from Space'
     extent:
       spatial: [113, -44, 153, -10]
@@ -80,7 +80,7 @@ products:
 
   - name: wofs_statistical_summary
     prefix: WOfS/summary/v2.1.0/combined
-    product_type:
+    product_suit: WOfS
     description: 'Water Observations from Space Statistics'
     extent:
       spatial: [113, -44, 153, -10]
@@ -91,7 +91,7 @@ products:
 
   - name: wofs_annual_summary
     prefix: WOfS/annual_summary/v2.1.5/combined
-    product_type:
+    product_suit: WOfS
     description: 'Water Observations from Space Annual Statistics'
     extent:
       spatial: [113, -44, 153, -10]
@@ -102,7 +102,7 @@ products:
 
   - name: ls5_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls5
-    product_type: fractional_cover
+    product_suit: fractional-cover
     description: 'Landsat 5 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:
       spatial: [110, -45, 155, -9]
@@ -113,7 +113,7 @@ products:
 
   - name: ls7_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls7
-    product_type: fractional_cover
+    product_suit: fractional-cover
     description: 'Landsat 7 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:
       spatial: [110, -45, 155, -9]
@@ -124,7 +124,7 @@ products:
 
   - name: ls8_fc_albers
     prefix: fractional-cover/fc/v2.2.0/ls8
-    product_type:
+    product_suit: fractional-cover
     description: 'Landsat 8 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:
       spatial: [109, -46, 157, -9]
@@ -135,7 +135,7 @@ products:
 
   - name: fc_percentile_annual
     prefix: fractional-cover/fc-percentile/annual/v2.1.0/combined
-    product_type: fractional_cover_statistical_summary
+    product_suit: fractional-cover
     description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
     (EPSG:3577)'
     catalog_structure:
@@ -144,7 +144,7 @@ products:
 
   - name: fc_percentile_seasonal
     prefix: fractional-cover/fc-percentile/seasonal/v2.1.0/combined
-    product_type: fractional_cover_statistical_summary
+    product_suit: fractional-cover
     description: 'Landsat Fractional Cover percentile 25 metre, 100km tile, Australian Albers Equal Area projection
     (EPSG:3577)'
     catalog_structure:
@@ -161,6 +161,7 @@ products:
 
   - name: ls5_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L5
+    product_suit: geomedian-australia
     description: 'Landsat-5 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
     catalog_structure:
@@ -169,6 +170,7 @@ products:
 
   - name: ls7_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L7
+    product_suit: geomedian-australia
     description: 'Landsat-7 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
     catalog_structure:
@@ -177,6 +179,7 @@ products:
 
   - name: ls8_nbart_geomedian_annual
     prefix: geomedian-australia/v2.1.0/L8
+    product_suit: geomedian-australia
     description: 'Landsat-8 Surface Reflectance Geometric Median 25 metre, 100km tile,
     Australian Albers Equal Area projection (EPSG:3577)'
     catalog_structure:

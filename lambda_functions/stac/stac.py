@@ -60,8 +60,8 @@ def is_valid_yaml(s3_key):
     """
 
     s3_key_ = Path(s3_key)
-    for p in [p['prefix'] for p in CFG['products']]:
-        if p in str(s3_key_.parent) and p != str(s3_key_.parent):
+    for product_prefix in [p['prefix'] for p in CFG['products']]:
+        if product_prefix in str(s3_key_.parent) and product_prefix != str(s3_key_.parent):
             return True
     return False
 
@@ -152,9 +152,9 @@ def get_stac_item_parent(s3_key):
     Parse the parent stac catalog from the given s3 key
     """
 
-    for p in [p_ for p_ in CFG['products']]:
-        if p['prefix'] in s3_key:
-            template = p['catalog_structure'][-1]
+    for product_dict in [p_ for p_ in CFG['products']]:
+        if product_dict['prefix'] in s3_key:
+            template = product_dict['catalog_structure'][-1]
             template_ = '{prefix}/' + template + '/{}'
             params = pparse(template_, s3_key)
             if not params:
@@ -163,8 +163,7 @@ def get_stac_item_parent(s3_key):
                 if not params:
                     raise NameError('Catalog template parsing error: ' + s3_key)
                 return template.format(**params.named) + '/catalog.json'
-            else:
-                return ('{prefix}/' + template).format(**params.named) + '/catalog.json'
+            return ('{prefix}/' + template).format(**params.named) + '/catalog.json'
     raise NameError('Catalog template parsing error: No parent catalog for ' + s3_key)
 
 
