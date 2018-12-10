@@ -249,7 +249,6 @@ class CatalogUpdater:
         s3_res = boto3.resource('s3')
 
         for collection_prefix in self.collection_catalogs:
-            product_type = Path(collection_prefix).parts[0]
             collection_catalog_name = f'{collection_prefix}/catalog.json'
             info = self.search_product_in_config(collection_prefix)
 
@@ -274,7 +273,8 @@ class CatalogUpdater:
                 collection_catalog['providers'] = info.get('providers')
             collection_catalog['extent'] = {'spatial': spatial_extent, 'temporal': temporal_extent}
 
-            if collection_catalog_name == f'{product_type}/catalog.json':
+            product_type = Path(collection_prefix).parts[0]
+            if collection_catalog_name == f'{product_type}/catalog.json' or not info.get('product_suit'):
                 # Parent and root catalogs are same
                 collection_catalog['links'] = [
                     {'href': f'{self.config["aws-domain"]}/{collection_catalog_name}', 'ref': 'self'},
