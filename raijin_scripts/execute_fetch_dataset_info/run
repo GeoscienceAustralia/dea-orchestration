@@ -55,6 +55,18 @@ function print_output
 QSTAT_VAL=$(qstat -fx "${JOB_ID}" | tr -d '\n\t' | sed 's/ //g')
 LOG_DIR=$(echo "$QSTAT_VAL" | grep -zPo '(PBS_O_WORKDIR=.*,)' | cut -f1 -d',' | cut -f2 -d'=')
 
+# Check if we are processing WOfS
+CHECK_WOFS="$(echo "$LOG_DIR" | awk '{print match($0, "wofs")}')"
+
+# Check if we are processing FC
+CHECK_FC="$(echo "$LOG_DIR" | awk '{print match($0, "_fc_")}')"
+
+if [[ $CHECK_FC -gt 0 || $CHECK_WOFS -gt 0 ]]
+then
+    LOG_DIR="$(echo "$QSTAT_VAL" | tr -d '\n\t' | sed 's/ //g'| grep -zPo '(Output_Path.*\/)' | cut -f2 -d':')"
+    LOG_DIR="${LOG_DIR/\/logs\/*//logs}"
+fi
+
 _ndatasets_found=0
 _nfiles_created=0
 _nfiles_create_fail=0
@@ -101,7 +113,6 @@ fi
 print_output _ndatasets_found "$_ndatasets_found"
 print_output _nfiles_created "$_nfiles_created"
 print_output _nfiles_create_fail "$_nfiles_create_fail"
-print_output _nds_index_pass "$_nds_index_pass"                
+print_output _nds_index_pass "$_nds_index_pass"
 print_output _nds_index_fail "$_nds_index_fail"
 print_output _service_units "$_service_units"
-
