@@ -38,7 +38,7 @@ provider:
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
-    DEA_MODULE: dea/20181015
+    DEA_MODULE: dea/20181211
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -148,6 +148,14 @@ functions:
             year: 2018
             product: ls7_nbar_scene
             path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbar/'
+            trasharchived: no
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            year: 2015_2018
+            product: s2_ard_granule
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/*/'
             trasharchived: no
   execute_ingest:
     handler: handler.execute_ssh_command
