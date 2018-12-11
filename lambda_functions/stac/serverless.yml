@@ -35,7 +35,6 @@ provider:
   profile: ${self:custom.profiles.${self:custom.Stage}}
   deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
   region: ap-southeast-2
-  profile: dev
 
   iamRoleStatements:
     - Effect: "Allow"
