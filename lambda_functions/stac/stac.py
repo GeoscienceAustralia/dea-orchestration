@@ -46,7 +46,7 @@ def stac_handler(event, context):
         s3_key_ = Path(s3_key)
         stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
         item_abs_path = f'{CFG["aws-domain"]}/{stac_s3_key}'
-        parent_abs_path = get_stac_item_parent(s3_key)
+        parent_abs_path = f'{CFG["aws-domain"]}/{get_stac_item_parent(s3_key)}'
         stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
         # Put STAC dict to s3
