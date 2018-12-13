@@ -11,7 +11,7 @@ from dea.aws.inventory import list_inventory
 import click
 
 
-@click.command()
+@click.command(help=__doc__)
 @click.option('--aws-product-prefix', required=True, help="The prefix of a product in the AWS bucket")
 @click.option('--bucket', '-b', default='dea-public-data', help="AWS bucket")
 def delete_stac_catalog_parents(aws_product_prefix, bucket):
