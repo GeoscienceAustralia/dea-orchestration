@@ -1,5 +1,5 @@
 """
-Update the product suit catalogs, i.e. STAC catalogs corresponding to product suits
+Update the product suite catalogs, i.e. STAC catalogs corresponding to product suites
 such as WOfS, fractional-cover, and Geomedian-Australia.
 """
 
@@ -7,8 +7,8 @@ import json
 from collections import OrderedDict
 
 import boto3
-import yaml
 import click
+import yaml
 
 S3_RES = boto3.resource('s3')
 
@@ -17,9 +17,9 @@ with open('stac_config.yaml', 'r') as cfg_file:
     CFG = yaml.load(cfg_file)
 
 
-@click.command()
+@click.command(help=__doc__)
 @click.option('--bucket', '-b', default='dea-public-data-dev', help="AWS bucket")
-def update_stac_product_suit_catalogs(bucket):
+def update_stac_product_suite_catalogs(bucket):
     do_wofs(bucket)
     do_fractional_cover(bucket)
     do_geomedian_australia(bucket)
@@ -33,7 +33,7 @@ def do_wofs(bucket):
     collection_catalog = OrderedDict([
         ('stac_version', '0.6.0'),
         ('id', 'WOfS'),
-        ('description', 'Water observation from space suit of products include wofs_albers, '
+        ('description', 'Water observation from space suite of products include wofs_albers, '
                         'wofs_filtered_summary, wofs_statistical_summary, and wofs_annual_summary')])
     collection_catalog['license'] = CFG['license']['short_name']
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
@@ -62,9 +62,9 @@ def do_fractional_cover(bucket):
     collection_catalog = OrderedDict([
         ('stac_version', '0.6.0'),
         ('id', 'factional-cover'),
-        ('description', 'Fractional cover suit of products include fractional cover products '
-         'corresponding to each landsat albers (ls5, ls7, ls8) and two fractional cover percentile '
-         'products fc-percentile-annual and fc-percentile-seasonal')])
+        ('description', 'Fractional cover suite of products include fractional cover products '
+                        'corresponding to each landsat albers (ls5, ls7, ls8) and two fractional cover percentile '
+                        'products fc-percentile-annual and fc-percentile-seasonal')])
     collection_catalog['license'] = CFG['license']['short_name']
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
                                     'temporal': CFG['aus-extent']['temporal']}
@@ -94,8 +94,8 @@ def do_geomedian_australia(bucket):
     collection_catalog = OrderedDict([
         ('stac_version', '0.6.0'),
         ('id', 'geomedian-australia'),
-        ('description', 'Geomedian Australia suit of products include geomedian products '
-         'corresponding to each landsat albers (ls5, ls7, ls8)')])
+        ('description', 'Geomedian Australia suite of products include geomedian products '
+                        'corresponding to each landsat albers (ls5, ls7, ls8)')])
     collection_catalog['license'] = CFG['license']['short_name']
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
                                     'temporal': CFG['aus-extent']['temporal']}
@@ -114,4 +114,4 @@ def do_geomedian_australia(bucket):
 
 
 if __name__ == '__main__':
-    update_stac_product_suit_catalogs()
+    update_stac_product_suite_catalogs()
