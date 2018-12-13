@@ -29,7 +29,7 @@ def check_date(context, param, value):
         raise ValueError('Date must be valid string for pandas Timestamp') from error
 
 
-@click.command()
+@click.command(help=__doc__)
 @click.option('--config', type=click.Path(exists=True), default='stac_config.yaml', help='The config file')
 @click.option('--inventory-manifest', '-i',
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',

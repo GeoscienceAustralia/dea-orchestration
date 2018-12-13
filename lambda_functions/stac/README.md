@@ -64,7 +64,7 @@ specify a product.
     Among other things, config file specify global details and product specific 
     details required for catalog generation and various `aws specific` information.
 
-4. `update_product_suit_catalogs.py`: Certain products belong to respective product
+4. `update_product_suite_catalogs.py`: Certain products belong to respective product
     suits. For example, `wofs_albers, wofs_filtered_summary, wofs_statistical_summary,` 
     and `wofs_annual_summary` belong to the suit `WOfS`. This script updates the
     `collection catalogs` corresponding to such suits. Example,
