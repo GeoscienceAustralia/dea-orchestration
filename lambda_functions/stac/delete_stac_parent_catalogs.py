@@ -4,11 +4,11 @@ The list of files with names 'catalog.json' is obtained from s3 inventory lists.
 """
 
 from pathlib import Path
+
 import boto3
+import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
-
-import click
 
 
 @click.command(help=__doc__)
