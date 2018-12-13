@@ -11,13 +11,14 @@ list is provided in the command line.
 
 import json
 from pathlib import Path
-from parse import parse as pparse
+
 import boto3
-import yaml
 import click
+import yaml
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 from pandas import Timestamp
+from parse import parse as pparse
 
 
 def check_date(context, param, value):

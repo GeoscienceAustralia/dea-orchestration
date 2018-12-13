@@ -65,12 +65,12 @@ specify a product.
     details required for catalog generation and various `aws specific` information.
 
 4. `update_product_suite_catalogs.py`: Certain products belong to respective product
-    suits. For example, `wofs_albers, wofs_filtered_summary, wofs_statistical_summary,` 
-    and `wofs_annual_summary` belong to the suit `WOfS`. This script updates the
-    `collection catalogs` corresponding to such suits. Example,
+    suites. For example, `wofs_albers, wofs_filtered_summary, wofs_statistical_summary,`
+    and `wofs_annual_summary` belong to the suite `WOfS`. This script updates the
+    `collection catalogs` corresponding to such suites. Example,
      
     ```bash
-        python update_product_suit_catalogs.py -b dea-public-data-dev
+        python update_product_suite_catalogs.py -b dea-public-data-dev
     ```
 
 #### Configuration Information
@@ -93,9 +93,9 @@ these `STAC item` correspond to a `dataset` of the respective product and has a
 '.yaml' file holding the `metadata` information of the dataset.
 
 2. The directory above the directory specified by the first template holds a 
-`STAC Collection catalog`. If the product belongs to a `suit of products` such
+`STAC Collection catalog`. If the product belongs to a `suite of products` such
 as `WOfS`, there is a further top level collection catalog having links to each
-of the products within that suit. 
+of the products within that suite.
 
 3. When specifiying templates, please omit leading and trailing back-slashes (/). 
 The following template structures were tested:

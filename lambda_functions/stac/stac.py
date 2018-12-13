@@ -1,6 +1,5 @@
 """
-AWS serverless lambda function that generate stac catalog file corresponding to yaml file
-upload event.
+AWS serverless lambda function that generate STAC Item files corresponding to uploaded YAML files.
 """
 
 import datetime
@@ -24,9 +23,11 @@ with open('stac_config.yaml', 'r') as cfg_file:
 def stac_handler(event, context):
     """
     Receive Events about updated files in S3
-    Assumed path structure would look like
-    dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
-            LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
+
+    The assumed path structure looks like:
+
+        dea-public-data-dev/fractional-cover/fc/v2.2.0/ls5/x_-1/y_-11/2008/11/08/
+                LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
     # Extract message, i.e. yaml file href's

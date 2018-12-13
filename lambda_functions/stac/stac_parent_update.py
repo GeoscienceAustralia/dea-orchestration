@@ -1,22 +1,25 @@
 """
-Update parent catalogs based on .yaml files corresponding to datasets uploaded in s3. File lists are
-obtained from s3 inventory lists. Incremental updates can be done by using the 'from-date' option to limit
-the selected dataset yaml files modified by a date later than the specified date. Updated catalog files
-are uploaded to the specified bucket.
+Update parent catalogs based on YAML files corresponding to datasets uploaded in S3.
 
-The s3 yaml file list is obtained from s3 inventory list unless a file list is provided in the command line.
+ - File lists are obtained from S3 inventory lists.
+ - Incremental updates can be done by using the '--from-date' option to limit the selected dataset yaml files
+   modified by a date later than the specified date.
+ - Updated catalog files are uploaded to the specified bucket.
+
+The S3 YAML file list is obtained from S3 inventory list unless a file list is provided in the command line.
 """
 
+import json
 from collections import OrderedDict
 from pathlib import Path
-import json
-import yaml
-from parse import parse as pparse
+
 import boto3
 import click
+import yaml
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 from pandas import Timestamp
+from parse import parse as pparse
 
 
 def check_date(context, param, value):
@@ -39,7 +42,7 @@ def check_date(context, param, value):
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(config, inventory_manifest, bucket, from_date, s3_keys):
     """
-    Update parent catalogs of datasets based on s3 keys having suffix .yaml
+    Update parent catalogs of datasets based on S3 keys having .yaml suffix
     """
 
     with open(config, 'r') as cfg_file:
@@ -136,7 +139,7 @@ class CatalogUpdater:
     @staticmethod
     def get_prefixes(templates, item):
         """
-        Get s3 prefixes corresponding to each catalog template
+        Get S3 prefixes corresponding to each catalog template
         """
 
         prefixes = []
@@ -241,9 +244,10 @@ class CatalogUpdater:
     def update_collection_catalogs(self, bucket):
         """
         Update all the parent catalogs one level above x dir in s3. These are
-        STAC collection catalogs. Please see
-        https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md
-        for details.
+        STAC collections.
+
+        See https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md
+        for more information.
         """
 
         s3_res = boto3.resource('s3')
@@ -274,7 +278,7 @@ class CatalogUpdater:
             collection_catalog['extent'] = {'spatial': spatial_extent, 'temporal': temporal_extent}
 
             product_type = Path(collection_prefix).parts[0]
-            if collection_catalog_name == f'{product_type}/catalog.json' or not info.get('product_suit'):
+            if collection_catalog_name == f'{product_type}/catalog.json' or not info.get('product_suite'):
                 # Parent and root catalogs are same
                 collection_catalog['links'] = [
                     {'href': f'{self.config["aws-domain"]}/{collection_catalog_name}', 'ref': 'self'},
