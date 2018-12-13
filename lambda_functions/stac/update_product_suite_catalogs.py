@@ -10,7 +10,7 @@ import boto3
 import click
 import yaml
 
-S3_RES = boto3.resource('s3')
+S3 = boto3.resource('s3')
 
 # Read the config file
 with open('stac_config.yaml', 'r') as cfg_file:
@@ -50,7 +50,7 @@ def do_wofs(bucket):
     ]
 
     # Put collection catalog to s3
-    obj = S3_RES.Object(bucket, f'WOfS/catalog.json')
+    obj = S3.Object(bucket, f'WOfS/catalog.json')
     obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
 
 
@@ -82,7 +82,7 @@ def do_fractional_cover(bucket):
     ]
 
     # Put collection catalog to s3
-    obj = S3_RES.Object(bucket, f'fractional-cover/catalog.json')
+    obj = S3.Object(bucket, f'fractional-cover/catalog.json')
     obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
 
 
@@ -109,7 +109,7 @@ def do_geomedian_australia(bucket):
     ]
 
     # Put collection catalog to s3
-    obj = S3_RES.Object(bucket, f'geomedian-australia/catalog.json')
+    obj = S3.Object(bucket, f'geomedian-australia/catalog.json')
     obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
 
 
