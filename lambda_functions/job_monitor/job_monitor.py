@@ -13,8 +13,6 @@ GET_USER_CMD = 'getent group {}'
 GET_USERJOBS_CMD = 'qstat -wu {}'
 GET_JOBINFOEXTRA_CMD = 'qstat -f {}'
 
-# pylint: disable=W0107
-
 
 class NoJobInfoException(Exception):
     """raised when the application needs to exit early"""
