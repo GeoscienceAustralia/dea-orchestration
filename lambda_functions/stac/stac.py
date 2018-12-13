@@ -34,7 +34,7 @@ def stac_handler(event, context):
     file_items = event.get('Records', [])
 
     for file_item in file_items:
-        # Load yaml file from s3
+        # Load YAML file from s3
         bucket, s3_key = get_bucket_and_key(file_item)
 
         if not is_valid_yaml(s3_key):
@@ -50,7 +50,7 @@ def stac_handler(event, context):
         parent_abs_path = f'{CFG["aws-domain"]}/{get_stac_item_parent(s3_key)}'
         stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
 
-        # Put STAC dict to s3
+        # Put STAC dict to S3
         obj = S3_RES.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item), ContentType='application/json')
 
@@ -69,7 +69,7 @@ def is_valid_yaml(s3_key):
 
 def get_bucket_and_key(message):
     """
-    Parse the bucket and s3 key from the SQS message
+    Parse the bucket and S3 key from the SQS message
     """
 
     s3_event = json.loads(message["body"])["Records"][0]
@@ -78,21 +78,19 @@ def get_bucket_and_key(message):
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
     """
-    Returns a dict corresponding to a stac item catalog
+    Convert a YAML dict to a STAC Item dict
     """
 
+    # TODO: Check projection before converting! Not everything is EPSG:3577
     geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']
                                      ['projection']['valid_data']
                                      ['coordinates'])
 
     # Convert the date to add time zone.
-    center_dt = parse(metadata_doc['extent']['center_dt'])
-    center_dt = center_dt.replace(microsecond=0)
+    center_dt = parse(metadata_doc['extent']['center_dt']).replace(microsecond=0)
     time_zone = center_dt.tzinfo
     if not time_zone:
-        center_dt = center_dt.replace(tzinfo=datetime.timezone.utc).isoformat()
-    else:
-        center_dt = center_dt.isoformat()
+        center_dt = center_dt.replace(tzinfo=datetime.timezone.utc)
 
     stac_item = OrderedDict([
         ('id', metadata_doc['id']),
@@ -103,7 +101,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
                   metadata_doc['extent']['coord']['ur']['lat']]),
         ('geometry', geodata['geometry']),
         ('properties', {
-            'datetime': center_dt,
+            'datetime': center_dt.isoformat(),
             'provider': CFG['contact']['name'],
             'license': CFG['license']['name'],
             'copyright': CFG['license']['copyright'],
@@ -114,24 +112,24 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
             {'href': item_abs_path, 'rel': 'self'},
             {'href': parent_abs_path, 'rel': 'parent'}
         ]),
-        ('assets', {})
+        ('assets', {
+            band_name: {
+                # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
+                'href': band_data['path'],
+                "required": 'true',
+                "type": "GeoTIFF"
+            }
+            for band_name, band_data in metadata_doc['image']['bands']
+        })
     ])
-    bands = metadata_doc['image']['bands']
-    for key in bands:
-        # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
-        stac_item['assets'][key] = {
-            'href': metadata_doc['image']['bands'][key]['path'],
-            "required": 'true',
-            "type": "GeoTIFF"
-        }
 
     return stac_item
 
 
 def valid_coord_to_geojson(valid_coord):
     """
-        The polygon coordinates come in Albers' format, which must be converted to
-        lat/lon as in universal format in EPSG:4326
+    The polygon coordinates come in Albers' format, which must be converted to
+    EPSG:4326 lat/lon
     """
 
     albers = Proj(init='epsg:3577')

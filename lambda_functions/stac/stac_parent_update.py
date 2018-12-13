@@ -42,7 +42,7 @@ def check_date(context, param, value):
 @click.argument('s3-keys', nargs=-1, type=click.Path())
 def cli(config, inventory_manifest, bucket, from_date, s3_keys):
     """
-    Update parent catalogs of datasets based on S3 keys having .yaml suffix
+    Update parent catalogs of datasets based on S3 keys ending in .yaml
     """
 
     with open(config, 'r') as cfg_file:
@@ -55,12 +55,12 @@ def cli(config, inventory_manifest, bucket, from_date, s3_keys):
             s3_keys = incremental_list(s3_keys, from_date)
         s3_keys = remove_bucket_and_validate(s3_keys, cfg)
 
-    CatalogUpdater(cfg).update_parents_all(s3_keys, bucket)
+    CatalogUpdater(cfg).update_all_parents(s3_keys, bucket)
 
 
 def remove_bucket_and_validate(keys, cfg):
     """
-    Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
+    Return generator of yaml files in S3 of products that belong to 'aws-products' in GLOBAL_CONFIG
     """
     products = [p['prefix'] for p in cfg['products'] if p['prefix']]
     for item in keys:
@@ -91,9 +91,9 @@ class CatalogUpdater:
         self.mid_level_catalogs = {}
         self.collection_catalogs = {}
 
-    def update_parents_all(self, s3_keys, bucket):
+    def update_all_parents(self, s3_keys, bucket):
         """
-        Update corresponding parent catalogs of the given list of yaml files
+        Update parent catalogs of the given list of yaml files
         """
 
         for item in s3_keys:
@@ -105,13 +105,13 @@ class CatalogUpdater:
 
             s3_key = Path(item)
 
-            # Add to top mid level catalog that got parent pointing to collection catalog
+            # Add to the top mid level catalogs which have parent pointing to collection catalog
             if len(prefixes) > 1:
                 child_catalog_name = f'{prefixes[1]}/catalog.json'
                 self.add_to_catalog(self.mid_level_catalogs, prefixes[0],
                                     f'{collection_prefix}/catalog.json', child_catalog_name)
 
-            # Add to last catalog level that hold links to items
+            # Add to bottom catalog level that hold links to items
             if len(prefixes) == 1:
                 parent_catalog_name = f'{collection_prefix}/catalog.json'
             else:
@@ -119,7 +119,7 @@ class CatalogUpdater:
             self.add_to_catalog(self.items_catalogs, prefixes[-1],
                                 parent_catalog_name, f'{s3_key.parent}/{s3_key.stem}_STAC.json')
 
-            # Add to in between top level and last level catalogs
+            # Add to in between top level and item level catalogs
             for count, catalog_prefix in enumerate(prefixes[1:-1]):
                 self.add_to_catalog(self.mid_level_catalogs, catalog_prefix,
                                     f'{prefixes[count]}/catalog.json',
@@ -167,7 +167,8 @@ class CatalogUpdater:
                 raise NameError('Incorrect parent catalog name for : ' + item)
             catalog_dict[catalog_prefix]['links'].add(item)
         else:
-            catalog_dict[catalog_prefix] = {'parent': parent_catalog_name, 'links': {item}}
+            catalog_dict[catalog_prefix] = {'parent': parent_catalog_name,
+                                            'links': {item}}
 
     def update_mid_level_catalogs(self, bucket):
         """
@@ -204,7 +205,9 @@ class CatalogUpdater:
 
             # update the links
             for link in self.items_catalogs[catalog_prefix]['links']:
-                catalog['links'].append({'href': f'{self.config["aws-domain"]}/{link}', 'rel': 'item'})
+                catalog['links'].append(
+                    {'href': f'{self.config["aws-domain"]}/{link}',
+                     'rel': 'item'})
 
             # Put catalog dict to s3
             obj = s3_res.Object(bucket, f'{catalog_prefix}/catalog.json')
@@ -231,8 +234,7 @@ class CatalogUpdater:
 
     def search_product_in_config(self, prefix):
         """
-        Search the product list in the config and return the product dict
-        that matches the given prefix.
+        Search the product list in the config and return the product dict that matches the given prefix.
         """
 
         for product_dict in self.config['products']:
@@ -243,11 +245,10 @@ class CatalogUpdater:
 
     def update_collection_catalogs(self, bucket):
         """
-        Update all the parent catalogs one level above x dir in s3. These are
-        STAC collections.
+        Update all the parent catalogs one level above x dir in s3. These are STAC Collections.
 
         See https://github.com/radiantearth/stac-spec/blob/master/collection-spec/collection-spec.md
-        for more information.
+        for more information on Collections.
         """
 
         s3_res = boto3.resource('s3')
