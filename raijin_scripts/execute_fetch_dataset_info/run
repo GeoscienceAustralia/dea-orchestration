@@ -42,7 +42,7 @@ function get_service_units
   return 0
 }
 
-function get_ingest_service_units
+function get_service_units_1
 {
   grep -E -rwo "$2" -e "$1" | cut -f2 -d':' | awk '{ SUM += $1;} END { print SUM }'
   return 0
@@ -88,15 +88,16 @@ CHECK_SYNC=$(get_sync_data '"collection":' "$LOG_DIR")
 
 INGEST_SAVETASK_OFILE=$(find "$LOG_DIR" -iname "*_save_*.o*" -type f -print)
 INGEST_DRYRUN_OFILE=$(find "$LOG_DIR" -iname "*_dry_*.o*" -type f -print)
+WOFS_FC_GEN_OFILE=$(find "$LOG_DIR" -iname "*generate*.o*" -type f -print)
 
-if [[ -n "$INGEST_DRYRUN_OFILE" && "$JOB_NAME" =~ .\.*_dry_*.e* ]]
+if [[ -n "$INGEST_DRYRUN_OFILE" && "$JOB_NAME" =~ .\.*_dry_* ]]
 then
     # Fetch ingest save task service units consumed
-    _service_units=$(get_ingest_service_units 'Service Units:.*' "$INGEST_DRYRUN_OFILE")
-elif [[ -n "$INGEST_SAVETASK_OFILE" && "$JOB_NAME" =~ .\.*_save_*.e* ]]
+    _service_units=$(get_service_units_1 'Service Units:.*' "$INGEST_DRYRUN_OFILE")
+elif [[ -n "$INGEST_SAVETASK_OFILE" && "$JOB_NAME" =~ .\.*_save_* ]]
 then
     # Fetch ingest save task service units consumed
-    _service_units=$(get_ingest_service_units 'Service Units:.*' "$INGEST_SAVETASK_OFILE")
+    _service_units=$(get_service_units_1 'Service Units:.*' "$INGEST_SAVETASK_OFILE")
 elif [[ $(find "$LOG_DIR") =~ .*\.(bin) ]]
 then
     # Fetch ingest dataset processing information from the log files
@@ -119,8 +120,12 @@ then
     index_fail_path=$(get_sync_data '"event":"invalid_path"' "$LOG_DIR")
     nds_not_trashed=$(get_sync_data '"name":"archived_dataset_on_disk"' "$LOG_DIR")
     _nds_index_fail=$(( nds_not_trashed + index_fail_path ))
-elif  [[ $(find "$LOG_DIR") =~ .*\.(log) ]]
+elif  [[ $(find "$LOG_DIR") =~ .*\.(log) && "$JOB_NAME" =~ .\.*-generate-* ]]
 then 
+    # Fetch WOfS/FC generate task service units consumed
+    _service_units=$(get_service_units_1 'Service Units:.*' "$WOFS_FC_GEN_OFILE")
+elif  [[ $(find "$LOG_DIR") =~ .*\.(log) && "$JOB_NAME" =~ .\.*-run-* ]]
+then
     # Fetch WOfS/FC dataset processing information from the log files
     _ndatasets_found=$(get_data 'Found[[:space:]][0-9]{1,}[[:space:]]tasks' "$LOG_DIR" 2)
     _service_units=$(get_service_units 'Service Units:.*' "$LOG_DIR")
