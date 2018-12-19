@@ -19,17 +19,14 @@ STORAGE_FIELDS = ['grant', 'usage', 'avail', 'igrant', 'iusage', 'iavail']
 CLOUDWATCH_NAMESPACE = 'nci_metrics'
 CLOUDWATCH_MAX_SEND = 20
 
-ES_INDEX = 'nci-quotausage-'
+ES_INDEX = 'nci-quota-usage-'
 ES_DOC_TYPE = 'nci_quota_usage'
 
 CLOUDWATCH = boto3.client('cloudwatch')
 
-LOG.debug("Loading module")
-
 
 def handler(event, context):
     """Main Entry Point"""
-    LOG.debug("Inside handler")
     with ThreadPoolExecutor() as executor:
         usages = executor.map(get_project_usage, NCI_PROJECTS)
 
