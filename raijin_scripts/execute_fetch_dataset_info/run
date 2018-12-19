@@ -93,7 +93,6 @@ if [[ -n "$INGEST_DRYRUN_OFILE" && "$JOB_NAME" =~ .\.*_dry_*.e* ]]
 then
     # Fetch ingest save task service units consumed
     _service_units=$(get_ingest_service_units 'Service Units:.*' "$INGEST_DRYRUN_OFILE")
-    _ndatasets_found=$(get_data '[0-9]{1,}[[:space:]]valid[[:space:]]files' "$INGEST_DRYRUN_OFILE" 1)
 elif [[ -n "$INGEST_SAVETASK_OFILE" && "$JOB_NAME" =~ .\.*_save_*.e* ]]
 then
     # Fetch ingest save task service units consumed
