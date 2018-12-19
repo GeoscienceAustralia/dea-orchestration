@@ -8,6 +8,9 @@ while [[ "$#" -gt 0 ]]; do
         --job-id )              shift
                                 JOB_ID="$1"
                                 ;;
+        --job-name )            shift
+                                JOB_NAME="$1"
+                                ;;
         * )
           echo "Input key, '$key', did not match the expected input argument key"
           exit 1
@@ -36,6 +39,12 @@ function get_sync_data
 function get_service_units
 {
   grep -E -rwoi "$2" -e "$1" | cut -f3 -d':' | awk '{ SUM += $1;} END { print SUM }'
+  return 0
+}
+
+function get_ingest_service_units
+{
+  grep -E -rwo "$2" -e "$1" | cut -f2 -d':' | awk '{ SUM += $1;} END { print SUM }'
   return 0
 }
 
@@ -77,15 +86,27 @@ _service_units=0.0
 # Check for sync process
 CHECK_SYNC=$(get_sync_data '"collection":' "$LOG_DIR")
 
-if [[ $(find "$LOG_DIR") =~ .*\.(bin) ]]
+INGEST_SAVETASK_OFILE=$(find "$LOG_DIR" -iname "*_save_*.o*" -type f -print)
+INGEST_DRYRUN_OFILE=$(find "$LOG_DIR" -iname "*_dry_*.o*" -type f -print)
+
+if [[ -n "$INGEST_DRYRUN_OFILE" && "$JOB_NAME" =~ .\.*_dry_*.e* ]]
+then
+    # Fetch ingest save task service units consumed
+    _service_units=$(get_ingest_service_units 'Service Units:.*' "$INGEST_DRYRUN_OFILE")
+    _ndatasets_found=$(get_data '[0-9]{1,}[[:space:]]valid[[:space:]]files' "$INGEST_DRYRUN_OFILE" 1)
+elif [[ -n "$INGEST_SAVETASK_OFILE" && "$JOB_NAME" =~ .\.*_save_*.e* ]]
+then
+    # Fetch ingest save task service units consumed
+    _service_units=$(get_ingest_service_units 'Service Units:.*' "$INGEST_SAVETASK_OFILE")
+elif [[ $(find "$LOG_DIR") =~ .*\.(bin) ]]
 then
     # Fetch ingest dataset processing information from the log files
     _ndatasets_found=$(get_data '[0-9]{1,}[[:space:]]valid[[:space:]]files' "$LOG_DIR" 1)
     _service_units=$(get_service_units 'Service Units:.*' "$LOG_DIR")
-    _nfiles_created=$(get_ingest_data 'completed:[[:space:]][0-9]{1,}' "$LOG_DIR" 2)
-    _nfiles_create_fail=$(( _ndatasets_found - _nfiles_created ))
-    _nds_index_pass=$(get_ingest_data 'successful:[[:space:]][0-9]{1,}' "$LOG_DIR" 2)
-    _nds_index_fail=$(( _ndatasets_found - _nds_index_pass ))
+    _nfiles_created=$(get_ingest_data 'Created_Count:[[:space:]][0-9]{1,}' "$LOG_DIR" 1)
+    _nfiles_create_fail=$(get_ingest_data 'Failed_Count:[[:space:]][0-9]{1,}' "$LOG_DIR" 1)
+    _nds_index_pass=$(get_data '[0-9]{1,}[[:space:]]Successful,' "$LOG_DIR" 1)
+    _nds_index_fail=$(get_data '[0-9]{1,}[[:space:]]Failed' "$LOG_DIR" 1)
 elif [[ $(find "$LOG_DIR") =~ .*\.(e*|o*|OU) && "$CHECK_SYNC" -gt 0 ]]
 then
     # Fetch Sync dataset processing information from the log files

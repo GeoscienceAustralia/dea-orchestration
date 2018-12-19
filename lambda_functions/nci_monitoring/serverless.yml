@@ -79,7 +79,7 @@ provider:
 
   # Service wide environment variables declaration
   environment:
-    NCI_PROJECTS: 'rs0,v10,u46,fk4,r78'
+    NCI_PROJECTS: 'rs0,v10,u46,fk4,r78,if87'
     NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
     DEA_AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
@@ -89,10 +89,8 @@ functions:
     handler: nci_quotas_monitor.handler
     description: Record Quota/Usage for projects on the NCI into Cloudwatch Metrics and ElasticSearch
     events:
-      - schedule:
-          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
-          enabled: False
-  read_nci_email:
+      - schedule: rate(2 hours)
+  nci_pbsjob_monitor:
     handler: read_nci_email.handler
     description: Process PBS jobs and dataset info, once an email is sent to nci monitoring S3 bucket
     events:

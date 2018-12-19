@@ -6,7 +6,7 @@ from datetime import datetime
 import boto3
 
 from es_connection import get_es_connection
-from log_cfg import logger
+from log_cfg import LOG
 from raijin_ssh import exec_command
 from utils import human2bytes, human2decimal
 
@@ -24,24 +24,24 @@ ES_DOC_TYPE = 'nci_quota_usage'
 
 CLOUDWATCH = boto3.client('cloudwatch')
 
-logger.debug("loading module")
+LOG.debug("Loading module")
 
 
 def handler(event, context):
     """Main Entry Point"""
-    logger.debug("inside handler")
+    LOG.debug("Inside handler")
     with ThreadPoolExecutor() as executor:
         usages = executor.map(get_project_usage, NCI_PROJECTS)
 
         for usage in usages:
-            logger.info("Usage: %s", usage)
+            LOG.info("Usage: %s", usage)
 
 
 def get_project_usage(project):
     output, stderr, exit_code = exec_command('monitor {}'.format(project))
 
     if exit_code != 0:
-        logger.error('Could not get quota report for %s, with exit code %s', project, exit_code)
+        LOG.error('Could not get quota report for %s, with exit code %s', project, exit_code)
         raise Exception()
 
     usage = project_usage(output)
@@ -59,18 +59,11 @@ def upload_to_elasticsearch(usage):
 
     usage = usage.copy()
     usage['@timestamp'] = now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    # update_es_template(es_connection)
-    # es_data = [dict(**usage)]
-    # es_data[0].update({
-    #     '_index': ES_INDEX + now.strftime('%Y'),
-    #     '_type': 'nci_quota_usage',
-    #     '@timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    # })
-    # summary = helpers.bulk(client=es_connection, actions=es_data)
+
     summary = es_connection.index(index=ES_INDEX + now.strftime('%Y'),
                                   doc_type=ES_DOC_TYPE,
                                   body=usage)
-    logger.info(summary)
+    LOG.info(summary)
 
 
 def upload_to_cloudwatch_metrics(usage):
