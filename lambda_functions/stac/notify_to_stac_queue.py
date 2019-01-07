@@ -11,14 +11,14 @@ list is provided in the command line.
 
 import json
 from pathlib import Path
-
 import boto3
-import click
 import yaml
+import click
 from dea.aws import make_s3_client
 from dea.aws.inventory import list_inventory
 from pandas import Timestamp
-from parse import parse as pparse
+
+from stac_utils import yamls_in_inventory_list, incremental_list
 
 
 def check_date(context, param, value):
@@ -54,32 +54,9 @@ def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys):
         s3_keys = list_inventory(inventory_manifest, s3=s3_client)
         if from_date:
             s3_keys = incremental_list(s3_keys, from_date)
-        s3_keys = remove_bucket_and_validate(s3_keys, cfg)
+        s3_keys = yamls_in_inventory_list(s3_keys, cfg)
 
     messages_to_sqs(s3_keys, bucket, queue_url)
-
-
-def remove_bucket_and_validate(keys, cfg):
-    """
-    Return generator of yaml files in s3 of products that belong to 'aws-products' in GLOBAL_CONFIG
-    """
-
-    products = [p['prefix'] for p in cfg['products'] if p['prefix']]
-    for item in keys:
-        template = '{}x_{x}/y_{y}/{}.yaml'
-        if bool(sum([bool(pparse(p + template, item.Key)) for p in products])):
-            yield item.Key
-
-
-def incremental_list(inventory_s3_keys, from_date):
-    """
-    Filter the given generator list with items having LastModifiedDate attribute to a generator with the
-    last modified date later than the given date
-    """
-    for item in inventory_s3_keys:
-        time_modified = Timestamp(item.LastModifiedDate)
-        if from_date < time_modified:
-            yield item
 
 
 def s3_key_to_stac_queue(sqs_client, queue_url, bucket, s3_key):
