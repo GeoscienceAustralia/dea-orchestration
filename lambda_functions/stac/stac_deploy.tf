@@ -37,7 +37,6 @@ resource "aws_s3_bucket_notification" "yaml_notification" {
   queue {
     queue_arn     = "${aws_sqs_queue.stac_queue.arn}"
     events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "fractional-cover/fc/v2.2.0/ls8"
     filter_suffix = ".yaml"
   }
 }
