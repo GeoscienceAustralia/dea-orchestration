@@ -5,13 +5,14 @@ provider "aws" {
 
 resource "aws_sqs_queue" "stac_queue" {
   name = "static-stac-queue"
+  visibility_timeout_seconds = 600
 }
 
 resource "aws_sqs_queue_policy" "stac_queue_policy" {
   queue_url = "${aws_sqs_queue.stac_queue.id}"
   policy = <<POLICY
 {
-  "Version": "2018-11-20",
+  "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
@@ -19,7 +20,7 @@ resource "aws_sqs_queue_policy" "stac_queue_policy" {
       "Action": "sqs:SendMessage",
       "Resource": "arn:aws:sqs:*:*:static-stac-queue",
       "Condition": {
-        "ArnEquals": { "aws:SourceArn": "${aws_s3_bucket.dea_public_data_dev.arn}" }
+        "ArnEquals": { "aws:SourceArn": "${data.aws_s3_bucket.dea_s3_bucket.arn}" }
       }
     }
   ]
@@ -27,12 +28,12 @@ resource "aws_sqs_queue_policy" "stac_queue_policy" {
 POLICY
 }
 
-resource "aws_s3_bucket" "dea_public_data_dev" {
-  # to be filled by importing the existing bucket
+data "aws_s3_bucket" "dea_s3_bucket" {
+  bucket = "dea-public-data-dev"
 }
 
 resource "aws_s3_bucket_notification" "yaml_notification" {
-  bucket = "${aws_s3_bucket.dea_public_data_dev.id}"
+  bucket = "${data.aws_s3_bucket.dea_s3_bucket.id}"
 
   queue {
     queue_arn     = "${aws_sqs_queue.stac_queue.arn}"

@@ -95,6 +95,33 @@ def config():
         yield yaml.load(cfg_file)
 
 
+@pytest.fixture
+def upload_yamls_from_prod_to_dev(s3_dataset_yamls):
+    """
+    Upload yaml files to dea-public-data-dev from dea-public-data corresponding
+    to given list of dataset info
+    """
+
+    s3_res = boto3.resource('s3')
+    for dts in s3_dataset_yamls:
+        # Copy from dea-public-data to dea-public-data-dev
+        s3_res.meta.client.copy({'Bucket': 'dea-public-data', 'Key': dts['name']},
+                                'dea-public-data-dev', dts['name'])
+
+
+def delete_stac_items_in_s3(s3_dataset_yamls, bucket):
+    """
+    Given a list of datasets, delete the existing STAC item json's from the s3 bucket
+    """
+
+    stac_items = [str(Path(dts['name']).parent) + '/' + Path(dts['name']).stem + '_STAC.json'
+                  for dts in s3_dataset_yamls]
+
+    # Delete the catalog files in s3
+    s3_client = boto3.client('s3')
+    s3_client.delete_objects(Bucket=bucket, Delete={'Objects': [{'Key': obj} for obj in stac_items]})
+
+
 def list_of_catalog_files(s3_dataset_yamls):
     """
     Compute and return the expected STAC catalog file names corresponding to
@@ -134,25 +161,13 @@ def test_stac_parent_update(s3_dataset_yamls, config):
                                      Key=catalog).get('ResponseMetadata', None) is not None
 
 
-@pytest.fixture
-def upload_yamls_from_prod_to_dev(s3_dataset_yamls):
-    """
-    Upload yaml files to dea-public-data-dev from dea-public-data corresponding
-    to given list of dataset info
-    """
-
-    s3_res = boto3.resource('s3')
-    for dts in s3_dataset_yamls:
-        # Copy from dea-public-data to dea-public-data-dev
-        s3_res.meta.client.copy({'Bucket': 'dea-public-data', 'Key': dts['name']},
-                                'dea-public-data-dev', dts['name'])
-
-
 def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
     """
     We upload datasets corresponding to given yaml files from prod to dev and
     send messeges to SQS queue to create STAC item catalogs
     """
+
+    delete_stac_items_in_s3(s3_dataset_yamls, 'dea-public-data-dev')
 
     sqs = boto3.client('sqs')
 
