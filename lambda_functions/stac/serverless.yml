@@ -15,6 +15,13 @@ package:
     - package.json
     - package-lock.json
     - requirements.txt
+    - stac_deploy.tf
+    - terraform.*
+    - notify_to_stac_queue.py
+    - stac_check.py
+    - stac_parent_update.py
+    - stac_utils.py
+    - update_product_suite_catalogs.py
 
 custom:
   Stage: dev
