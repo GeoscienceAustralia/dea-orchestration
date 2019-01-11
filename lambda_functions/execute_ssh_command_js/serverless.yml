@@ -340,7 +340,7 @@ functions:
             obs_year: previous
       - schedule:
           rate: cron(5 1 ? * SAT *) # Run every Saturday at 11:05 AM, AEST
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 12 # Process from Monday 00:00 to Monday 00:00
@@ -351,7 +351,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3:05pm
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 35 # Kicks off re-processing for the past month for previous years on the 5th
