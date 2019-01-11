@@ -1,13 +1,25 @@
 # Convert ODC Metadata to STAC Catalogs
 
-Listens to an SQS queue for updated YAML Dataset Metadata
-and converts them to STAC format.
+`STAC` catalog generation is implemented using two seperate types of workflows. First, the 
+`STAC item` files are generated using a event driven pipeline as the datasets are uploaded to 
+a `S3` bucket. Second, the `STAC catalog` files are currently generated using batch processing
+scripts in order to collect many child/item updates into a single file update so that unsafe
+file updates would not occur by an otherwise asynchronous event driven implementation. 
 
-1. Set up an event on `s3://dea-public-data` to add items to an SQS queue
+### STAC item generation
 
-2. Update the SQS in `serverless.yaml`
+This pipeline subscribe to an existing `SNS topic` which publishes `S3 object creation` events. The 
+`S3 object creation` events are pushed to a `SQS` queue which is in turn polled by an `AWS lambda` 
+which generates the `STAC item` files after filtering the incoming file names. The following are the
+installation steps for the `STAC item generation pipeline`:  
 
-3. Execute to deploy
+1. Deploy the `SQS` infrastructure using `terraform` (`stac_deploy.tf`). First do a 
+`terraform plan` to verify the changes it is going to make and then issue `terraform apply`.
+
+2. Deploy the `lambda` function that generates the `STAC item` files using `severless`. Run
+ `sls deploy`. The `severless` script is given in `serverless.yaml`. You will need
+ `NodeJS` modules `severless-pseudo-parameters` and `serverless-python-requirements`. Install
+ them using `npm install`:
 
 ```
     npm install serverless-pseudo-parameters serverless-python-requirements
@@ -16,11 +28,9 @@ and converts them to STAC format.
 
 The above steps will deploy the serverless lambda function given in `stac.py`. 
 This lambda function creates `STAC item` json files corresponding to each
-dataset uploaded for a specific product. S3 bucket must be configured so that
-each `.yaml` file uploaded corresponding to a dataset of a specific product 
-generates an `object create` event that is sent to the `SQS stac queue`. 
-The messages in this queue triggers the lambda function to generate `STAC item`
-json files. 
+dataset uploaded for a specific product.
+
+### STAC catalog generation
 
 In addition to the serverless lambda and SQS infrastructure, the following scripts 
 could be used to maintain the STAC catalog:
@@ -73,7 +83,7 @@ specify a product.
         python update_product_suite_catalogs.py -b dea-public-data-dev
     ```
 
-#### Configuration Information
+### Configuration Information
 The default configuration information for the severless lambda function 
 as well as all the scripts are contained in a single file: `stac_config.yaml`.
 

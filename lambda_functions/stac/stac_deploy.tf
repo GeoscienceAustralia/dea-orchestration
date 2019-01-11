@@ -1,10 +1,16 @@
 provider "aws" {
   region = "ap-southeast-2"
-  profile = "prodProfile"
+  profile = "devProfile"
 }
 
 data "aws_sns_topic" "dea_public_data_topic" {
-  name = ""
+  name = "DEANewDataDev"
+}
+
+resource "aws_sns_topic_subscription" "stac_queue_subscription" {
+  topic_arn = "${data.aws_sns_topic.dea_public_data_topic.arn}"
+  protocol = "sqs"
+  endpoint = "${aws_sqs_queue.stac_queue.arn}"
 }
 
 resource "aws_sqs_queue" "stac_queue" {

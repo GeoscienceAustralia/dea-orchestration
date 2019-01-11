@@ -34,13 +34,19 @@ def stac_handler(event, context):
     # Extract message, i.e. yaml file href's
     file_items = event.get('Records', [])
 
-    for file_item in file_items:
-        # Load YAML file from s3
-        bucket, s3_key = get_bucket_and_key(file_item)
+    for file_message in file_items:
+        file_message_ = json.loads(file_message['body'])
+
+        if 'Records' in file_message_:
+            s3_event = file_message_["Records"][0]
+            bucket, s3_key = s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
+        else:
+            continue
 
         if not is_valid_yaml(s3_key):
             continue
 
+        # Load YAML file from s3
         obj = S3_RES.Object(bucket, s3_key)
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
@@ -62,19 +68,17 @@ def is_valid_yaml(s3_key):
     """
 
     s3_key_ = Path(s3_key)
+
+    if s3_key_.suffix != '.yaml':
+        return False
+
     for product_prefix in [p['prefix'] for p in CFG['products']]:
+        # We don't want the yaml file to be located in the top level directory of the product
+        # since that could be a product definition file
         if product_prefix in str(s3_key_.parent) and product_prefix != str(s3_key_.parent):
             return True
+
     return False
-
-
-def get_bucket_and_key(message):
-    """
-    Parse the bucket and S3 key from the SQS message
-    """
-
-    s3_event = json.loads(message["body"])["Records"][0]
-    return s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
 
 
 def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
