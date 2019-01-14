@@ -5,7 +5,8 @@
   "main": "handler.js",
   "dependencies": {
     "lodash": "^4.17.10",
-    "simple-ssh": "^1.0.0"
+    "simple-ssh": "^1.0.0",
+    "deasync": "^0.1.14"
   },
   "devDependencies": {
     "serverless-pseudo-parameters": "^1.6.0"
