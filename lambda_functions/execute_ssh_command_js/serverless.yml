@@ -74,7 +74,7 @@ functions:
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
-    description: Sync landsat 7/8 scenes
+    description: Sync Landsat 7/8 Scenes (NBAR/NBART/PQ/PQ_LEGACY Scenes)
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -84,79 +84,106 @@ functions:
                          --path <%= path %>
                          --product <%= product %>
                          --trasharchived <%= trasharchived %>'
+      yearrange: '2016-2019'
+      ls8_nbar_nbart_basepath: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
+      ls8_pq_basepath: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
+      ls8_pq_legacy_basepath: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
+      ls7_nbar_nbart_basepath: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
+      ls7_pq_basepath: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
+      ls7_pq_legacy_basepath: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/'
+      nbar_suffix: '/output/nbar/'
+      nbart_suffix: '/output/nbart/'
+      pq_suffix: '/output/pqa/'
+      pq_legacy_suffix: '/output/pqa/'
     events:
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
-            year: 2018
-            product: ls8_pq_scene
-            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/2018/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
-            product: ls8_pq_legacy_scene
-            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/2018/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
-            product: ls8_nbart_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbart/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
             product: ls8_nbar_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/2018/??/output/nbar/'
             trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
-            year: 2018
-            product: ls7_pq_scene
-            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/2018/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
-            product: ls7_pq_legacy_scene
-            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/2018/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
-            product: ls7_nbart_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbart/'
-            trasharchived: no
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            year: 2018
             product: ls7_nbar_scene
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/2018/??/output/nbar/'
             trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls8_nbart_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls7_nbart_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls8_pq_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls7_pq_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls8_pq_legacy_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+      - schedule:
+          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: ls7_pq_legacy_scene
+            trasharchived: no
+            year: 1234  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
+  execute_s2ard_sync:
+    # trasharchived is set to 'yes' only for the albers products and not for the scenes
+    handler: handler.execute_ssh_command
+    description: Sync Sentinal 2 ARD Granules
+    environment:
+      cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
+                         --queue ${self:provider.environment.QUEUE}
+                         --project ${self:provider.environment.PROJECT}
+                         --stage ${self:custom.Stage}
+                         --year <%= year %>
+                         --path <%= path %>
+                         --product <%= product %>
+                         --trasharchived <%= trasharchived %>'
+      basepath: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+      yearrange: '2015-2019'
+    events:
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
           input:
-            year: 2015_2018
             product: s2_ard_granule
-            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/*/'
             trasharchived: no
+            year: 2018  # Actual year shall be updated within lambda function handler
+            path: ""  # Path shall be updated within lambda function handler
   execute_ingest:
     handler: handler.execute_ssh_command
     description: Execute dea-submit-ingest qsub tool to ingest datasets to the database
