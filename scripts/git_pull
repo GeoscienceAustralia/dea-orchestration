@@ -2,7 +2,17 @@
 
 PATH_TO_SSH_KEY="$HOME/.ssh/id_rsa"
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+GIT_REPO="https://github.com/GeoscienceAustralia/COG-Conversion.git"
+COG_CONV_DIR="$HOME/COG-Conversion"
 
 cd "$SCRIPT_DIR" || exit 1  # Changes home folder to be in repo
 
 ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git checkout production; git reset --hard origin/production; git pull"
+
+if [ ! -d $COG_CONV_DIR ]; then
+  cd "$HOME"
+  ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git clone $GIT_REPO;"
+fi
+
+cd "$COG_CONV_DIR"
+ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git checkout master; git reset --hard origin/master; git pull"

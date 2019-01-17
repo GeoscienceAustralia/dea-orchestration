@@ -360,3 +360,19 @@ functions:
             copy_parent_dir_count: 0  # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
+  execute_cog_conversion:
+    handler: handler.execute_ssh_command
+    description: Execute COG-Conversion process for the specified product and upload the files back to S3
+    environment:
+      cmd: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
+                                   --queue ${self:provider.environment.QUEUE}
+                                   --project ${self:provider.environment.PROJECT}
+                                   --product <%= product %>
+                                   --time-range <%= time_range %>'
+    events:
+      - schedule:
+          rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
+          enabled: false
+          input:
+            product: wofs_albers
+            time_range: '2018-11-30 < time < 2018-12-01'
