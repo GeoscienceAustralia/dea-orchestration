@@ -31,7 +31,7 @@ custom:
 provider:
   name: aws
   runtime: nodejs6.10
-  timeout: 300  # 5 minutes. Default is 6 seconds
+  timeout: 600  # 10 minutes. Default is 6 seconds
   profile: ${self:custom.profiles.${self:custom.Stage}}
   environment:
     hostkey: 'orchestrator.raijin.users.default.host'
@@ -369,10 +369,12 @@ functions:
                                    --project ${self:provider.environment.PROJECT}
                                    --product <%= product %>
                                    --time-range <%= time_range %>'
+      # Max configurable years is 8 years due to lambda function timeout limitation
+      yearrange: '2011-2018'
     events:
       - schedule:
           rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
           enabled: false
           input:
             product: wofs_albers
-            time_range: '2018-11-30 < time < 2018-12-01'
+            time_range: ""  # time range shall be updated within lambda function handler
