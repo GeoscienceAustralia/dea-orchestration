@@ -1,0 +1,62 @@
+#!/bin/bash
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --dea-module )          shift
+                                MODULE="$1"
+                                ;;
+        --queue )               shift
+                                QUEUE="$1"
+                                ;;
+        --project )             shift
+                                PROJECT="$1"
+                                ;;
+        --product )             shift
+                                PRODUCT="$1"
+                                ;;
+        --time-range )          shift
+                                RANGE_EXP="'$*'"
+                                break # Last input argument and hence exiting while loop
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"
+SUBMISSION_LOG="$WORKDIR"/Cog_$(date '+%F_%H_%m_%s').log
+
+mkdir -p "${WORKDIR}"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+
+cd "${WORKDIR}"
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+echo "Logging into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module ${MODULE}
+echo ""
+
+# Check if we can connect to the database
+datacube -vv system check
+
+echo ""
+echo "Starting Cog-Conversion process......"
+
+##################################################################################################
+# Qsub cog-convert process
+##################################################################################################
+python3 "$HOME"/COG-Conversion/streamer/streamer.py --help
+
+python3 "$HOME"/COG-Conversion/streamer/streamer.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
+--time-range ${RANGE_EXP}
+
+EOF
