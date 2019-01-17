@@ -57,6 +57,6 @@ echo "Starting Cog-Conversion process......"
 python3 "$HOME"/COG-Conversion/streamer/streamer.py --help
 
 python3 "$HOME"/COG-Conversion/streamer/streamer.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
---time-range ${RANGE_EXP}
+--walltime 20 --time-range ${RANGE_EXP}
 
 EOF
