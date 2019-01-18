@@ -79,6 +79,48 @@ function process_s2ard_sync_command(event) {
     return command_list
 }
 
+/**
+ * Construct time range as a string.
+ */
+function event_range(year, month, date1, date2) {
+    return "'" + year + "-" + month + '-' + date1 + ' < time < '+ year + "-" + month + '-' + date2 + "'";
+}
+
+/**
+ * Construct cog conversion command and turn the entire event into an ssh execution command list.
+ */
+function process_cog_conv_command(event) {
+    var yearRange = process.env.yearrange;
+    var arr = yearRange.split("-");
+    var months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+    for(var year=arr[0]; year <= arr[1]; year++) {
+        for(var j=0; j<months.length; j++) {
+            event.time_range = event_range(year, months[j], "01", "05");
+            let command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "05", "10");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "10", "15");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "15", "20");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "20", "25");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "25", "30");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+            event.time_range = event_range(year, months[j], "30", "31");
+            command_1 = create_execution_string(event);
+            command_list.push(command_1)
+        }
+    }
+    return command_list
+}
+
 exports.execute_ssh_command = (event, context, callback) => {
         let req = {
                    Names: [hostkey, userkey, pkey],
@@ -142,6 +184,8 @@ exports.execute_ssh_command = (event, context, callback) => {
                  command = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 's2_ard_granule') {
                  command = process_s2ard_sync_command(event);
+            } else if (!event.cog_product || event.cog_product === "") {
+                 command = process_cog_conv_command(event);
             } else {
                  let cmd = create_execution_string(event);
                  command.push(cmd)
