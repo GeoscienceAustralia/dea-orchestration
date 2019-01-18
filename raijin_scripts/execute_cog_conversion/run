@@ -28,8 +28,8 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"
-SUBMISSION_LOG="$WORKDIR"/Cog_$(date '+%F_%H_%m_%s').log
+WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"/$(date '+%F_%H_%m_%s')
+SUBMISSION_LOG="$WORKDIR"/Cog_Submission.log
 
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
@@ -54,9 +54,7 @@ echo "Starting Cog-Conversion process......"
 ##################################################################################################
 # Qsub cog-convert process
 ##################################################################################################
-python3 "$HOME"/COG-Conversion/streamer/streamer.py --help
-
-python3 "$HOME"/COG-Conversion/streamer/streamer.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
---walltime 20 --time-range ${RANGE_EXP}
+python3 "$HOME"/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
+--walltime 20 --output-dir ${WORKDIR} --time-range ${RANGE_EXP}
 
 EOF
