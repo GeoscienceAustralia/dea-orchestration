@@ -376,5 +376,5 @@ functions:
           rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
           enabled: false
           input:
-            product: wofs_albers
+            cog_product: wofs_albers
             time_range: ""  # time range shall be updated within lambda function handler
