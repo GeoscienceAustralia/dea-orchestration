@@ -13,7 +13,7 @@ while [[ "$#" -gt 0 ]]; do
         --project )             shift
                                 PROJECT="$1"
                                 ;;
-        --product )             shift
+        --cog-product )         shift
                                 PRODUCT="$1"
                                 ;;
         --time-range )          shift
