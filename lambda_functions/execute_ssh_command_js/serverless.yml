@@ -394,13 +394,13 @@ functions:
       cmd: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
                                    --queue ${self:provider.environment.QUEUE}
                                    --project ${self:provider.environment.PROJECT}
-                                   --product <%= product %>
+                                   --cog-product <%= cog_product %>
                                    --time-range <%= time_range %>'
       # Max configurable years is 8 years due to lambda function timeout limitation
-      yearrange: '2011-2018'
+      yearrange: '2018-2018'
     events:
       - schedule:
-          rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
+          rate: cron(30 10 ? * TUE *)  # Run every Tuesday, at 08:30 pm Canberra time
           enabled: false
           input:
             cog_product: wofs_albers

@@ -2,6 +2,8 @@
 'use strict';
 const SSH = require('simple-ssh');
 const path = require('path');
+const UNDERSCORE = require("underscore");
+
 var _ = require('lodash');
 var sleep = require("deasync").sleep;
 
@@ -15,7 +17,7 @@ const hostkey = process.env.hostkey;
 const userkey = process.env.userkey;
 const pkey = process.env.pkey;
 var command_list = [];
-var command = [];
+var CMDList = [];
 
 /**
  * Turn an event into an ssh execution string.
@@ -48,8 +50,8 @@ function process_ls_sync_command(event, bPath, suffix) {
     for(var year=arr[0]; year <= arr[1]; year++) {
         event.path = bPath + year + "/??" + suffix;
         event.year = year;
-        let cmd = create_execution_string(event);
-        command_list.push(cmd)
+        let ls_cmd = create_execution_string(event);
+        command_list.push(ls_cmd)
     }
     return command_list
 }
@@ -72,8 +74,8 @@ function process_s2ard_sync_command(event) {
         for(var j=0; j<months.length; j++) {
             event.path = basePath + year + "-" + months[j] + "-*/*/";
             event.year = year;
-            let cmd = create_execution_string(event);
-            command_list.push(cmd)
+            let s2cmd = create_execution_string(event);
+            command_list.push(s2cmd)
         }
     }
     return command_list
@@ -128,7 +130,7 @@ exports.execute_ssh_command = (event, context, callback) => {
         };
         let keys = ssm.getParameters(req).promise();
         command_list = [];  // Empty command list before starting command execution
-        command = [];  // Empty command variable before starting command execution
+        CMDList = [];  // Empty command variable before starting command execution
 
         keys.catch(function(err) {
             console.log(err);
@@ -153,68 +155,76 @@ exports.execute_ssh_command = (event, context, callback) => {
             if (event.product == 'ls8_nbar_scene') {
                  let bPath = process.env.ls8_nbar_nbart_basepath;
                  let suffix = process.env.nbar_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_nbart_scene') {
                  let bPath = process.env.ls8_nbar_nbart_basepath;
                  let suffix = process.env.nbart_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_nbar_scene') {
                  let bPath = process.env.ls7_nbar_nbart_basepath;
                  let suffix = process.env.nbar_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_nbart_scene') {
                  let bPath = process.env.ls7_nbar_nbart_basepath;
                  let suffix = process.env.nbart_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_pq_scene') {
                  let bPath = process.env.ls8_pq_basepath;
                  let suffix = process.env.pq_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_pq_scene') {
                  let bPath = process.env.ls7_pq_basepath;
                  let suffix = process.env.pq_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_pq_legacy_scene') {
                  let bPath = process.env.ls8_pq_legacy_basepath;
                  let suffix = process.env.pq_legacy_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_pq_legacy_scene') {
                  let bPath = process.env.ls7_pq_legacy_basepath;
                  let suffix = process.env.pq_legacy_suffix;
-                 command = process_ls_sync_command(event, bPath, suffix);
+                 CMDList = process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 's2_ard_granule') {
-                 command = process_s2ard_sync_command(event);
-            } else if (!event.cog_product || event.cog_product === "") {
-                 command = process_cog_conv_command(event);
+                 CMDList = process_s2ard_sync_command(event);
+            } else if (typeof event.cog_product !== 'undefined') {
+                 // event.cog_product is defined
+                 console.log(`event.cog_product is defined`);
+                 CMDList = process_cog_conv_command(event);
             } else {
                  let cmd = create_execution_string(event);
-                 command.push(cmd)
+                 CMDList.push(cmd)
             }
 
-            for (var i=0; i < command.length; i++) {
-                sleep(1000);  // Delay for 1 second before executing new command
-                ssh
-                   .exec(command[i], {
-                         exit: (code, stdout, stderr) => {
-                            if (code == 0) {
-                                            console.log(`Executing: ${command[i]}`);
-                                            console.log(`STDOUT: ${stdout}`);
-                                            console.log(`SSH returncode: ${code}`);
-                                            const response = { statusCode: 0, body: 'SSH command executed.' };
-                                            // Return success with information back to the caller
-                                            callback(null, response);
-                            } else {
-                                     console.log(`STDERR: ${stderr}`);
-                                     console.log(`SSH returncode: ${code}`);
-                                     //  Return error with error information back to the caller
-                                     callback(`Failed to execute, ${command[i]}, command`);
-                            }
-                         }
-                   })
-                .start({
-                        success: () => console.log(`Successfully connected to ${params[hostkey]}`),
-                        fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
-                });
-             }
+            CMDList.length = CMDList.length;
+            UNDERSCORE.each(CMDList, function(this_command, i){
+               ssh.exec(this_command, {
+                  exit: (code, stdout, stderr) => {
+                       var response = { statusCode: code, body: 'SSH command executed.' };
+
+                       if (code == 0) {
+                                        console.log("Executing command", i+1, "/", CMDList.length)
+                                        console.log("$ " + this_command);
+
+                                        // Return success with information back to the caller
+                                        callback(null, response);
+
+                                        console.log(response);
+                                        sleep(1000); // Sleep for 1 second
+                       } else {
+                               console.log(`STDERR: ${stderr}`);
+                               response = { statusCode: code,
+                                            body: `Failed to execute, ${this_command}, command` };
+
+                               //  Return error with error information back to the caller
+                               callback(`Failed to execute, ${this_command}, command`);
+                       }
+                  }
+               });
+            });
+            console.log(`${CMDList.length} commands will be executed`);
+            ssh.start({
+                       success: () => console.log(`Successfully connected to ${params[hostkey]}`),
+                       fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
+            });
         });
 };
