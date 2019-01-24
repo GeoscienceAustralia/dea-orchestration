@@ -221,7 +221,7 @@ exports.execute_ssh_command = (event, context, callback) => {
                   }
                });
             });
-            console.log(`${CMDList.length} commands will be executed`);
+            console.log(`${CMDList.length} command/s will be executed`);
             ssh.start({
                        success: () => console.log(`Successfully connected to ${params[hostkey]}`),
                        fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
