@@ -2,7 +2,6 @@
 'use strict';
 const SSH = require('simple-ssh');
 const path = require('path');
-const UNDERSCORE = require("underscore");
 
 var _ = require('lodash');
 var sleep = require("deasync").sleep;
@@ -190,7 +189,7 @@ exports.execute_ssh_command = (event, context, callback) => {
                  CMDList.push(cmd)
             }
 
-            UNDERSCORE.each(CMDList, function(this_command, i){
+            _.each(CMDList, function(this_command, i){
                ssh.exec(this_command, {
                   exit: (code, stdout, stderr) => {
                        var response = { statusCode: code, body: 'SSH command executed.' };
