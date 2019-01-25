@@ -58,6 +58,6 @@ echo "Executing: python3 $HOME/COG-Conversion/converter/cog_conv_app.py qsub-cog
 -p ${PRODUCT} --walltime 20 --output-dir ${WORKDIR} --time-range '${RANGE_EXP}'"
 
 python3 "$HOME"/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
---walltime 20 --output-dir ${WORKDIR} --time-range '"${RANGE_EXP}"'
+--walltime 20 --output-dir ${WORKDIR} --time-range ${RANGE_EXP}
 
 EOF
