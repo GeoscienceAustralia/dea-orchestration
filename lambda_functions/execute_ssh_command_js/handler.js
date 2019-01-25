@@ -16,7 +16,6 @@ const ssm = new AWS.SSM();
 const hostkey = process.env.hostkey;
 const userkey = process.env.userkey;
 const pkey = process.env.pkey;
-var command_list = [];
 var CMDList = [];
 
 /**
@@ -51,9 +50,8 @@ function process_ls_sync_command(event, bPath, suffix) {
         event.path = bPath + year + "/??" + suffix;
         event.year = year;
         let ls_cmd = create_execution_string(event);
-        command_list.push(ls_cmd)
+        CMDList.push(ls_cmd)
     }
-    return command_list
 }
 
 /**
@@ -75,10 +73,9 @@ function process_s2ard_sync_command(event) {
             event.path = basePath + year + "-" + months[j] + "-*/*/";
             event.year = year;
             let s2cmd = create_execution_string(event);
-            command_list.push(s2cmd)
+            CMDList.push(s2cmd)
         }
     }
-    return command_list
 }
 
 /**
@@ -99,28 +96,27 @@ function process_cog_conv_command(event) {
         for(var j=0; j<months.length; j++) {
             event.time_range = event_range(year, months[j], "01", "05");
             let command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "05", "10");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "10", "15");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "15", "20");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "20", "25");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "25", "30");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
             event.time_range = event_range(year, months[j], "30", "31");
             command_1 = create_execution_string(event);
-            command_list.push(command_1)
+            CMDList.push(command_1)
         }
     }
-    return command_list
 }
 
 exports.execute_ssh_command = (event, context, callback) => {
@@ -129,7 +125,6 @@ exports.execute_ssh_command = (event, context, callback) => {
                    WithDecryption: true
         };
         let keys = ssm.getParameters(req).promise();
-        command_list = [];  // Empty command list before starting command execution
         CMDList = [];  // Empty command variable before starting command execution
 
         keys.catch(function(err) {
@@ -155,47 +150,46 @@ exports.execute_ssh_command = (event, context, callback) => {
             if (event.product == 'ls8_nbar_scene') {
                  let bPath = process.env.ls8_nbar_nbart_basepath;
                  let suffix = process.env.nbar_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_nbart_scene') {
                  let bPath = process.env.ls8_nbar_nbart_basepath;
                  let suffix = process.env.nbart_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_nbar_scene') {
                  let bPath = process.env.ls7_nbar_nbart_basepath;
                  let suffix = process.env.nbar_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_nbart_scene') {
                  let bPath = process.env.ls7_nbar_nbart_basepath;
                  let suffix = process.env.nbart_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_pq_scene') {
                  let bPath = process.env.ls8_pq_basepath;
                  let suffix = process.env.pq_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_pq_scene') {
                  let bPath = process.env.ls7_pq_basepath;
                  let suffix = process.env.pq_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls8_pq_legacy_scene') {
                  let bPath = process.env.ls8_pq_legacy_basepath;
                  let suffix = process.env.pq_legacy_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 'ls7_pq_legacy_scene') {
                  let bPath = process.env.ls7_pq_legacy_basepath;
                  let suffix = process.env.pq_legacy_suffix;
-                 CMDList = process_ls_sync_command(event, bPath, suffix);
+                 process_ls_sync_command(event, bPath, suffix);
             } else if (event.product == 's2_ard_granule') {
-                 CMDList = process_s2ard_sync_command(event);
+                 process_s2ard_sync_command(event);
             } else if (typeof event.cog_product !== 'undefined') {
                  // event.cog_product is defined
                  console.log(`event.cog_product is defined`);
-                 CMDList = process_cog_conv_command(event);
+                 process_cog_conv_command(event);
             } else {
                  let cmd = create_execution_string(event);
                  CMDList.push(cmd)
             }
 
-            CMDList.length = CMDList.length;
             UNDERSCORE.each(CMDList, function(this_command, i){
                ssh.exec(this_command, {
                   exit: (code, stdout, stderr) => {
