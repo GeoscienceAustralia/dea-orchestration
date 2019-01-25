@@ -80,8 +80,8 @@ function process_s2ard_sync_command(event) {
 /**
  * Construct time range as a string.
  */
-function event_range(year, month, date1, date2) {
-    return "'" + year + "-" + month + '-' + date1 + ' < time < '+ year + "-" + month + '-' + date2 + "'";
+function event_range(year, month) {
+    return "'" + year + "-" + month + ' < time < '+ year + "-" + month + "'";
 }
 
 /**
@@ -93,26 +93,8 @@ function process_cog_conv_command(event) {
     var months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
     for(var year=arr[0]; year <= arr[1]; year++) {
         for(var j=0; j<months.length; j++) {
-            event.time_range = event_range(year, months[j], "01", "05");
+            event.time_range = event_range(year, months[j]);
             let command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "05", "10");
-            command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "10", "15");
-            command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "15", "20");
-            command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "20", "25");
-            command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "25", "30");
-            command_1 = create_execution_string(event);
-            CMDList.push(command_1)
-            event.time_range = event_range(year, months[j], "30", "31");
-            command_1 = create_execution_string(event);
             CMDList.push(command_1)
         }
     }
