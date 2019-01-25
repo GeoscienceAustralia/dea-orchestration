@@ -182,7 +182,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: 2018  # Actual year shall be updated within lambda function handler
+            year: 2019  # Actual year shall be updated within lambda function handler
             path: ""  # Path shall be updated within lambda function handler
   execute_ingest:
     handler: handler.execute_ssh_command
@@ -199,37 +199,37 @@ functions:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls8_nbart_albers
       - schedule:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls8_nbar_albers
       - schedule:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls8_pq_albers
       - schedule:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls7_nbart_albers
       - schedule:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls7_nbar_albers
       - schedule:
           rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls7_pq_albers
   execute_fractional_cover:
     handler: handler.execute_ssh_command
@@ -247,14 +247,14 @@ functions:
           rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls8_fc_albers
             tag: 'ls8_fc2018'
       - schedule:
           rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: ls7_fc_albers
             tag: 'ls7_fc2018'
   execute_wofs:
@@ -273,9 +273,9 @@ functions:
           rate: cron(20 10 ? * SUN *)  # Run every Sunday, at 08:20 pm Canberra time
           enabled: true
           input:
-            year: 2018
+            year: 2019
             product: wofs_albers
-            tag: '2018'
+            tag: '2019'
   execute_coherence:
     # Note: Keep `--timequery` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
@@ -291,7 +291,7 @@ functions:
           rate: cron(00 09 ? * TUE *)  # Run every Tuesday, at 07:00 pm Canberra time
           enabled: true
           input:
-            timequery: 'time in 2018'
+            timequery: 'time in 2019'
             product: all
   execute_notify_on_error_ds:
     handler: handler.execute_ssh_command
@@ -394,13 +394,13 @@ functions:
       cmd: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
                                    --queue ${self:provider.environment.QUEUE}
                                    --project ${self:provider.environment.PROJECT}
-                                   --product <%= product %>
+                                   --cog-product <%= cog_product %>
                                    --time-range <%= time_range %>'
       # Max configurable years is 8 years due to lambda function timeout limitation
-      yearrange: '2011-2018'
+      yearrange: '2017-2018'
     events:
       - schedule:
-          rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
+          rate: cron(30 10 ? * TUE *)  # Run every Tuesday, at 08:30 pm Canberra time
           enabled: false
           input:
             cog_product: wofs_albers
