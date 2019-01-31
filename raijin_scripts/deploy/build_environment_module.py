@@ -283,7 +283,7 @@ def install_pip_packages(pip_conf, variables):
     else:  # Either no target or prefix OR target and prefix were in the conf
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
-    LOG.info(f'Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
+    LOG.info(f'Installing pip packages from [ {requirements} ] into directory [ {dest} ]')
     run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
 
 
@@ -397,7 +397,7 @@ def main(config_path):
 
         LOG.info('')
         LOG.info('*'*80)
-        LOG.info(f'Run regression testing on new DEA Module (%r) ', dea_module)
+        LOG.info(f'Run regression testing on new DEA Module ({dea_module})')
         LOG.info('*'*80)
         run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
     else:
