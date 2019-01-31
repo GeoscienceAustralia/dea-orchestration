@@ -28,36 +28,50 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"
-SUBMISSION_LOG="$WORKDIR"/Cog_Submission_$(date '+%F_%H_%m_%s').log
+WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"/$(date '+%F_%T')
+SUBMISSION_LOG="$WORKDIR"/Cog_Submission_$(date '+%s').log
+START_YEAR=$(echo "$RANGE_EXP" | cut -f 1 -d '-')
+END_YEAR=$(echo "$RANGE_EXP" | cut -f 2 -d '-')
+TIME_RANGE_TO_PROCESS=()
 
 mkdir -p "${WORKDIR}"
-echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
 
-cd "${WORKDIR}"
+for (( year = "$START_YEAR"; year <= "$END_YEAR"; ++year )); do
+    for (( month = 01; month <= 12; ++month )); do
+        TIME_RANGE_TO_PROCESS+=("'time in $year-$month'")
+    done
+done
 
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
-echo "Logging into: ${SUBMISSION_LOG}"
-echo ""
-echo Loading module ${MODULE}
-echo ""
+echo "Start time: $(date '+%F-%T')
+
+Loading module ${MODULE}
 
 # Check if we can connect to the database
-datacube -vv system check
+$(datacube -vv system check)
+" > "$SUBMISSION_LOG"
+
+cd "${WORKDIR}"
 
 echo ""
 echo "Starting Cog-Conversion process......"
 
-##################################################################################################
-# Qsub cog-convert process
-##################################################################################################
-echo "Executing: python3 $HOME/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT}
--p ${PRODUCT} --walltime 20 --output-dir ${WORKDIR} --time-range '${RANGE_EXP}'"
+j=0
+for timeperiod in "${TIME_RANGE_TO_PROCESS[@]}"
+do
+  j=$((j+1))
+  nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
+  ##################################################################################################
+  # Qsub cog-convert process
+  ##################################################################################################
+  mkdir -p "${WORKDIR}/cache_$j"
+  echo ""
+  echo "Executing: python3 $HOME/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT}
+  -p ${PRODUCT} --walltime 20 --output-dir ${WORKDIR}/cache_$j --time-range ${timeperiod}"
 
-python3 "$HOME"/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
---walltime 20 --output-dir ${WORKDIR} --time-range ${RANGE_EXP}
-
+  python3 "$HOME"/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
+  --walltime 20 --output-dir ${WORKDIR}/cache_$j --time-range ${timeperiod}
 EOF
+done

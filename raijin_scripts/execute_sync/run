@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2154
 set -eu
 
 while [[ "$#" -gt 0 ]]; do
@@ -7,23 +8,20 @@ while [[ "$#" -gt 0 ]]; do
         --dea-module )          shift
                                 MODULE="$1"
                                 ;;
-        --year )                shift
-                                YEAR="$1"
-                                ;;
         --queue )               shift
                                 QUEUE="$1"
                                 ;;
         --project )             shift
                                 PROJECT="$1"
                                 ;;
-        --stage )               shift
-                                STAGE="$1"
+        --year )                shift
+                                YEAR="$1"
                                 ;;
         --path )                shift
-                                # Expand a shell glob pattern, for more flexible path definition
-                                # See https://stackoverflow.com/a/45933949/119603 for more info
-                                # shellcheck disable=SC2206
-                                PATHS_TO_PROCESS=("$1")
+                                BASE_PATH="$1"
+                                ;;
+        --suffixpath )          shift
+                                SUFFIX_PATH="$1"
                                 ;;
         --product )             shift
                                 PRODUCT="$1"
@@ -39,83 +37,59 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+PATHS_TO_PROCESS=()
+WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
+SYNC_CACHE="${WORKDIR}"/cache_$(date '+%N')
+SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
+JOB_NAME="${YEAR}_${PRODUCT}"
+START_YEAR=$(echo "$YEAR" | cut -f 1 -d '-')
+END_YEAR=$(echo "$YEAR" | cut -f 2 -d '-')
+
 # Override echo command to prepend timestamp before echo message
 echo() {
     command echo "$(date '+%F_%T.%N')" "$@"
 }
 
-WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
-SYNC_CACHE="${WORKDIR}"/cache/
-SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
-JOB_NAME="${YEAR}_${PRODUCT}"
-count=0
-dbhostname='agdcdev-db.nci.org.au'
-dbport='6432'
-dbname='datacube'
-
 mkdir -p "${SYNC_CACHE}"
-echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
-while read -r LINE; do
-  if [[ "$count" -eq 1 ]]
-  then
-      dbhostname="$(cut -d' ' -f2 <<<"$LINE")"
-      count="$((count+1))"
-  elif [[ "$count" -eq 2 ]]
-  then
-      dbport="$(cut -d' ' -f2 <<<"$LINE")"
-      count="$((count+1))"
-  elif [[ "$count" -eq 3 ]]
-  then
-      dbname="$(cut -d' ' -f2 <<<"$LINE")"
-      count="$((count+1))"
-  fi
-
-  if [[ "${STAGE}" == "dev"  && "$LINE" == "[dea-dev]" ]]; then
-      count="$((count+1))"
-  fi
-
-  if [[ "${STAGE}" == "prod"  && "$LINE" == "[datacube]" ]]; then
-      count="$((count+1))"
-  fi
-done  < "$DATACUBE_CONFIG_PATH"
 
 TRASH_ARCHIVED=''
 if [ "$TRASH_ARC" == yes ]; then
    TRASH_ARCHIVED='--trash-archived'
 fi
 
+for (( year = "$START_YEAR"; year <= "$END_YEAR"; ++year )); do
+    PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH")
+done
+
 cd "${WORKDIR}"
 
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
-echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
-echo ""
-echo Loading module "${MODULE}"
-echo ""
+echo "Start time: $(date '+%F-%T')
+
+Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}
+Loading module ${MODULE}
 
 # Check if we can connect to the database
-datacube -vv system check
+$(datacube -vv system check)
+" > "$SUBMISSION_LOG"
 
-# Read agdc datasets from the database before sync process
-echo ""
-echo "**********************************************************************"
-echo "Read previous agdc_dataset product names and count before sync process"
-echo "Connected to the database host name: ${dbhostname}"
-echo "Connected to the database port number: ${dbport}"
-echo "Connected to the database name: ${dbname}"
-psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
-  -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
-echo "**********************************************************************"
+for syncpath in "${PATHS_TO_PROCESS[@]}"
+do
+  nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
+  ##################################################################################################
+  # Run dea-sync process
+  ##################################################################################################
+  echo ""
+  echo "qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=16 -m ae \
+  -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
+  -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
+  --index-missing ${syncpath}"
 
-echo ""
-echo "Starting Sync process......"
-##################################################################################################
-# Run dea-sync process
-##################################################################################################
-qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=1 -m ae \
-   -M nci.monitor@dea.ga.gov.au -P "${PROJECT}" -o ${WORKDIR} -e ${WORKDIR} \
-   -- dea-sync -vvv --cache-folder ${WORKDIR}/cache -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
-   --index-missing ${PATHS_TO_PROCESS[@]}
+  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=16 -m ae \
+  -M nci.monitor@dea.ga.gov.au -P "${PROJECT}" -o ${WORKDIR} -e ${WORKDIR} \
+  -- dea-sync -vvv --cache-folder "${SYNC_CACHE}" -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
+  --index-missing "${syncpath}"
 EOF
+done

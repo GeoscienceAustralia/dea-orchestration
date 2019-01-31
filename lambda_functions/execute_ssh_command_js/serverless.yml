@@ -74,27 +74,16 @@ functions:
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
-    description: Sync Landsat 7/8 Scenes (NBAR/NBART/PQ/PQ_LEGACY Scenes)
+    description: Sync Landsat 7/8 Scenes (NBAR/NBART/PQ/PQ_LEGACY Scenes) and Sentinal 2 ARD Granules
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
                          --project ${self:provider.environment.PROJECT}
-                         --stage ${self:custom.Stage}
                          --year <%= year %>
                          --path <%= path %>
+                         --suffixpath <%= suffixpath %>
                          --product <%= product %>
                          --trasharchived <%= trasharchived %>'
-      yearrange: '2016-2019'
-      ls8_nbar_nbart_basepath: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
-      ls8_pq_basepath: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
-      ls8_pq_legacy_basepath: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
-      ls7_nbar_nbart_basepath: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
-      ls7_pq_basepath: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
-      ls7_pq_legacy_basepath: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/'
-      nbar_suffix: '/output/nbar/'
-      nbart_suffix: '/output/nbart/'
-      pq_suffix: '/output/pqa/'
-      pq_legacy_suffix: '/output/pqa/'
     events:
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
@@ -102,88 +91,180 @@ functions:
           input:
             product: ls8_nbar_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
+            suffixpath: '/??/output/nbar/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls7_nbar_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
+            suffixpath: '/??/output/nbar/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls8_nbart_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
+            suffixpath: '/??/output/nbart/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls7_nbart_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
+            suffixpath: '/??/output/nbart/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls8_pq_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
+            suffixpath: '/??/output/pqa/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls7_pq_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
+            suffixpath: '/??/output/pqa/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls8_pq_legacy_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
+            suffixpath: '/??/output/pqa/'
       - schedule:
           rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: ls7_pq_legacy_scene
             trasharchived: no
-            year: 1234  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
-  execute_s2ard_sync:
-    # trasharchived is set to 'yes' only for the albers products and not for the scenes
-    handler: handler.execute_ssh_command
-    description: Sync Sentinal 2 ARD Granules
-    environment:
-      cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
-                         --queue ${self:provider.environment.QUEUE}
-                         --project ${self:provider.environment.PROJECT}
-                         --stage ${self:custom.Stage}
-                         --year <%= year %>
-                         --path <%= path %>
-                         --product <%= product %>
-                         --trasharchived <%= trasharchived %>'
-      basepath: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-      yearrange: '2015-2019'
-    events:
+            year: '2016-2019'
+            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/'
+            suffixpath: '/??/output/pqa/'
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: 2019  # Actual year shall be updated within lambda function handler
-            path: ""  # Path shall be updated within lambda function handler
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-01-*/*/'  # Process January month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-02-*/*/'  # Process February month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-03-*/*/'  # Process March month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-04-*/*/'  # Process April month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-05-*/*/'  # Process May month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-06-*/*/'  # Process June month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-07-*/*/'  # Process July month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-08-*/*/'  # Process August month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-09-*/*/'  # Process September month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-10-*/*/'  # Process October month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-11-*/*/'  # Process November month data
+      - schedule:
+          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          enabled: true
+          input:
+            product: s2_ard_granule
+            trasharchived: no
+            year: '2015-2019'
+            path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
+            suffixpath: '-12-*/*/'  # Process December month data
   execute_ingest:
     handler: handler.execute_ssh_command
     description: Execute dea-submit-ingest qsub tool to ingest datasets to the database
@@ -396,12 +477,11 @@ functions:
                                    --project ${self:provider.environment.PROJECT}
                                    --cog-product <%= cog_product %>
                                    --time-range <%= time_range %>'
-      # Max configurable years is 8 years due to lambda function timeout limitation
-      yearrange: '2017-2018'
     events:
       - schedule:
           rate: cron(30 10 ? * TUE *)  # Run every Tuesday, at 08:30 pm Canberra time
           enabled: false
           input:
             cog_product: wofs_albers
-            time_range: ""  # time range shall be updated within lambda function handler
+            # Max configurable years is 8 years due to lambda function timeout limitation
+            time_range: '2017-2018'
