@@ -330,14 +330,14 @@ functions:
           input:
             year: 2019
             product: ls8_fc_albers
-            tag: 'ls8_fc2018'
+            tag: 'ls8_fc2019'
       - schedule:
           rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
           enabled: true
           input:
             year: 2019
             product: ls7_fc_albers
-            tag: 'ls7_fc2018'
+            tag: 'ls7_fc2019'
   execute_wofs:
     handler: handler.execute_ssh_command
     description: Execute datacube-wofs submit tool to generate wofs and ingest them to the database
@@ -479,9 +479,9 @@ functions:
                                    --time-range <%= time_range %>'
     events:
       - schedule:
-          rate: cron(30 10 ? * TUE *)  # Run every Tuesday, at 08:30 pm Canberra time
+          rate: cron(30 10 ? * MON *)  # Run every Monday, at 08:30 pm Canberra time
           enabled: false
           input:
             cog_product: wofs_albers
             # Max configurable years is 8 years due to lambda function timeout limitation
-            time_range: '2017-2018'
+            time_range: '2017-2019'
