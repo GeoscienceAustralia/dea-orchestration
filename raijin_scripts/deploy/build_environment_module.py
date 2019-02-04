@@ -20,7 +20,7 @@ New DEA-Env Module
 Note: if we see the following message when running interactive process on login nodes:
         RSS exceeded.user=abc123, pid=12345, cmd=exe, rss=4028904, rlim=2097152 Killed
 then, submit a QSUB job as follows:
-qsub -q copyq -N build-dea-env -P v10 -l ncpus=1,mem=31gb,jobfs=5GB,walltime=05:00:00,wd \
+  $ qsub -q copyq -N build-dea-env -P v10 -l ncpus=1,mem=31gb,jobfs=5GB,walltime=05:00:00,wd \
 -- /bin/bash -l -c "module use /g/data/v10/public/modules/modulefiles/; module load python3/3.6.2; \
 /<path>/build_environment_module.py /<path>/dea-env/modulespec.yaml"
 
@@ -397,7 +397,7 @@ def main(config_path):
         LOG.info('List installed packages and their versions:')
         LOG.info('*'*80)
 
-        script_dir = Path(__file__).absolute().parents[1] / 'test_deaenv'
+        script_dir = Path(__file__).absolute().parents[2] / 'test_deaenv'
         test_script = config['env_test']['test_script']
         dea_module = variables['dea_module']
         run_command(f'module load {dea_module}; pip freeze')
