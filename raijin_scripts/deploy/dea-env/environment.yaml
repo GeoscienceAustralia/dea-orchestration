@@ -12,6 +12,8 @@ dependencies:
 - click
 - cmocean
 - compliance-checker
+- conda
+- conda-env
 - curl
 - cython
 - dask
@@ -25,6 +27,8 @@ dependencies:
 - geopy
 - geos
 - geotiff
+- giflib
+- glib
 - glue-geospatial
 - graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
 - h5py
@@ -38,6 +42,7 @@ dependencies:
 - ipympl
 - ipywidgets
 - joblib
+- jmespath
 - jpeg
 - jplephem
 - json-c
@@ -55,17 +60,21 @@ dependencies:
 - memory_profiler
 # - mkl-service
 - mock
+- munch
 - nb_conda_kernels
 - netcdf4
 - nodejs
+- notebook
 - numba
 - numexpr
 - numpy
+- openjpeg
 - openssl
-- openmpi
 - pandas
 - parallel
+- pcre
 - pep8
+- pixman
 - plotly
 - psutil
 - psycopg2
