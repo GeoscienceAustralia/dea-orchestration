@@ -60,7 +60,6 @@ dependencies:
 - memory_profiler
 # - mkl-service
 - mock
-- mpi4py
 - munch
 - nb_conda_kernels
 - netcdf4

@@ -9,6 +9,9 @@ cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
 "$MINICONDA_PATH"/bin/conda update -y -c conda-forge --all
 
+# Due to conflict with latest version of rasterio (v1.0.15), install mpi4py first
+"$MINICONDA_PATH"/bin/conda install -y -c conda-forge mpi4py
+
 # Due to dependency on numpy 1.9, conflicting with latest version of numpy (v1.15), install rsgislib first
 "$MINICONDA_PATH"/bin/conda install -y -c conda-forge rsgislib
 
