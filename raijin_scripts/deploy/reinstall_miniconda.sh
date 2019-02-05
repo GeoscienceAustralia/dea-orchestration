@@ -9,7 +9,7 @@ cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
 "$MINICONDA_PATH"/bin/conda update -y -c conda-forge --all
 
-# Due to dependency on gdal 2.2, conflicting with latest version of rasterio (v1.0.15), install rsgislib first
+# Due to dependency on numpy 1.9, conflicting with latest version of numpy (v1.15), install rsgislib first
 "$MINICONDA_PATH"/bin/conda install -y -c conda-forge rsgislib
 
 # Due to dependency on libgdal 2.3, conflicting with latest version of rasterio, install tuiview after rsgislib
