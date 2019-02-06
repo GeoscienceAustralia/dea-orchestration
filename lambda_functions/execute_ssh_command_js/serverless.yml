@@ -480,8 +480,7 @@ functions:
     events:
       - schedule:
           rate: cron(30 10 ? * MON *)  # Run every Monday, at 08:30 pm Canberra time
-          enabled: false
+          enabled: true
           input:
             cog_product: wofs_albers
-            # Max configurable years is 8 years due to lambda function timeout limitation
-            time_range: '2017-2019'
+            time_range: '1986-2019'
