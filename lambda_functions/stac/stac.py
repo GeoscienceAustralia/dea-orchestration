@@ -13,6 +13,8 @@ import yaml
 from dateutil.parser import parse
 from parse import parse as pparse
 from pyproj import Proj, transform
+import pycrs
+
 
 S3_RES = boto3.resource('s3')
 
@@ -87,7 +89,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
     """
 
     if metadata_doc['grid_spatial']['projection'].get('valid_data', None):
-        geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']['projection']['valid_data']['coordinates'],
+        geodata = valid_coord_to_geojson(metadata_doc['grid_spatial']['projection']['valid_data'],
                                          metadata_doc['grid_spatial']['projection']['spatial_reference'])
     else:
         # Compute geometry from geo_ref_points
@@ -97,7 +99,8 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         # last point and first point should be same
         points[0].append(points[0][0])
 
-        geodata = valid_coord_to_geojson(points, metadata_doc['grid_spatial']['projection']['spatial_reference'])
+        geodata = valid_coord_to_geojson({'type': 'Polygon', 'coordinates': points},
+                                         metadata_doc['grid_spatial']['projection']['spatial_reference'])
 
     # Convert the date to add time zone.
     center_dt = parse(metadata_doc['extent']['center_dt'])
@@ -115,7 +118,7 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
                   metadata_doc['extent']['coord']['ll']['lat'],
                   metadata_doc['extent']['coord']['ur']['lon'],
                   metadata_doc['extent']['coord']['ur']['lat']]),
-        ('geometry', geodata['geometry']),
+        ('geometry', geodata),
         ('properties', {
             'datetime': center_dt,
             'provider': CFG['contact']['name'],
@@ -148,18 +151,18 @@ def valid_coord_to_geojson(valid_coord, spatial_reference):
         lat/lon as in universal format in EPSG:4326
     """
 
-    albers = Proj(init=spatial_reference)
-    geo = Proj(init='epsg:4326')
-    for i in range(len(valid_coord[0])):
-        j = transform(albers, geo, valid_coord[0][i][0], valid_coord[0][i][1])
-        valid_coord[0][i] = list(j)
+    coords = valid_coord['coordinates']
+    try:
+        albers = Proj(init=spatial_reference)
+    except RuntimeError:
+        albers = Proj(pycrs.parse.from_unknown_text(spatial_reference).to_proj4())
 
-    return {
-        'geometry': {
-            "type": "Polygon",
-            "coordinates": valid_coord
-        }
-    }
+    geo = Proj(init='epsg:4326')
+    for i in range(len(coords[0])):
+        j = transform(albers, geo, coords[0][i][0], coords[0][i][1])
+        coords[0][i] = list(j)
+
+    return {"type": "Polygon", "coordinates": coords}
 
 
 def get_stac_item_parent(s3_key):
