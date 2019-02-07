@@ -179,7 +179,7 @@ def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
 
     # We may need to wait here a bit until messages in the queue are delivered
     # This should be at least timeout of lambda
-    time.sleep(300)
+    time.sleep(500)
 
     s3_client = boto3.client('s3')
     for dts in s3_dataset_yamls:
