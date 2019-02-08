@@ -17,12 +17,9 @@ New DEA-Env Module
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml
 
-Note: if we see the following message when running interactive process on login nodes:
-        RSS exceeded.user=abc123, pid=12345, cmd=exe, rss=4028904, rlim=2097152 Killed
-then, submit a QSUB job as follows:
-  $ qsub -q copyq -N build-dea-env -P v10 -l ncpus=1,mem=31gb,jobfs=5GB,walltime=05:00:00,wd \
--- /bin/bash -l -c "module use /g/data/v10/public/modules/modulefiles/; module load python3/3.6.2; \
-/<path>/build_environment_module.py /<path>/dea-env/modulespec.yaml"
+# https://github.com/conda-forge/tensorflow-feedstock/issues/11
+Once dea-env module is built, install tensorflow as follows:
+  $ <new dea env module path>/bin/conda install -y -c jjhelmus tensorflow
 
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
