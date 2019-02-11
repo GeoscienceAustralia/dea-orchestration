@@ -149,7 +149,6 @@ declare -a albers_yaml_array=("ls8_nbart_albers.yaml"
                               "ls8_pq_albers.yaml")
 
 cd "$WORKDIR"/work/ingest || exit 0
-pbs_job="$migrate_job"
 
 for i in "${albers_yaml_array[@]}"
 do
@@ -157,13 +156,14 @@ do
 
   set -x  # echo is on
 
-  ingest_job=$(qsub -V -W depend=afterok:"$pbs_job" \
+  ingest_job=$(qsub -V -W depend=afterok:"$migrate_job" \
 -v WORKDIR="$WORKDIR",PRODUCT="$productname",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",\
 TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-submit-ingest.sh)
 
   set +x  # echo is off
-  pbs_job="$ingest_job"
 done
+
+pbs_job="$ingest_job"
 
 echo "
 ##################################################################################################
