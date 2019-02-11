@@ -163,8 +163,6 @@ TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/dea-submit-ingest.sh)
   set +x  # echo is off
 done
 
-pbs_job="$ingest_job"
-
 echo "
 ##################################################################################################
 # Run a dea-env-test FC using PBS job submission
