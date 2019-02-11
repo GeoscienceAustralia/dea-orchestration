@@ -38,7 +38,7 @@ provider:
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
-    DEA_MODULE: dea/20181211
+    DEA_MODULE: dea/20181213
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
