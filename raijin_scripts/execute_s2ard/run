@@ -7,6 +7,7 @@ set -eu
 
 FILE_MOD_END=""
 FILE_MOD_START_OFFSET=""
+WAGL_VERSION='5.3.1'
 
 # OBS_YEAR is the observation year to process
 OBS_YEAR=""
@@ -101,7 +102,7 @@ echo "Loading module wagl module"
 module use /g/data/v10/public/modules/modulefiles
 module use /g/data/v10/private/modules/modulefiles
 
-module load wagl/5.3.0
+module load "wagl/${WAGL_VERSION}"
 
 
 # Queue each year individually to reduce real time and total memory
@@ -137,7 +138,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
                         --workdir "$WAGL_WORKDIR" \
                         --start-date "$FILE_MOD_START" \
                         --end-date "$FILE_MOD_END" \
-                        --env "${WAGL_CFG_ROOT}/5.3.0/Sentinel-2/definitive.env" \
+                        --env "${WAGL_CFG_ROOT}/${WAGL_VERSION}/Sentinel-2/definitive.env" \
                         --project "$PROJECT"
                     ;;
          "*"        )
