@@ -1,12 +1,13 @@
 name: dea-env
 channels:
 - conda-forge
+- brittainhard
 dependencies:
 - affine
 - attrs
 - basemap
+- black
 - bottleneck
-- boost-cpp
 - boto3
 - bqplot
 - botocore
@@ -16,16 +17,20 @@ dependencies:
 - click
 - click-plugins
 - cligj
+- cmocean
 - compliance-checker
 - conda
 - conda-env
 - curl
+- cvxopt
+- cvxpy
 - cython
 - dask
 - distributed
 - docutils
 - ephem
 - expat
+- fancyimpute
 - fiona
 - folium
 - fontconfig
@@ -40,8 +45,10 @@ dependencies:
 - gettext
 - giflib
 - glib
+- glueviz
 - glue-geospatial
 - graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
+- hdbscan
 - hdf4
 - hdf5
 - h5py
@@ -68,17 +75,7 @@ dependencies:
 - libgdal
 - libgfortran
 - libgfortran-ng
-- libiconv
-- libkml
 - libnetcdf
-- libpng
-- libpq
-- libspatialite
-- libssh2
-- libtiff
-- libuuid
-- libxcb
-- libxml2
 - line_profiler
 - luigi
 - matplotlib
@@ -88,6 +85,7 @@ dependencies:
 - mkl_fft
 - mkl_random
 - mock
+- mpi4py
 - munch
 - nb_conda_kernels
 - netcdf4
@@ -95,7 +93,7 @@ dependencies:
 - notebook
 - numba
 - numexpr
-- numpy
+- numpy >= 1.16
 - openjpeg
 - pandas
 - parallel
@@ -118,13 +116,12 @@ dependencies:
 - python >= 3.6.6
 - python-dateutil
 - pyyaml
-- rasterio
+- rasterio >= 1.0.15
 - rasterstats
 - recommonmark
 - redis
 - redis-py
 - rios
-- rsgislib
 - rtree
 - s3transfer
 - scikit-image
@@ -141,6 +138,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
+- tensorflow == 1.9.0
 - tornado
 - tqdm
 - tuiview
@@ -150,17 +148,6 @@ dependencies:
 - xarray
 - xerces-c
 - xgboost
-- xorg-kbproto
-- xorg-libice
-- xorg-libsm
-- xorg-libx11
-- xorg-libxau
-- xorg-libxdmcp
-- xorg-libxext
-- xorg-libxrender
-- xorg-renderproto
-- xorg-xextproto
-- xorg-xproto
 - yaml
 - yarn
 - pip:

@@ -13,7 +13,7 @@
 
 ## The number of cpus required for the job to run
 #PBS -l ncpus=16
-#PBS -l walltime=10:00:00
+#PBS -l walltime=2:00:00
 
 #PBS -N qsub_ingest
 
@@ -74,4 +74,4 @@ echo "**********************************************************************"
 echo ""
 
 cd "$INGESTDIR" || exit 0
-yes 2>/dev/null | dea-submit-ingest qsub --project u46 --queue express -n 5 -t 10 -m ae -M santosh.mohan@ga.gov.au -W umask=33 --name "$JOB_NAME" -c "$WORKDIR"/ingest_configfiles/"${PRODUCT}".yaml -C "$CONFIGFILE" --allow-product-changes "${PRODUCT}" "${YEAR}"
+yes 2>/dev/null | dea-submit-ingest qsub --project u46 --queue express -n 5 -t 10 -W umask=33 --name "$JOB_NAME" -c "$WORKDIR"/ingest_configfiles/"${PRODUCT}".yaml -C "$CONFIGFILE" --allow-product-changes "${PRODUCT}" "${YEAR}"

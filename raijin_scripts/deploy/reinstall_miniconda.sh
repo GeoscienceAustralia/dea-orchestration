@@ -8,7 +8,10 @@ chmod +x "$TMPDIR/miniconda.sh"
 cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
 "$MINICONDA_PATH"/bin/conda update -y -c conda-forge --all
-"$MINICONDA_PATH"/bin/conda install -y -c conda-forge pip glueviz
+"$MINICONDA_PATH"/bin/conda install -y -c conda-forge pip
+
+# https://github.com/conda-forge/rsgislib-feedstock/issues/15
+"$MINICONDA_PATH"/bin/conda install -y -c conda-forge rsgislib
 
 if [ ! -d "$HOME"/.nvm ]
 then

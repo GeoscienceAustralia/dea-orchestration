@@ -3,13 +3,6 @@
 WORKDIR="$1"
 TESTDIR="$2"
 
-# Remove previous stored config files
-[ -d "$WORKDIR/work" ] && rm -r "$WORKDIR/work"
-[ -d "$WORKDIR/ingest_configfiles" ] && rm -r "$WORKDIR/ingest_configfiles"
-[ -d "$WORKDIR/stats_configfiles" ] && rm -r "$WORKDIR/stats_configfiles"
-[ -d "$WORKDIR/fc_configfiles" ] && rm -r "$WORKDIR/fc_configfiles"
-[ -d "$WORKDIR/wofs_configfiles" ] && rm -r "$WORKDIR/wofs_configfiles"
-
 # Create new empty directory
 mkdir -p "$WORKDIR"/ingest_configfiles
 mkdir -p "$WORKDIR"/stats_configfiles

@@ -2,14 +2,14 @@
 
 # Migrate from production database
 module use /g/data/v10/public/modules/modulefiles/
-echo "module unload $MUT"
+
+set -x  # Turn on Echo
 module unload "$MUT"
 
-echo "module load dea/20180515"
 module load dea/20180515
+set +x  # Turn off Echo
 
 export DATACUBE_CONFIG_PATH="$CONFIGFILE"
-echo "$DATACUBE_CONFIG_PATH"
 dea-test-env check
 dea-test-env teardown
 dea-test-env setup
@@ -41,16 +41,18 @@ dea-test-env migrate -S production --product ls8_pq_albers '2018-08-21 < time < 
 
 echo "Migrate dsm1sv10 product (required for WOfS) from production database to test database"
 
-echo "module unload dea/20180515"
+set -x  # Turn on Echo
 module unload dea/20180515
 sleep 5s # Wait for 5 seconds
 
-echo "module load $MUT"
 module load "$MUT"
+
+set +x  # Turn off Echo
 
 # Update dsm1sv10 product definition in the test database with the one we want as per the production database 
 datacube -C "$CONFIGFILE" -E NCI-test product update "$TEMP_DIR/dsm.yaml" --allow-unsafe
-datacube -C "$CONFIGFILE" -E NCI-test dataset add /g/data/v10/eoancillarydata/elevation/dsm1sv1_0_Clean_tiff/agdc-metadata.yaml --confirm-ignore-lineage -p dsm1sv10
+datacube -C "$CONFIGFILE" -E NCI-test dataset add \
+/g/data/v10/eoancillarydata/elevation/dsm1sv1_0_Clean_tiff/agdc-metadata.yaml --confirm-ignore-lineage -p dsm1sv10
 
 # Update fc and wofs albers product definition to the test database
 echo "Add FC and WOFS product definition to test database"
@@ -68,9 +70,6 @@ datacube -C "$CONFIGFILE" -E production product show dsm1sv10
 echo ""
 
 echo "Remove temp files:"
-echo "    $TEMP_DIR/wofs_albers.yaml"
-echo "    $TEMP_DIR/fc_albers.yaml"
-echo "    $TEMP_DIR/dsm.yaml"
 rm "$TEMP_DIR/wofs_albers.yaml"
 rm "$TEMP_DIR/fc_albers.yaml"
 rm "$TEMP_DIR/dsm.yaml"
