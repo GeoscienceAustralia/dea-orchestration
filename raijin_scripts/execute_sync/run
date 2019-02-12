@@ -39,7 +39,6 @@ done
 
 PATHS_TO_PROCESS=()
 WORKDIR=/g/data/v10/work/sync/"${PRODUCT}"/$(date '+%FT%H%M')
-SYNC_CACHE="${WORKDIR}"/cache_$(date '+%N')
 SUBMISSION_LOG="$WORKDIR"/sync-submission-"${PRODUCT}"-$(date '+%F-%T').log
 JOB_NAME="${YEAR}_${PRODUCT}"
 START_YEAR=$(echo "$YEAR" | cut -f 1 -d '-')
@@ -49,8 +48,6 @@ END_YEAR=$(echo "$YEAR" | cut -f 2 -d '-')
 echo() {
     command echo "$(date '+%F_%T.%N')" "$@"
 }
-
-mkdir -p "${SYNC_CACHE}"
 
 module use /g/data/v10/public/modules/modulefiles
 module load "${MODULE}"
@@ -63,6 +60,8 @@ fi
 for (( year = "$START_YEAR"; year <= "$END_YEAR"; ++year )); do
     PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH")
 done
+
+mkdir -p "${WORKDIR}"
 
 cd "${WORKDIR}"
 
@@ -77,19 +76,20 @@ $(datacube -vv system check)
 
 for syncpath in "${PATHS_TO_PROCESS[@]}"
 do
+  SYNC_CACHE="${WORKDIR}"/cache_$(date '+%N')
+  mkdir -p "${SYNC_CACHE}"
+
   nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
   ##################################################################################################
   # Run dea-sync process
   ##################################################################################################
-  echo ""
-  echo "qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=16 -m ae \
-  -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
-  -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
-  --index-missing ${syncpath}"
+  set -x  # echo is on
 
   qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=16 -m ae \
   -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
   -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
   --index-missing ${syncpath}
+
+  set +x  # echo is off
 EOF
 done
