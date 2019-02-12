@@ -17,6 +17,10 @@ New DEA-Env Module
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml
 
+# https://github.com/conda-forge/tensorflow-feedstock/issues/11
+Once dea-env module is built, install tensorflow as follows:
+  $ <new dea env module path>/bin/conda install -y -c jjhelmus tensorflow
+
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.6.2
