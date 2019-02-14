@@ -138,7 +138,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
-- tensorflow == 1.9.0  # https://github.com/conda-forge/tensorflow-feedstock/issues/11
+- tensorflow == 1.9.0  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tqdm
 - tuiview
