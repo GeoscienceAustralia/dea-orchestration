@@ -85,7 +85,7 @@ do
   ##################################################################################################
   set -x  # echo is on
 
-  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=25GB,ncpus=16 -m ae \
+  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=30:00:00,mem=25GB,ncpus=16 -m ae \
   -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
   -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
   --index-missing ${syncpath}
