@@ -25,8 +25,8 @@ dependencies:
 - cvxopt
 - cvxpy
 - cython
-- dask
-- distributed
+- dask == 0.19.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
+- distributed == 1.23.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
 - docutils
 - ephem
 - expat
@@ -120,7 +120,7 @@ dependencies:
 - rasterstats
 - recommonmark
 - redis
-- redis-py
+- redis-py == 2.10.6  # FC, wofs, and datacube-stats app has an issue (digitalearthau issue #205), with later revisions
 - rios
 - rtree
 - s3transfer
@@ -138,7 +138,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
-- tensorflow == 1.9.0
+- tensorflow == 1.9.0  # https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tqdm
 - tuiview
