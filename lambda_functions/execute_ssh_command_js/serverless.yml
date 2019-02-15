@@ -165,7 +165,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-01-*/*/'  # Process January month data
+            suffixpath: '-01-'  # Process January month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -174,7 +174,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-02-*/*/'  # Process February month data
+            suffixpath: '-02-'  # Process February month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -183,7 +183,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-03-*/*/'  # Process March month data
+            suffixpath: '-03-'  # Process March month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -192,7 +192,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-04-*/*/'  # Process April month data
+            suffixpath: '-04-'  # Process April month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -201,7 +201,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-05-*/*/'  # Process May month data
+            suffixpath: '-05-'  # Process May month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -210,7 +210,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-06-*/*/'  # Process June month data
+            suffixpath: '-06-'  # Process June month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -219,7 +219,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-07-*/*/'  # Process July month data
+            suffixpath: '-07-'  # Process July month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -228,7 +228,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-08-*/*/'  # Process August month data
+            suffixpath: '-08-'  # Process August month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -237,7 +237,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-09-*/*/'  # Process September month data
+            suffixpath: '-09-'  # Process September month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -246,7 +246,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-10-*/*/'  # Process October month data
+            suffixpath: '-10-'  # Process October month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -255,7 +255,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-11-*/*/'  # Process November month data
+            suffixpath: '-11-'  # Process November month data
       - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: true
@@ -264,7 +264,7 @@ functions:
             trasharchived: no
             year: '2015-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
-            suffixpath: '-12-*/*/'  # Process December month data
+            suffixpath: '-12-'  # Process December month data
   execute_ingest:
     handler: handler.execute_ssh_command
     description: Execute dea-submit-ingest qsub tool to ingest datasets to the database
