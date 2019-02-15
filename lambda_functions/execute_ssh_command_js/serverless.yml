@@ -163,7 +163,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-01-'  # Process January month data
       - schedule:
@@ -172,7 +172,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-02-'  # Process February month data
       - schedule:
@@ -181,7 +181,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-03-'  # Process March month data
       - schedule:
@@ -190,7 +190,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-04-'  # Process April month data
       - schedule:
@@ -199,7 +199,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-05-'  # Process May month data
       - schedule:
@@ -208,7 +208,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-06-'  # Process June month data
       - schedule:
@@ -217,7 +217,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-07-'  # Process July month data
       - schedule:
@@ -226,7 +226,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-08-'  # Process August month data
       - schedule:
@@ -235,7 +235,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-09-'  # Process September month data
       - schedule:
@@ -244,7 +244,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-10-'  # Process October month data
       - schedule:
@@ -253,7 +253,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-11-'  # Process November month data
       - schedule:
@@ -262,7 +262,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2015-2019'
+            year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-12-'  # Process December month data
   execute_ingest:
