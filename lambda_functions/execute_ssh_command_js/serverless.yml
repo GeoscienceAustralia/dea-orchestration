@@ -483,4 +483,4 @@ functions:
           enabled: true
           input:
             cog_product: wofs_albers
-            time_range: '1986-2019'
+            time_range: '2010-2019'
