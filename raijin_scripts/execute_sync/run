@@ -60,7 +60,7 @@ fi
 for (( year = "$START_YEAR"; year <= "$END_YEAR"; ++year )); do
   if [[ "${PRODUCT}" == "s2_ard_granule" ]]
   then
-    for (( day = 01; day <= 31; ++day )); do
+    for day in {01..31}; do
       PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH$day/*/")
     done
   else
