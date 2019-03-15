@@ -60,8 +60,8 @@ fi
 for (( year = "$START_YEAR"; year <= "$END_YEAR"; ++year )); do
   if [[ "${PRODUCT}" == "s2_ard_granule" ]]
   then
-    for day in {01..31}; do
-      PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH$day/*/")
+    for day in {0..3}; do
+      PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH$day*/*/")
     done
   else
     PATHS_TO_PROCESS+=("$BASE_PATH$year$SUFFIX_PATH")
@@ -92,7 +92,7 @@ do
   ##################################################################################################
   set -x  # echo is on
 
-  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=25GB,ncpus=16 -m ae \
+  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=310GB,ncpus=80 -m ae \
   -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
   -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
   --index-missing ${syncpath}
