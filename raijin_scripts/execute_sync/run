@@ -92,9 +92,9 @@ do
   ##################################################################################################
   set -x  # echo is on
 
-  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=310GB,ncpus=80 -m ae \
+  qsub -V -N dea-sync -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=3GB -m ae \
   -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
-  -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 4 --log-queries ${TRASH_ARCHIVED} --update-locations \
+  -- dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 1 --log-queries ${TRASH_ARCHIVED} --update-locations \
   --index-missing ${syncpath}
 
   set +x  # echo is off
