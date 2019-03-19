@@ -75,19 +75,19 @@ def find_credentials(pgpass, host, dbcreds):
     if not pgpass.exists() or os.path.getsize(pgpass) == 0:
         # New user, add new credentials to connect to any database
         raise CredentialsNotFound("New user: Add new credentials to .pgpass file")
-
-    with pgpass.open() as src:
-        for line in src:
-            # Ignore comments and empty lines
-            if not line.strip().startswith('#') and line.strip():
-                creds = DBCreds(*line.strip().split(':'))
-                if creds.host == host and creds.username == dbcreds.username:
-                    # Production database credentials exists
-                    new_creds = creds._replace(host="*", port="*")
-                elif creds.host == "*" and creds.username == dbcreds.username:
-                    # Already migrated to new database format, do noting
-                    new_creds = None
-    return new_creds
+    else:
+        with pgpass.open() as src:
+            for line in src:
+                # Ignore comments and empty lines
+                if not line.strip().startswith('#') and line.strip():
+                    creds = DBCreds(*line.strip().split(':'))
+                    if creds.host == host and creds.username == dbcreds.username:
+                        # Production database credentials exists
+                        new_creds = creds._replace(host="*", port="*")
+                    elif creds.host == "*" and creds.username == dbcreds.username:
+                        # Already migrated to new database format, do nothing
+                        new_creds = None
+        return new_creds
 
 
 def append_credentials(pgpass, dbcreds):
@@ -117,6 +117,7 @@ CURRENT_HOME_DIR = _PWD.pw_dir
 
 
 @click.command()
+@click.option('extra_host', multiple=True)
 @click.argument('hostname', required=False)
 @click.argument('port', type=click.INT, default=6432, required=False)
 @click.argument('dbusername', default=CURRENT_USER, required=False)
@@ -147,6 +148,12 @@ def main(hostname, port, dbusername):
         print('Migrating {} to the new database server.'.format(dbcreds.username))
         # Add new credentials to ~/.pgpass file
         append_credentials(pgpass, new_creds._replace(host="*", port="*"))
+
+        # Create DB accounts on any other databases too
+        for host in extra_host:
+            creds = new_creds._replace(host=host)
+            if not can_connect(creds):
+                create_db_account(creds)
 
     if not can_connect(dbcreds):
         print_stderr(CANNOT_CONNECT_MSG.format(dbcreds.host,
