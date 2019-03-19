@@ -1,18 +1,14 @@
-# Welcome to Serverless!
+# Monitor Digital Earth Australia processes running at the NCI
 #
-# This file is the main config file for your service.
+# Sequence of steps before and after sls deploy:
 #
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-#    Sequence of steps before and after sls deploy:
-#      1) Create the SQS queue within your service (if sqs queue does not exist)
-#      2) Add permissions on the SQS queue to allow S3 to publish notifications
-#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html
-#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html
-#      3) Enable and attach event notifications for the desired S3 Bucket to SQS queue
-#      4) npm install
-#      5) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
+#  1) Create the SQS queue within your service (if sqs queue does not exist)
+#  2) Add permissions on the SQS queue to allow S3 to publish notifications
+#      https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html
+#      https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html
+#  3) Enable and attach event notifications for the desired S3 Bucket to SQS queue
+#  4) npm install
+#  5) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
 
 service: nci-monitoring
 
@@ -35,6 +31,9 @@ package:
     - package-lock.json
     - requirements.txt
 
+resources:
+  Description: Monitor Digital Earth Australia quotas and processes running at the NCI
+
 provider:
   name: aws
   runtime: python3.6
@@ -46,7 +45,10 @@ provider:
   # resources need to be in the same region as S3 bucket.
   region: us-west-2
   deploymentBucket: "dea-ncimonitoring"
-
+  tags:
+    repo: https://github.com/GeoscienceAustralia/dea-orchestration
+    author: nci.monitor@dea.ga.gov.au
+    purpose: nci-automation
   iamRoleStatements:
   - Effect: 'Allow'
     Action:
