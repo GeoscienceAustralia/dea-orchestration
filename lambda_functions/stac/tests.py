@@ -1,19 +1,17 @@
 """
 This Pytest  script tests stac_parent_update.py, notify_to_stac_queue.py as well as
-the severless lambda function given in stac.py
+the serverless lambda function given in stac.py
 """
+import json
 
-# pylint: disable=W0621, W0613
-import time
-
-from pathlib import Path
-import yaml
-import pytest
 import boto3
+import pytest
+import time
+import yaml
+from pathlib import Path
 
-
-from stac_parent_update import CatalogUpdater
-from notify_to_stac_queue import s3_key_to_stac_queue
+# from .notify_to_stac_queue import s3_key_to_stac_queue
+# from .stac_parent_update import CatalogUpdater
 
 
 @pytest.fixture
@@ -53,32 +51,27 @@ def s3_dataset_yamls():
              'WOfS/WOFLs/v2.1.5/combined/x_-12',
              'WOfS/WOFLs/v2.1.5/combined/x_-12/y_-15'
          ]},
-        {'name': 'WOfS/annual_summary/v2.1.5/combined/x_-10/y_-12/2012/'
-                 'WOFS_3577_-10_-12_2012_summary.yaml',
+        {'name': 'WOfS/annual_summary/v2.1.5/combined/x_-10/y_-12/2012/WOFS_3577_-10_-12_2012_summary.yaml',
          'prefixes': [
              'WOfS/annual_summary/v2.1.5/combined/x_-10',
              'WOfS/annual_summary/v2.1.5/combined/x_-10/y_-12'
          ]},
-        {'name': 'WOfS/filtered_summary/v2.1.0/combined/x_-10/y_-12/'
-                 'wofs_filtered_summary_-10_-12.yaml',
+        {'name': 'WOfS/filtered_summary/v2.1.0/combined/x_-10/y_-12/wofs_filtered_summary_-10_-12.yaml',
          'prefixes': [
              'WOfS/filtered_summary/v2.1.0/combined/x_-10',
              'WOfS/filtered_summary/v2.1.0/combined/x_-10/y_-12'
          ]},
-        {'name': 'WOfS/summary/v2.1.0/combined/x_-18/y_-22/'
-                 'WOFS_3577_-18_-22_summary.yaml',
+        {'name': 'WOfS/summary/v2.1.0/combined/x_-18/y_-22/WOFS_3577_-18_-22_summary.yaml',
          'prefixes': [
              'WOfS/summary/v2.1.0/combined/x_-18',
              'WOfS/summary/v2.1.0/combined/x_-18/y_-22'
          ]},
-        {'name': 'item_v2/v2.0.1/relative/lon_114/lat_-22/'
-                 'ITEM_REL_271_114.36_-22.31.yaml',
+        {'name': 'item_v2/v2.0.1/relative/lon_114/lat_-22/ITEM_REL_271_114.36_-22.31.yaml',
          'prefixes': [
              'item_v2/v2.0.1/relative/lon_114',
              'item_v2/v2.0.1/relative/lon_114/lat_-22'
          ]},
-        {'name': 'mangrove_cover/-11_-20/'
-                 'MANGROVE_COVER_3577_-11_-20_20170101.yaml',
+        {'name': 'mangrove_cover/-11_-20/MANGROVE_COVER_3577_-11_-20_20170101.yaml',
          'prefixes': [
              'mangrove_cover/-11_-20'
          ]}
@@ -91,7 +84,7 @@ def config():
     yield the default config file of stac repo
     """
 
-    with open(f'{str(Path(__file__).parent)}/stac_config.yaml', 'r') as cfg_file:
+    with open(f'{Path(__file__).parent}/stac_config.yaml', 'r') as cfg_file:
         yield yaml.load(cfg_file)
 
 
@@ -161,15 +154,54 @@ def test_stac_parent_update(s3_dataset_yamls, config):
                                      Key=catalog).get('ResponseMetadata', None) is not None
 
 
+from moto import mock_s3, mock_sqs
+
+
+@mock_s3
+@mock_sqs
+def test_generate_stac_item():
+    bucket_name = 'dea-public-data-dev'
+    key = "fractional-cover/fc/v2.2.0/ls5/x_-5/y_-23/2010/02/13/LS5_TM_FC_3577_-5_-23_20100213122216.yaml"
+    s3 = boto3.resource('s3')
+    # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+    bucket = s3.create_bucket(Bucket=bucket_name)
+
+    bucket.upload_file(str(Path(__file__).parent / 'tests/LS5_TM_FC_3577_-5_-23_20100213012240.yaml'), key)
+
+    event_body = {'Records': [
+        {"s3":
+            {
+                "bucket": {
+                    "name": bucket_name},
+                "object": {
+                    "key": key}
+            }
+        }
+    ]}
+    event = {'Records': [{'body': json.dumps(event_body)}]}
+
+    from stac import stac_handler
+    stac_handler(event, {})
+
+    expected_key = key.replace('.yaml', '_STAC.json')
+    obj = bucket.Object(expected_key)
+
+    assert obj.content_type == 'application/json'
+    stac_json = json.load(obj.get()['Body'])
+    assert 'id' in stac_json
+    assert stac_json.get('type', None) == 'Feature'
+
+
+
+
 def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
     """
     We upload datasets corresponding to given yaml files from prod to dev and
     send messeges to SQS queue to create STAC item catalogs
     """
+    sqs = boto3.client('sqs')
 
     delete_stac_items_in_s3(s3_dataset_yamls, 'dea-public-data-dev')
-
-    sqs = boto3.client('sqs')
 
     queue_url = 'https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue'
 

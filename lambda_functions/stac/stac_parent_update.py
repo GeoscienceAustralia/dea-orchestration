@@ -16,8 +16,8 @@ import yaml
 from parse import parse as pparse
 import boto3
 import click
-from dea.aws import make_s3_client
-from dea.aws.inventory import list_inventory
+from odc.aws import make_s3_client
+from odc.aws.inventory import list_inventory
 from pandas import Timestamp
 
 from stac_utils import yamls_in_inventory_list, incremental_list

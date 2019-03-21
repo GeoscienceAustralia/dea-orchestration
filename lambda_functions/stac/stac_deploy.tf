@@ -36,3 +36,6 @@ resource "aws_sqs_queue_policy" "stac_queue_policy" {
 }
 POLICY
 }
+
+variable "s3_bucket" { default = "dea-public-data" }
+variable "sns_topic" { default = "DEANewData" }

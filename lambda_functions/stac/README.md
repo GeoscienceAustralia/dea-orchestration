@@ -45,12 +45,12 @@ can be used to maintain the STAC catalog.
 
 This script create/update `STAC catalog` jsons based 
 on a given list of `s3 keys` corresponding to `dataset item yaml` files. This list
-could be derived from a `s3 inventory list` or given on `command line`. For example,
+could be derived from an `s3 inventory list` or given on `command line`. For example,
 parent catalog update corresponding to a single dataset could be done with
 the following command:
     
 ```bash
-python stac_parent_update.py -b dea-public-data-dev \
+python stac_parent_update.py -b dea-public-data \
     fractional-cover/fc/v2.2.0/ls8/x_-12/y_-12/2018/02/22/LS8_OLI_FC_3577_-12_-12_20180222125938.yaml
 ```
 
@@ -61,8 +61,7 @@ from the default inventory list (or you can specify the inventory manifest).
 [notify_to_stac_queue.py](notify_to_stac_queue.py): This script sends notification messages to 
 `stac queue` corresponding to a given list of `dataset item yaml` files. 
 This list could be derived from `s3 inventory list` or given on `command line`.
-For example, a stac item catalog corresponding to a dataset could be created,
-manually, using the following command:
+For example, a *STAC Item* for a dataset can be created manually, using the following command:
 
 ```bash
     python notify_to_stac_queue.py -b dea-public-data-dev \
@@ -74,18 +73,17 @@ file list, the script derives the list
 from the default inventory list (or you can specify the inventory manifest). 
 
 #### Delete STAC Parent Catalogues
-[delete_stac_parent_catalogs.py](delete_stac_parent_catalogs.py): This script scans through a bucket looking for 
+[delete_stac_parent_catalogs.py](delete_stac_parent_catalogs.py)
+ 
+This script scans through a bucket looking for 
 `catalog.json` having a specific prefix and deletes them. This prefix typically 
 specify a product.
 
-The serverless lambda and the scripts uses a common configuration file. 
-An example such file is given in [stac_config.yaml](stac_config.yaml). Currently the products
-to be processed is specified by `aws-products` field of the config file. 
-Among other things, config file specify global details and product specific 
-details required for catalog generation and various `aws specific` information.
 
 #### Update Product Suite Catalogues
-[update_product_suite_catalogs.py](update_product_suite_catalogs.py): Certain products belong to respective product
+[update_product_suite_catalogs.py](update_product_suite_catalogs.py)
+
+Certain products belong to respective product
 suites. For example, `wofs_albers, wofs_filtered_summary, wofs_statistical_summary,`
 and `wofs_annual_summary` belong to the suite `WOfS`. This script updates the
 `collection catalogs` corresponding to such suites. Example,
@@ -101,14 +99,17 @@ and other scripts is contained in [stac_config.yaml](stac_config.yaml).
 
 This file contains cross product information
 such as `license, contact, provider` and specific
-to each product that part of the `STAC catalog`. A product is identified by its
-*prefix* within a specific S3 bucket (typically [dea-public-data](https://data.dea.ga.gov.au/)).
+to each product that part of the `STAC catalog`. 
+
+Each product is identified by its
+*prefix* within an S3 bucket (typically [dea-public-data](https://data.dea.ga.gov.au/)).
+
 Different versions of the same product are identified by their *prefix*. Different prefixes are
 viewed as different products. The `name` of the 
-product is typically the `product name` of a `datacube indexed product`.
+product is usually the `product name` from a datacube index.
+
 The `catalog structure` of the product must be specified. This structure is an 
-ordered list of `templates` that are conformant of `python parse library`. Please,
-ensure following rules when writing the catalog structure:
+ordered list of templates strings. The following rules should be followed when defining the catalog structure:
 
 1. The last template specify a **STAC catalog** that hold **STAC item** links. Each of
 these **STAC item** correspond to a `dataset` of the respective product and has a 

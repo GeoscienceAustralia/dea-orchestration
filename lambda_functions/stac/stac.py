@@ -6,7 +6,7 @@ upload event.
 import datetime
 import json
 from collections import OrderedDict
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import boto3
 import yaml
@@ -19,7 +19,7 @@ import pycrs
 S3_RES = boto3.resource('s3')
 
 # Read the config file
-with open('stac_config.yaml', 'r') as cfg_file:
+with open(Path(__file__).parent / 'stac_config.yaml', 'r') as cfg_file:
     CFG = yaml.load(cfg_file)
 
 
@@ -53,7 +53,7 @@ def stac_handler(event, context):
         metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
 
         # Generate STAC dict
-        s3_key_ = Path(s3_key)
+        s3_key_ = PurePosixPath(s3_key)
         stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
         item_abs_path = f'{CFG["aws-domain"]}/{stac_s3_key}'
         parent_abs_path = f'{CFG["aws-domain"]}/{get_stac_item_parent(s3_key)}'
@@ -69,7 +69,8 @@ def is_valid_yaml(s3_key):
     Return whether the given key is valid
     """
 
-    s3_key_ = Path(s3_key)
+    # S3 Keys always have forward slashes
+    s3_key_ = PurePosixPath(s3_key)
 
     if s3_key_.suffix != '.yaml':
         return False
@@ -170,7 +171,7 @@ def get_stac_item_parent(s3_key):
     Parse the parent stac catalog from the given s3 key
     """
 
-    for product_dict in [p_ for p_ in CFG['products']]:
+    for product_dict in CFG['products']:
         if product_dict['prefix'] in s3_key:
             template = product_dict['catalog_structure'][-1]
             template_ = '{prefix}/' + template + '/{}'
