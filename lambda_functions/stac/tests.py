@@ -8,7 +8,9 @@ import boto3
 import pytest
 import time
 import yaml
+from moto import mock_s3, mock_sqs
 from pathlib import Path
+
 
 # from .notify_to_stac_queue import s3_key_to_stac_queue
 # from .stac_parent_update import CatalogUpdater
@@ -154,9 +156,6 @@ def test_stac_parent_update(s3_dataset_yamls, config):
                                      Key=catalog).get('ResponseMetadata', None) is not None
 
 
-from moto import mock_s3, mock_sqs
-
-
 @mock_s3
 @mock_sqs
 def test_generate_stac_item():
@@ -189,9 +188,17 @@ def test_generate_stac_item():
     assert obj.content_type == 'application/json'
     stac_json = json.load(obj.get()['Body'])
     assert 'id' in stac_json
-    assert stac_json.get('type', None) == 'Feature'
+    assert 'geometry' in stac_json
+    assert stac_json['type'] == 'Feature'
+    assert stac_json['id'] == 'b820133f-387e-48cb-9425-1ae038123911'
+    assert len(stac_json['assets']) == 4
+    assert {'BS', 'NPV', 'PV', 'UE'} == set(stac_json['assets'])
 
-
+    links = {link['rel']: link['href'] for link in stac_json['links']}
+    assert 'self' in links
+    assert 'parent' in links
+    assert links['self'].endswith('STAC.json')
+    assert links['parent'].endswith('catalog.json')
 
 
 def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
