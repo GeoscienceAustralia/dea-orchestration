@@ -18,29 +18,37 @@ package:
     - stac_deploy.tf
     - terraform.*
     - notify_to_stac_queue.py
-    - stac_check.py
+    - tests.py
     - stac_parent_update.py
     - stac_utils.py
     - update_product_suite_catalogs.py
 
 custom:
-  Stage: dev
-  profiles:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
+  Stage: ${opt:stage, self:provider.stage}
+  profile:
     dev: devProfile
     prod: prodProfile
-  CustEnv:
-    s3Bucket:
-      prod: "dea-lambda"
-      dev: "dea-lambdas-dev"
+  deploymentBucket:
+    prod: "dea-lambda"
+    dev: "dea-lambdas-dev"
+  dataBucket:
+    prod: dea-public-data
+    dev: dea-public-data-dev
+  snsTopic:
+    prod: arn:aws:sns:ap-southeast-2:538673716275:DEANewData
+    dev:
   pythonRequirements:
     dockerizePip: non-linux
     fileName: requirements.txt
 
 provider:
   name: aws
+  stage: dev
   runtime: python3.6
-  profile: ${self:custom.profiles.${self:custom.Stage}}
-  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
+  profile: ${self:custom.profile.${self:custom.Stage}}
+  deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   region: ap-southeast-2
 
   iamRoleStatements:
@@ -48,19 +56,73 @@ provider:
       Action:
        - "s3:GetObject"
        - "s3:PutObject"
-      Resource: "arn:aws:s3:::dea-public-data-dev/*"
+      Resource: "arn:aws:s3:::${self:custom.dataBucket.${self:custom.Stage}}/*"
     - Effect: "Allow"
       Action:
         - "sqs:ReceiveMessage"
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
-      Resource: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
+      Resource: !GetAtt
+            - StaticStacQueue
+            - Arn
 
 functions:
   stac:
     handler: stac.stac_handler
     events:
       - sqs:
-        arn: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
-        batchSize: 10
+          arn: !GetAtt
+            - StaticStacQueue
+            - Arn
+          batchSize: 10
 
+resources:
+  Resources:
+  ### PART ONE: Create SNS Topic and SQS Queues
+    StaticStacQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: static-stac-queue
+        VisibilityTimeout: 600
+  ### PART TWO: Create SQS Queue Policies
+  # Create our queue policy for the 'firstQueue'
+    snsToFirstQueueSqsPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: "allow-sns-messages"
+              Effect: Allow
+              Principal: "*"
+              Resource: !GetAtt
+                - StaticStacQueue
+                - Arn
+              Action: "SQS:SendMessage"
+              Condition:
+                ArnEquals:
+                  "aws:SourceArn": ${self:custom.snsTopic.${self:custom.Stage}}
+        Queues:
+          - Ref: firstQueue
+  ### PART THREE: Subscribe our SQS Queues to our SNS Topic
+  # Create the subscription to the 'firstQueue'
+    firstQueueSubscription:
+      Type: 'AWS::SNS::Subscription'
+      Properties:
+        TopicArn: !Ref mySnsTopic
+        Endpoint: !GetAtt
+          - StaticStacQueue
+          - Arn
+        Protocol: sqs
+        RawMessageDelivery: 'true'
+  Outputs:
+    QueueURL:
+      Description: "URL of newly created SQS Queue"
+      Value:
+        Ref: StaticStacQueue
+    QueueARN:
+      Description: "ARN of newly created SQS Queue"
+      Value:
+        Fn::GetAtt:
+          - StaticStacQueue
+          - Arn
