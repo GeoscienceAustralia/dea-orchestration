@@ -9,28 +9,29 @@ Update parent catalogs based on YAML files corresponding to datasets uploaded in
 The S3 YAML file list is obtained from S3 inventory list unless a file list is provided in the command line.
 """
 
-from collections import OrderedDict
-from pathlib import Path
 import json
-import yaml
-from parse import parse as pparse
+from collections import OrderedDict
+
 import boto3
 import click
+import dateutil.parser
+import yaml
 from odc.aws import make_s3_client
 from odc.aws.inventory import list_inventory
-from pandas import Timestamp
+from parse import parse as pparse
+from pathlib import PurePosixPath
 
-from stac_utils import yamls_in_inventory_list, incremental_list
+from .stac_utils import yamls_in_inventory_list
 
 
-def check_date(context, param, value):
+def parse_date(context, param, value):
     """
     Click callback to validate a date string
     """
     try:
-        return Timestamp(value)
+        return dateutil.parser.parse(value)
     except ValueError as error:
-        raise ValueError('Date must be valid string for pandas Timestamp') from error
+        raise ValueError('unparseable date') from error
 
 
 @click.command(help=__doc__)
@@ -39,22 +40,28 @@ def check_date(context, param, value):
               default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
               help="The manifest of AWS inventory list")
 @click.option('--bucket', '-b', required=True, help="AWS bucket to upload to")
-@click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
-@click.argument('s3-keys', nargs=-1, type=click.Path())
-def cli(config, inventory_manifest, bucket, from_date, s3_keys):
+@click.option('--from-date', callback=parse_date, help="The date from which to update the catalog")
+@click.argument('s3-keys', nargs=-1, type=str)
+def cli(config, inventory_manifest, bucket, from_date, s3_keys=None):
     """
     Update parent catalogs of datasets based on S3 keys ending in .yaml
     """
 
+    # Call a non-click function for testability
+    update_parent_catalogs(bucket, config, from_date, inventory_manifest, s3_keys)
+
+
+def update_parent_catalogs(bucket, config, from_date, inventory_manifest, s3_keys=None):
     with open(config, 'r') as cfg_file:
         cfg = yaml.load(cfg_file)
 
-    if not s3_keys:
+    if s3_keys:
         s3_client = make_s3_client()
-        s3_keys = list_inventory(inventory_manifest, s3=s3_client)
+        inventory_items = list_inventory(inventory_manifest, s3=s3_client)
         if from_date:
-            s3_keys = incremental_list(s3_keys, from_date)
-        s3_keys = yamls_in_inventory_list(s3_keys, cfg)
+            inventory_items = (item for item in inventory_items
+                               if dateutil.parser.parse(item.LastModifiedDate) > from_date)
+        s3_keys = yamls_in_inventory_list(inventory_items, cfg)
 
     CatalogUpdater(cfg).update_parents_all(s3_keys, bucket)
 
@@ -80,9 +87,9 @@ class CatalogUpdater:
             prod_dict = self.search_product_in_config(item)
 
             prefixes = self.get_prefixes(prod_dict['catalog_structure'], item)
-            collection_prefix = str(Path(prefixes[0]).parent)
+            collection_prefix = str(PurePosixPath(prefixes[0]).parent)
 
-            s3_key = Path(item)
+            s3_key = PurePosixPath(item)
 
             # Add to the top mid level catalogs which have parent pointing to collection catalog
             if len(prefixes) > 1:
@@ -257,7 +264,7 @@ class CatalogUpdater:
                 collection_catalog['providers'] = info.get('providers')
             collection_catalog['extent'] = {'spatial': spatial_extent, 'temporal': temporal_extent}
 
-            product_type = Path(collection_prefix).parts[0]
+            product_type = PurePosixPath(collection_prefix).parts[0]
             if collection_catalog_name == f'{product_type}/catalog.json' or not info.get('product_suite'):
                 # Parent and root catalogs are same
                 collection_catalog['links'] = [
