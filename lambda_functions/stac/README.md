@@ -27,7 +27,7 @@ To install the `STAC item generation pipeline`:
 2. Deploy the `lambda` function defined in [serverless.yml](serverless.yml).
 
 ```
-    npm install serverless-pseudo-parameters serverless-python-requirements
+    npm install
     sls deploy
 ```
 
