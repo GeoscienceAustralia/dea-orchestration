@@ -106,6 +106,13 @@ def date(date_format="%Y%m%d") -> str:
     return datetime.datetime.now().strftime(date_format)
 
 
+def _log_output(line):
+    try:
+        LOG.info(line.encode('ascii').decode('utf-8'))
+    except UnicodeEncodeError:
+        LOG.warning("UnicodeEncodeError: %s", line.encode('ascii', 'replace'))
+
+
 def run_command(cmd):
     """
     Run subprocess command and print the output on the terminal and the log file
@@ -123,18 +130,10 @@ def run_command(cmd):
                                      errors='replace')
 
         for line in proc_output.stdout.split(os.linesep):
-            try:
-                log_value = line.encode('ascii').decode('utf-8')
-                LOG.info(log_value)
-            except UnicodeEncodeError:
-                LOG.warning('UnicodeEncodeError: %s ', line.encode('ascii', 'replace'))
+            _log_output(line)
     except subprocess.CalledProcessError as suberror:
         for line in suberror.stdout.split(os.linesep):
-            try:
-                log_value = line.encode('ascii').decode('utf-8')
-                LOG.error(log_value)
-            except UnicodeEncodeError:
-                LOG.warning("UnicodeEncodeError : %s", line.encode('ascii', 'replace'))
+            _log_output(line)
 
 
 def install_conda_packages(env_file, variables):
