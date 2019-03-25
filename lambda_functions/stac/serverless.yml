@@ -28,8 +28,8 @@ custom:
   # commands. Or falls back to what we have set in the provider section.
   Stage: ${opt:stage, self:provider.stage}
   profile:
-    dev: devProfile
-    prod: prodProfile
+    dev: dea-dev
+    prod: dea-prod
   deploymentBucket:
     prod: "dea-lambda"
     dev: "dea-lambdas-dev"
@@ -38,7 +38,7 @@ custom:
     dev: dea-public-data-dev
   snsTopic:
     prod: arn:aws:sns:ap-southeast-2:538673716275:DEANewData
-    dev:
+    dev: arn:aws:sns:ap-southeast-2:451924316694:DEANewDataDev
   pythonRequirements:
     dockerizePip: non-linux
     fileName: requirements.txt
@@ -63,7 +63,7 @@ provider:
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
       Resource: !GetAtt
-            - StaticStacQueue
+            - staticStacQueue
             - Arn
 
 functions:
@@ -72,14 +72,15 @@ functions:
     events:
       - sqs:
           arn: !GetAtt
-            - StaticStacQueue
+            - staticStacQueue
             - Arn
           batchSize: 10
 
+# Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
 resources:
   Resources:
   ### PART ONE: Create SNS Topic and SQS Queues
-    StaticStacQueue:
+    staticStacQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: static-stac-queue
@@ -96,22 +97,22 @@ resources:
               Effect: Allow
               Principal: "*"
               Resource: !GetAtt
-                - StaticStacQueue
+                - staticStacQueue
                 - Arn
               Action: "SQS:SendMessage"
               Condition:
                 ArnEquals:
                   "aws:SourceArn": ${self:custom.snsTopic.${self:custom.Stage}}
         Queues:
-          - Ref: firstQueue
+          - Ref: staticStacQueue
   ### PART THREE: Subscribe our SQS Queues to our SNS Topic
   # Create the subscription to the 'firstQueue'
-    firstQueueSubscription:
+    staticStacQueueSubscription:
       Type: 'AWS::SNS::Subscription'
       Properties:
-        TopicArn: !Ref mySnsTopic
+        TopicArn: ${self:custom.snsTopic.${self:custom.Stage}}
         Endpoint: !GetAtt
-          - StaticStacQueue
+          - staticStacQueue
           - Arn
         Protocol: sqs
         RawMessageDelivery: 'true'
@@ -119,10 +120,10 @@ resources:
     QueueURL:
       Description: "URL of newly created SQS Queue"
       Value:
-        Ref: StaticStacQueue
+        Ref: staticStacQueue
     QueueARN:
       Description: "ARN of newly created SQS Queue"
       Value:
         Fn::GetAtt:
-          - StaticStacQueue
+          - staticStacQueue
           - Arn
