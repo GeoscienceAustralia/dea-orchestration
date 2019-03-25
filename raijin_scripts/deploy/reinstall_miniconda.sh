@@ -11,7 +11,7 @@ cd "$TMPDIR" || exit
 "$MINICONDA_PATH"/bin/conda install -y -c conda-forge pip
 
 # https://github.com/conda-forge/rsgislib-feedstock/issues/15
-"$MINICONDA_PATH"/bin/conda install -y -c conda-forge rsgislib
+#"$MINICONDA_PATH"/bin/conda install -y -c conda-forge rsgislib
 
 if [ ! -d "$HOME"/.nvm ]
 then
