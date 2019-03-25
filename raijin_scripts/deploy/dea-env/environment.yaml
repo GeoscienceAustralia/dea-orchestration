@@ -4,6 +4,7 @@ channels:
 - brittainhard
 dependencies:
 - affine
+- apscheduler
 - attrs
 - basemap
 - black
@@ -37,7 +38,7 @@ dependencies:
 - future
 - freetype
 - freexl
-- gdal
+- gdal >= 2.4.0
 - geopandas
 - geopy
 - geos
@@ -95,6 +96,7 @@ dependencies:
 - numexpr
 - numpy >= 1.16
 - openjpeg
+- openmpi
 - pandas
 - parallel
 - pcre
@@ -122,6 +124,7 @@ dependencies:
 - redis
 - redis-py == 2.10.6  # FC, wofs, and datacube-stats app has an issue (digitalearthau issue #205), with later revisions
 - rios
+- rsgislib
 - rtree
 - s3transfer
 - scikit-image
