@@ -141,3 +141,31 @@ The following template structures were tested:
       - L2/sentinel-2-nrt/S2MSIARD
       - L2/sentinel-2-nrt/S2MSIARD/{year:4}-{month:2}-{day:2}
    ```
+   
+   
+ # Prod Info
+ 
+```yaml
+Serverless: Stack create finished...
+Service Information
+service: stac-catalog-generator
+stage: prod
+region: ap-southeast-2
+stack: stac-catalog-generator-prod
+resources: 8
+api keys:
+  None
+endpoints:
+  None
+functions:
+  stac: stac-catalog-generator-prod-stac
+layers:
+  None
+
+Stack Outputs
+StacLambdaFunctionQualifiedArn: arn:aws:lambda:ap-southeast-2:538673716275:function:stac-catalog-generator-prod-stac:1
+QueueARN: arn:aws:sqs:ap-southeast-2:538673716275:static-stac-queue
+ServerlessDeploymentBucketName: dea-lambda
+QueueURL: https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue
+
+```
