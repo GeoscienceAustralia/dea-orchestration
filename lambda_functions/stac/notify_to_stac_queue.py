@@ -18,7 +18,7 @@ from odc.aws import make_s3_client
 from odc.aws.inventory import list_inventory
 from pandas import Timestamp
 
-from stac_utils import yamls_in_inventory_list, incremental_list
+from stac_utils import yamls_in_inventory_list
 
 
 def check_date(context, param, value):
@@ -40,8 +40,8 @@ def check_date(context, param, value):
               help="AWS sqs url")
 @click.option('--bucket', '-b', required=True, help="AWS bucket")
 @click.option('--from-date', callback=check_date, help="The date from which to update the catalog")
-@click.argument('s3-keys', nargs=-1, type=click.Path())
-def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys):
+@click.argument('s3-keys', nargs=-1, type=str)
+def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys=None):
     """
     Send messages (yaml s3 keys) to stac_queue
     """
@@ -51,10 +51,15 @@ def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys):
 
     if not s3_keys:
         s3_client = make_s3_client()
-        s3_keys = list_inventory(inventory_manifest, s3=s3_client)
+        inventory_items = list_inventory(inventory_manifest, s3=s3_client)
+
         if from_date:
-            s3_keys = incremental_list(s3_keys, from_date)
-        s3_keys = yamls_in_inventory_list(s3_keys, cfg)
+            inventory_items = (
+                    item
+                    for item in inventory_items
+                    if dateutil.parser.parse(item.LastModifiedDate) > from_date)
+
+        s3_keys = yamls_in_inventory_list(inventory_items, cfg)
 
     messages_to_sqs(s3_keys, bucket, queue_url)
 

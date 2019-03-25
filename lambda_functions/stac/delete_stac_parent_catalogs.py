@@ -7,7 +7,7 @@ import boto3
 import click
 from odc.aws import make_s3_client
 from odc.aws.inventory import list_inventory
-from pathlib import Path
+from pathlib import PurePosixPath
 
 AWS_DELETE_LIMIT = 1000
 
@@ -21,7 +21,7 @@ def delete_stac_catalog_parents(aws_product_prefix, bucket, inventory_bucket):
     delete_files = dict(Objects=[])
     for item in list_inventory(f's3://{inventory_bucket}/{bucket}/{bucket}-csv-inventory/',
                                s3=make_s3_client()):
-        s3_key_file = Path(item.Key)
+        s3_key_file = PurePosixPath(item.Key)
 
         # add to delete list
         if s3_key_file.name == 'catalog.json' and aws_product_prefix in item.Key:
