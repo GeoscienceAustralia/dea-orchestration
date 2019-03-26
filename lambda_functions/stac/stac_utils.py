@@ -1,3 +1,4 @@
+import dateutil.parser
 from pathlib import PurePosixPath
 
 
@@ -9,3 +10,16 @@ def yamls_in_inventory_list(keys, cfg):
     for item in keys:
         if any(item.Key.startswith(prefix) for prefix in prefixes) and PurePosixPath(item.key).suffix == '.yaml':
             yield item.Key
+
+
+def parse_date(context, param, value):
+    """
+    Click callback to parse a date string
+    """
+    if value is None:
+        return None
+    try:
+        return dateutil.parser.parse(value)
+    except ValueError as error:
+        raise ValueError('unparseable date') from error
+

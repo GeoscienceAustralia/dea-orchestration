@@ -21,17 +21,7 @@ from odc.aws.inventory import list_inventory
 from parse import parse as pparse
 from pathlib import PurePosixPath
 
-from .stac_utils import yamls_in_inventory_list
-
-
-def parse_date(context, param, value):
-    """
-    Click callback to validate a date string
-    """
-    try:
-        return dateutil.parser.parse(value)
-    except ValueError as error:
-        raise ValueError('unparseable date') from error
+from stac_utils import yamls_in_inventory_list, parse_date
 
 
 @click.command(help=__doc__)
