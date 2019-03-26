@@ -16,7 +16,7 @@ import boto3
 import click
 import dateutil.parser
 import yaml
-from pathlib import PurePosixPath
+from itertools import islice
 
 from odc.aws import make_s3_client
 from odc.aws.inventory import list_inventory
@@ -58,6 +58,9 @@ def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys=None):
             )
 
         s3_keys = yamls_in_inventory_list(inventory_items, cfg)
+    else:
+        # Filter out non yaml keys
+        s3_keys = [item for item in s3_keys if item.endswith('.yaml')]
 
     LOG.info('Sending %s update messages', len(s3_keys))
 
@@ -73,23 +76,62 @@ def messages_to_sqs(s3_keys, bucket, queue_url):
 
     sqs = boto3.client('sqs')
 
-    for item in s3_keys:
-        if PurePosixPath(item).suffix == '.yaml':
-            # send a message to SQS
-            s3_key_to_stac_queue(sqs, queue_url, bucket, item)
+    for batch in chunks(s3_keys, 10):
+
+        batch_request = [dict(Id=str(n), MessageBody=s3_key_event(bucket, key)) for n, key in enumerate(batch)]
+        response = sqs.send_message_batch(
+            QueueUrl=queue_url,
+            Entries=batch_request
+        )
+
+        if 'Failed' in response:
+            LOG.error('Failed messages: %s', response['Failed'])
 
 
-def s3_key_to_stac_queue(sqs_client, queue_url, bucket, s3_key):
+def s3_key_event(bucket, s3_key):
     """
     Send a message typical to s3 object put event to stac queue corresponding to the given s3 key
     """
 
-    s3_event_message = {"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]}
-    # send a message to SQS
-    return sqs_client.send_message(
-        QueueUrl=queue_url,
-        MessageBody=json.dumps(s3_event_message)
-    )
+    return json.dumps({"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]})
+
+
+def chunks(iterable, chunk_size):
+    """Split the items in an iterable into chunks of a given size.
+
+    If the number of items isn't a multiple of chunk_size, the last chunk will
+    be smaller than chunk_size.
+
+    This is like the grouper() recipe in the itertools documentation, except
+    that no filler value is used, the code is more straightforward, and it
+    is more efficient on sequences via special casing.
+    """
+    try:
+        if int(chunk_size) != chunk_size or chunk_size < 1:
+            raise ValueError('chunk_size must be an integer greater than zero!')
+    except TypeError:
+        raise ValueError('chunk_size must be an integer greater than zero!')
+
+    try:
+        # try efficient version for sequences
+        n = len(iterable)
+        if n == 0:
+            pass
+        elif chunk_size >= n:
+            # just yield the given sequence
+            # this avoids needlessly copying the entire sequence
+            yield iterable
+        else:
+            for start in range(0, n, chunk_size):
+                yield iterable[start:start + chunk_size]
+    except (TypeError, AttributeError):  # may be thrown by len() or the slicing
+        # use generic version which works on all iterables
+        iterator = iter(iterable)
+        while True:
+            chunk = list(islice(iterator, chunk_size))
+            if not chunk:
+                break
+            yield chunk
 
 
 if __name__ == '__main__':
