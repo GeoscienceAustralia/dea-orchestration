@@ -111,6 +111,7 @@ dependencies:
 - py6s
 - pylint
 - pyparsing
+- pypeg2
 - pytables
 - pytest
 - pytest-cov
@@ -177,7 +178,6 @@ dependencies:
   - pudb
   - pydash
   - pyDEM
-  - pypeg2
   - structlog[dev]
   - yamllint
   - yappi
