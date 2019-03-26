@@ -1,7 +1,6 @@
 name: dea-env
 channels:
 - conda-forge
-- brittainhard
 dependencies:
 - affine
 - apscheduler
@@ -31,7 +30,7 @@ dependencies:
 - docutils
 - ephem
 - expat
-- fancyimpute
+- brittainhard::fancyimpute
 - fiona
 - folium
 - fontconfig
@@ -81,8 +80,8 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-# - mkl-service
-- mkl
+- anaconda::mkl-service
+- intel::mkl
 - mkl_fft
 - mkl_random
 - mock
@@ -118,7 +117,7 @@ dependencies:
 - python >= 3.6.6
 - python-dateutil
 - pyyaml
-- rasterio >= 1.0.15
+- rasterio >= 1.0.20
 - rasterstats
 - recommonmark
 - redis
@@ -141,7 +140,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
-- tensorflow == 1.9.0  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
+- jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tqdm
 - tuiview
