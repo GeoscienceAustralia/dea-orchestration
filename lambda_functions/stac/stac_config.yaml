@@ -101,7 +101,7 @@ products:
 #      - x_{x}/y_{y}
 
   - name: ls5_fc_albers
-    prefix: fractional-cover/fc/v2.2.0/ls5
+    prefix: fractional-cover/fc/v2.2.1/ls5
     product_suite: fractional-cover
     description: 'Landsat 5 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:
@@ -112,7 +112,7 @@ products:
       - x_{x}/y_{y}
 
   - name: ls7_fc_albers
-    prefix: fractional-cover/fc/v2.2.0/ls7
+    prefix: fractional-cover/fc/v2.2.1/ls7
     product_suite: fractional-cover
     description: 'Landsat 7 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:
@@ -123,7 +123,7 @@ products:
       - x_{x}/y_{y}
 
   - name: ls8_fc_albers
-    prefix: fractional-cover/fc/v2.2.0/ls8
+    prefix: fractional-cover/fc/v2.2.1/ls8
     product_suite: fractional-cover
     description: 'Landsat 8 Fractional Cover 25 metre, 100km tile, Australian Albers Equal Area projection (EPSG:3577)'
     extent:

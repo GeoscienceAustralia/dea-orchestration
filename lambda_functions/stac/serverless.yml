@@ -46,7 +46,7 @@ custom:
 provider:
   name: aws
   stage: dev
-  runtime: python3.6
+  runtime: python3.7
   profile: ${self:custom.profile.${self:custom.Stage}}
   deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   region: ap-southeast-2
@@ -69,6 +69,8 @@ provider:
 functions:
   stac:
     handler: stac.stac_handler
+    memorySize: 256
+    timeout: 30
     events:
       - sqs:
           arn: !GetAtt

@@ -5,6 +5,7 @@ upload event.
 
 import datetime
 import json
+import logging
 from collections import OrderedDict
 from pathlib import Path, PurePosixPath
 
@@ -15,6 +16,8 @@ from parse import parse as pparse
 from pyproj import Proj, transform
 import pycrs
 
+LOG = logging.getLogger()
+LOG.setLevel(logging.INFO)
 
 S3_RES = boto3.resource('s3')
 
@@ -33,9 +36,19 @@ def stac_handler(event, context):
                 LS5_TM_FC_3577_-1_-11_20081108005928000000_v1508892769.yaml
     """
 
+    # LOG.debug('Received event: %s', json.dumps(event))
     # Extract message, i.e. yaml file href's
     file_items = event.get('Records', [])
 
+    LOG.info('Event contains %s records', len(file_items))
+
+    processed_files = convert_yamls(file_items)
+
+    LOG.info('Converted %s ODC Datasets to STAC', processed_files)
+
+
+def convert_yamls(file_items):
+    processed_files = 0
     for file_message in file_items:
         file_message_ = json.loads(file_message['body'])
 
@@ -43,6 +56,7 @@ def stac_handler(event, context):
             s3_event = file_message_["Records"][0]
             bucket, s3_key = s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
         else:
+            LOG.info('No Records found in file event!')
             continue
 
         if not is_valid_yaml(s3_key):
@@ -62,6 +76,9 @@ def stac_handler(event, context):
         # Put STAC dict to S3
         obj = S3_RES.Object(bucket, stac_s3_key)
         obj.put(Body=json.dumps(stac_item), ContentType='application/json')
+        LOG.info('Successfully wrote s3://%s/%s STAC metadata.', bucket, stac_s3_key)
+        processed_files += 1
+    return processed_files
 
 
 def is_valid_yaml(s3_key):
@@ -73,6 +90,7 @@ def is_valid_yaml(s3_key):
     s3_key_ = PurePosixPath(s3_key)
 
     if s3_key_.suffix != '.yaml':
+        LOG.info('%s does not end in .yaml. Skipping.', s3_key)
         return False
 
     for product_prefix in [p['prefix'] for p in CFG['products']]:
@@ -81,6 +99,7 @@ def is_valid_yaml(s3_key):
         if product_prefix in str(s3_key_.parent) and product_prefix != str(s3_key_.parent):
             return True
 
+    LOG.info('%s does not start with a configured prefix. Skipping.', s3_key)
     return False
 
 
@@ -134,10 +153,8 @@ def stac_dataset(metadata_doc, item_abs_path, parent_abs_path):
         ]),
         ('assets', {
             band_name: {
-                # "type"? "GeoTIFF" or image/vnd.stac.geotiff; cloud-optimized=true
                 'href': band_data['path'],
-                "required": 'true',
-                "type": "GeoTIFF"
+                "type": "image/vnd.stac.geotiff; cloud-optimized=true"
             }
             for band_name, band_data in metadata_doc['image']['bands'].items()
         })
