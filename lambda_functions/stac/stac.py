@@ -15,6 +15,7 @@ from dateutil.parser import parse
 from parse import parse as pparse
 from pyproj import Proj, transform
 import pycrs
+from yaml import CSafeLoader
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
@@ -64,7 +65,7 @@ def convert_yamls(file_items):
 
         # Load YAML file from s3
         obj = S3_RES.Object(bucket, s3_key)
-        metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
+        metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'), Loader=CSafeLoader)
 
         # Generate STAC dict
         s3_key_ = PurePosixPath(s3_key)
