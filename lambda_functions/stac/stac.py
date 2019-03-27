@@ -2,20 +2,20 @@
 AWS serverless lambda function that generate stac catalog file corresponding to yaml file
 upload event.
 """
-
-import datetime
 import json
 import logging
 from collections import OrderedDict
-from pathlib import Path, PurePosixPath
+from concurrent.futures import ThreadPoolExecutor
 
 import boto3
+import datetime
+import pycrs
 import yaml
 from dateutil.parser import parse
 from parse import parse as pparse
+from pathlib import Path, PurePosixPath
 from pyproj import Proj, transform
-import pycrs
-from yaml import CSafeLoader
+from yaml import SafeLoader
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
@@ -49,37 +49,42 @@ def stac_handler(event, context):
 
 
 def convert_yamls(file_items):
-    processed_files = 0
-    for file_message in file_items:
-        file_message_ = json.loads(file_message['body'])
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        results = executor.map(convert_yaml, file_items)
+    return len(list(results))
 
-        if 'Records' in file_message_:
-            s3_event = file_message_["Records"][0]
-            bucket, s3_key = s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
-        else:
-            LOG.info('No Records found in file event!')
-            continue
 
-        if not is_valid_yaml(s3_key):
-            continue
+def convert_yaml(file_message):
+    """
+    Convert an ODC Dataset YAML on S3 into a STAC JSON
 
-        # Load YAML file from s3
-        obj = S3_RES.Object(bucket, s3_key)
-        metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'), Loader=CSafeLoader)
+    As specified in an S3 Notification message
 
-        # Generate STAC dict
-        s3_key_ = PurePosixPath(s3_key)
-        stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
-        item_abs_path = f'{CFG["aws-domain"]}/{stac_s3_key}'
-        parent_abs_path = f'{CFG["aws-domain"]}/{get_stac_item_parent(s3_key)}'
-        stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
-
-        # Put STAC dict to S3
-        obj = S3_RES.Object(bucket, stac_s3_key)
-        obj.put(Body=json.dumps(stac_item), ContentType='application/json')
-        LOG.info('Successfully wrote s3://%s/%s STAC metadata.', bucket, stac_s3_key)
-        processed_files += 1
-    return processed_files
+    :return: True if successful, otherwise False
+    """
+    file_message_ = json.loads(file_message['body'])
+    if 'Records' in file_message_:
+        s3_event = file_message_["Records"][0]
+        bucket, s3_key = s3_event["s3"]["bucket"]["name"], s3_event["s3"]["object"]["key"]
+    else:
+        LOG.info('No Records found in file event!')
+        return False
+    if not is_valid_yaml(s3_key):
+        return False
+    # Load YAML file from s3
+    obj = S3_RES.Object(bucket, s3_key)
+    metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'), Loader=SafeLoader)
+    # Generate STAC dict
+    s3_key_ = PurePosixPath(s3_key)
+    stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
+    item_abs_path = f'{CFG["aws-domain"]}/{stac_s3_key}'
+    parent_abs_path = f'{CFG["aws-domain"]}/{get_stac_item_parent(s3_key)}'
+    stac_item = stac_dataset(metadata_doc, item_abs_path, parent_abs_path)
+    # Put STAC dict to S3
+    obj = S3_RES.Object(bucket, stac_s3_key)
+    obj.put(Body=json.dumps(stac_item), ContentType='application/json')
+    LOG.info('Successfully wrote s3://%s/%s STAC metadata.', bucket, stac_s3_key)
+    return True
 
 
 def is_valid_yaml(s3_key):

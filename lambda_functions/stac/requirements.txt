@@ -2,5 +2,6 @@ boto3==1.9.118
 pyproj==2.1.1
 parse==1.9.0
 python_dateutil==2.8.0
-PyYAML==3.13
+#PyYAML==5.1 --install-option='--with-libyaml'
+PyYAML==5.1
 pycrs==1.0.0
