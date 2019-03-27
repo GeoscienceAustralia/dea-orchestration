@@ -370,8 +370,7 @@ def main(config_path):
     if 'install_conda_packages' in config:
         install_conda_packages(config['install_conda_packages'], variables)
 
-    if 'install_pip_packages' in config:
-        install_pip_packages(config['install_pip_packages'], variables)
+    install_pip_packages(config['install_pip_packages'], variables)
 
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
