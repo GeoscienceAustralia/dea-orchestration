@@ -5,21 +5,25 @@ dependencies:
 - affine
 - apscheduler
 - attrs
+- awscli
 - basemap
 - black
-- bottleneck
+- boltons
 - boto3
-- bqplot
 - botocore
+- bottleneck
+- bqplot
 - cachetools
 - cairo
 - cartopy
+- celery
+- ciso8601
 - click
 - click-plugins
 - cligj
 - cmocean
 - compliance-checker
-- conda
+- conda == 4.6.2  # https://github.com/conda/conda/issues/8404
 - conda-env
 - curl
 - cvxopt
@@ -31,13 +35,15 @@ dependencies:
 - ephem
 - expat
 - brittainhard::fancyimpute
+- flask
+- flask-caching
 - fiona
 - folium
 - fontconfig
-- future
 - freetype
 - freexl
-- gdal >= 2.4.0
+- future
+- gdal
 - geopandas
 - geopy
 - geos
@@ -45,19 +51,21 @@ dependencies:
 - gettext
 - giflib
 - glib
-- glueviz
 - glue-geospatial
+- glueviz
 - graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
+- gunicorn
+- h5py
 - hdbscan
 - hdf4
 - hdf5
-- h5py
 - hypothesis
 - icu
 - intel-openmp
 - ipdb
 - ipyleaflet
 - ipympl
+- ipython-sql
 - ipywidgets
 - jmespath
 - joblib
@@ -69,8 +77,8 @@ dependencies:
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
 - jupyterlab
-- keras
 - kealib
+- keras
 - krb5
 - libgdal
 - libgfortran
@@ -85,8 +93,10 @@ dependencies:
 - mkl_fft
 - mkl_random
 - mock
+- modernize
 - mpi4py
 - munch
+- mypy
 - nb_conda_kernels
 - netcdf4
 - nodejs
@@ -98,17 +108,22 @@ dependencies:
 - openmpi
 - pandas
 - parallel
+- parse
 - pcre
 - pep8
+- perf
+- pip == 19.0.1
 - pixman
 - plotly
 - poppler
 - poppler-data
 - proj4
 - psutil
-- pthread-stubs
 - psycopg2
+- pthread-stubs
+- pudb
 - py6s
+- pydash
 - pylint
 - pyparsing
 - pypeg2
@@ -141,6 +156,7 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
+- structlog
 - jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tqdm
@@ -152,32 +168,6 @@ dependencies:
 - xerces-c
 - xgboost
 - yaml
+- yamllint
+- yappi
 - yarn
-- pip:
-  - autopep8
-  - awscli
-  - boltons
-  - celery
-  - checksumdir
-  - ciso8601
-  - click-datetime
-  - DAWG
-  - ffmpeg-python
-  - flask
-  - Flask-Caching
-  - graphviz
-  - gunicorn
-  - hdmedians
-  - ipython-sql
-  - meinheld
-  - modernize
-  - mypy
-  - opencv-python
-  - parse
-  - perf
-  - pudb
-  - pydash
-  - pyDEM
-  - structlog[dev]
-  - yamllint
-  - yappi

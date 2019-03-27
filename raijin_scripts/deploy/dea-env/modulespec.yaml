@@ -15,9 +15,16 @@ install_conda_packages: environment.yaml
 
 dea_env_miniconda3: reinstall_miniconda.sh
 
+install_pip_packages:
+  requirements: env_requirements.txt
+  prefix: "{module_path}"
+  pip_cmd: "{module_path}/bin/pip "
+
 copy_files:
 - src: environment.yaml
   dest: "{modules_dir}/{module_name}/{module_version}/environment.yaml"
+- src: env_requirements.txt
+  dest: "{module_path}/env_requirements.txt"
 
 template_files:
 - src: modulefile.template
