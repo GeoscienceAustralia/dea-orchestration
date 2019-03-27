@@ -11,9 +11,8 @@ import yaml
 from moto import mock_s3, mock_sqs
 from pathlib import Path
 
-
-# from .notify_to_stac_queue import s3_key_to_stac_queue
-# from .stac_parent_update import CatalogUpdater
+# pylint: disable=redefined-outer-name
+from stac_parent_update import CatalogUpdater
 
 
 @pytest.fixture
@@ -109,7 +108,7 @@ def delete_stac_items_in_s3(s3_dataset_yamls, bucket):
     Given a list of datasets, delete the existing STAC item json's from the s3 bucket
     """
 
-    stac_items = [str(Path(dts['name']).parent) + '/' + Path(dts['name']).stem + '_STAC.json'
+    stac_items = [dts['name'].replace('.yaml', '_STAC.json')
                   for dts in s3_dataset_yamls]
 
     # Delete the catalog files in s3
@@ -167,16 +166,14 @@ def test_generate_stac_item():
 
     bucket.upload_file(str(Path(__file__).parent / 'tests/LS5_TM_FC_3577_-5_-23_20100213012240.yaml'), key)
 
-    event_body = {'Records': [
-        {"s3":
-            {
-                "bucket": {
-                    "name": bucket_name},
-                "object": {
-                    "key": key}
+    event_body = {
+        'Records': [{
+            "s3": {
+                "bucket": {"name": bucket_name},
+                "object": {"key": key}
             }
-        }
-    ]}
+        }]
+    }
     event = {'Records': [{'body': json.dumps(event_body)}]}
 
     from stac import stac_handler
@@ -222,6 +219,6 @@ def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
 
     s3_client = boto3.client('s3')
     for dts in s3_dataset_yamls:
-        stac_item_file = str(Path(dts['name']).parent) + '/' + Path(dts['name']).stem + '_STAC.json'
+        stac_item_file = dts['name'].replace('.yaml', '_STAC.json')
         assert s3_client.head_object(Bucket='dea-public-data-dev',
                                      Key=stac_item_file).get('ResponseMetadata', None) is not None

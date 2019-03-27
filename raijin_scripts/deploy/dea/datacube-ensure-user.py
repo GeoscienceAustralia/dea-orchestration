@@ -8,18 +8,18 @@
 from __future__ import print_function
 
 import os
-import pwd
 import random
 import string
 import sys
-from textwrap import dedent
 from collections import namedtuple
-from pathlib import Path
+from textwrap import dedent
 
 import click
 import psycopg2
+import pwd
 import pytest
 from boltons.fileutils import atomic_save
+from pathlib import Path
 
 OLD_DB_HOST = '130.56.244.105'
 PASSWORD_LENGTH = 32
