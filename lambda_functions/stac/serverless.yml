@@ -46,7 +46,7 @@ custom:
 provider:
   name: aws
   stage: dev
-  runtime: python3.7
+  runtime: python3.6
   profile: ${self:custom.profile.${self:custom.Stage}}
   deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   region: ap-southeast-2
@@ -62,9 +62,7 @@ provider:
         - "sqs:ReceiveMessage"
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
-      Resource: !GetAtt
-            - staticStacQueue
-            - Arn
+      Resource: !GetAtt staticStacQueue.Arn
 
 functions:
   stac:
@@ -73,19 +71,25 @@ functions:
     timeout: 30
     events:
       - sqs:
-          arn: !GetAtt
-            - staticStacQueue
-            - Arn
+          arn: !GetAtt staticStacQueue.Arn
           batchSize: 10
 
 # Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
 resources:
   Resources:
-  ### PART ONE: Create SNS Topic and SQS Queues
+  ### PART ONE: SQS Queues
     staticStacQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: static-stac-queue
+        VisibilityTimeout: 600
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt staticStacDeadLetterQueue.Arn
+          maxReceiveCount: 10
+    staticStacDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: static-stac-dead-letter-queue
         VisibilityTimeout: 600
   ### PART TWO: Create SQS Queue Policies
   # Create our queue policy for the 'firstQueue'
@@ -98,9 +102,7 @@ resources:
             - Sid: "allow-sns-messages"
               Effect: Allow
               Principal: "*"
-              Resource: !GetAtt
-                - staticStacQueue
-                - Arn
+              Resource: !GetAtt staticStacQueue.Arn
               Action: "SQS:SendMessage"
               Condition:
                 ArnEquals:
@@ -113,19 +115,13 @@ resources:
       Type: 'AWS::SNS::Subscription'
       Properties:
         TopicArn: ${self:custom.snsTopic.${self:custom.Stage}}
-        Endpoint: !GetAtt
-          - staticStacQueue
-          - Arn
+        Endpoint: !GetAtt staticStacQueue.Arn
         Protocol: sqs
         RawMessageDelivery: 'true'
   Outputs:
     QueueURL:
       Description: "URL of newly created SQS Queue"
-      Value:
-        Ref: staticStacQueue
+      Value: !Ref staticStacQueue
     QueueARN:
       Description: "ARN of newly created SQS Queue"
-      Value:
-        Fn::GetAtt:
-          - staticStacQueue
-          - Arn
+      Value: !GetAtt staticStacQueue.Arn
