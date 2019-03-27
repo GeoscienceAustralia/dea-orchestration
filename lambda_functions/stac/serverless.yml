@@ -15,7 +15,6 @@ package:
     - package.json
     - package-lock.json
     - requirements.txt
-    - stac_deploy.tf
     - terraform.*
     - notify_to_stac_queue.py
     - tests.py

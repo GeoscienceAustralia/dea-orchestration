@@ -17,14 +17,8 @@ The Lambda filters based on incoming file names, and generates `STAC item`.
 
 To install the `STAC item generation pipeline`:  
 
-1. Create the AWS environment defined in [stac_deploy.tf](stac_deploy.tf).
 
-```bash
-    terraform plan
-    terraform apply
-```
-
-2. Deploy the `lambda` function defined in [serverless.yml](serverless.yml).
+1. Deploy the `lambda` function defined in [serverless.yml](serverless.yml).
 
 ```
     npm install
