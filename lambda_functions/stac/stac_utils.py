@@ -22,4 +22,3 @@ def parse_date(context, param, value):
         return dateutil.parser.parse(value)
     except ValueError as error:
         raise ValueError('unparseable date') from error
-
