@@ -52,9 +52,12 @@ In the absence of a command line `.yaml` file list, the script derives the list
 from the default inventory list (or you can specify the inventory manifest).
 
 #### Notify to STAC SQS
-[notify_to_stac_queue.py](notify_to_stac_queue.py): This script sends notification messages to 
-`stac queue` corresponding to a given list of `dataset item yaml` files. 
-This list could be derived from `s3 inventory list` or given on `command line`.
+[notify_to_stac_queue.py](notify_to_stac_queue.py)
+
+This script sends messages to an SQS queue indicating modification or addition of
+a list of **dataset yaml** files. 
+This list can be generated from an [S3 Inventory](https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-inventory.html)
+or passed as command line arguments.
 For example, a *STAC Item* for a dataset can be created manually, using the following command:
 
 ```bash
@@ -69,18 +72,17 @@ from the default inventory list (or you can specify the inventory manifest).
 #### Delete STAC Parent Catalogues
 [delete_stac_parent_catalogs.py](delete_stac_parent_catalogs.py)
  
-This script scans through a bucket looking for 
-`catalog.json` having a specific prefix and deletes them. This prefix typically 
-specify a product.
+This script deletes all `catalog.json` objects in a bucket that start with a specified **prefix**.
+This prefix typically contains a single product.
 
 
 #### Update Product Suite Catalogues
 [update_product_suite_catalogs.py](update_product_suite_catalogs.py)
 
-Certain products belong to respective product
-suites. For example, `wofs_albers, wofs_filtered_summary, wofs_statistical_summary,`
-and `wofs_annual_summary` belong to the suite `WOfS`. This script updates the
-`collection catalogs` corresponding to such suites. Example,
+Certain products belong to product
+suites. For example, **wofs_albers, wofs_filtered_summary, wofs_statistical_summary,**
+and **wofs_annual_summary** belong to the suite **WOfS**. This script updates the
+**collection catalogs** for each suite. Example,
  
 ```bash
     python update_product_suite_catalogs.py -b dea-public-data-dev
@@ -88,12 +90,10 @@ and `wofs_annual_summary` belong to the suite `WOfS`. This script updates the
 
 ### Configuration
 
-The configuration for the lambda function 
-and other scripts is contained in [stac_config.yaml](stac_config.yaml).
+The configuration for everything STAC related is in [stac_config.yaml](stac_config.yaml).
 
-This file contains cross product information
-such as `license, contact, provider` and specific
-to each product that part of the `STAC catalog`. 
+This file contains cross product metadata
+such as `license, contact, provider` as well as product specific details.
 
 Each product is identified by its
 *prefix* within an S3 bucket (typically [dea-public-data](https://data.dea.ga.gov.au/)).
@@ -105,17 +105,17 @@ product is usually the `product name` from a datacube index.
 The `catalog structure` of the product must be specified. This structure is an 
 ordered list of templates strings. The following rules should be followed when defining the catalog structure:
 
-1. The last template specify a **STAC catalog** that hold **STAC item** links. Each of
-these **STAC item** correspond to a `dataset` of the respective product and has a 
-`.yaml` file holding the *metadata* information of the dataset.
+1. The last template specifies a **STAC catalog** that holds **STAC item** links. Each of
+these **STAC items** are a `dataset` of the respective product and also have a 
+`.yaml` file holding *ODC metadata* for the dataset.
 
 2. The directory above that specified by the first template holds a 
-`STAC Collection catalog`. If the product belongs to a *suite of products* such
+**STAC Collection catalog**. If the product belongs to a *suite of products* such
 as **WOfS**, there is a further top level collection catalog having links to each
 of the products within that suite.
 
 3. When defining templates, omit leading and trailing back-slashes (/). 
-The following template structures were tested:
+The following template structures have been tested:
 
    ```
       - x_{x}
