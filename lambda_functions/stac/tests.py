@@ -180,10 +180,22 @@ def test_creating_catalogs():
     assert len(objects) == 5
 
     # Check Top Level Catalog
-    top = json.load(bucket.Object(key='test-prefix/dir/catalog.json').get()['Body'])
-    assert len(top['links']) == 5
+    collection = json.load(bucket.Object(key='test-prefix/dir/catalog.json').get()['Body'])
+    assert len(collection['links']) == 5
 
-    child_links = [link for link in top['links'] if link['rel'] == 'child']
+    child_links = [link for link in collection['links'] if link['rel'] == 'child']
     assert len(child_links) == 2
 
-    assert all(link['href'].endswith('catalog.json') for link in top['links'])
+    assert all(link['href'].endswith('catalog.json') for link in collection['links'])
+    assert 'license' in collection
+
+    # Check common properties of all catalogs
+    for o in objects:
+        body = json.load(o.get()['Body'])
+        assert body['stac_version'] == "0.6.0"
+        assert 'id' in body
+        assert 'description' in body
+        assert 'links' in body
+
+        assert all('href' in link and 'rel' in link for link in body['links'])
+        assert any(link['rel'] == 'self' for link in body['links'])
