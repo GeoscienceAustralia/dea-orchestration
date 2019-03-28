@@ -6,14 +6,15 @@ import json
 
 import boto3
 import pytest
-import time
 import yaml
 from moto import mock_s3, mock_sqs
 from pathlib import Path
 
-# pylint: disable=redefined-outer-name
-from stac_parent_update import CatalogUpdater
+from stac_parent_update import StacCollections
 
+
+# Disable this pylint feature. pytest fixtures defined in the same file must redefine their name.
+# pylint: disable=redefined-outer-name
 
 @pytest.fixture
 def s3_dataset_yamls():
@@ -89,72 +90,6 @@ def config():
         yield yaml.load(cfg_file)
 
 
-@pytest.fixture
-def upload_yamls_from_prod_to_dev(s3_dataset_yamls):
-    """
-    Upload yaml files to dea-public-data-dev from dea-public-data corresponding
-    to given list of dataset info
-    """
-
-    s3_res = boto3.resource('s3')
-    for dts in s3_dataset_yamls:
-        # Copy from dea-public-data to dea-public-data-dev
-        s3_res.meta.client.copy({'Bucket': 'dea-public-data', 'Key': dts['name']},
-                                'dea-public-data-dev', dts['name'])
-
-
-def delete_stac_items_in_s3(s3_dataset_yamls, bucket):
-    """
-    Given a list of datasets, delete the existing STAC item json's from the s3 bucket
-    """
-
-    stac_items = [dts['name'].replace('.yaml', '_STAC.json')
-                  for dts in s3_dataset_yamls]
-
-    # Delete the catalog files in s3
-    s3_client = boto3.client('s3')
-    s3_client.delete_objects(Bucket=bucket, Delete={'Objects': [{'Key': obj} for obj in stac_items]})
-
-
-def list_of_catalog_files(s3_dataset_yamls):
-    """
-    Compute and return the expected STAC catalog file names corresponding to
-    the given list of dataset info
-    """
-
-    s3_keys = []
-    for dataset in s3_dataset_yamls:
-        for prefix in dataset['prefixes']:
-            s3_keys.append(f'{prefix}/catalog.json')
-        collection_prefix = str(Path(dataset['prefixes'][0]).parent)
-        s3_keys.append(f'{collection_prefix}/catalog.json')
-    return s3_keys
-
-
-def test_stac_parent_update(s3_dataset_yamls, config):
-    """
-    Test the stac_parent_update script
-    """
-
-    # Define the bucket to be used for updates/deletes
-    bucket = 'dea-public-data-dev'
-
-    # Get the list of catalogs catalogs
-    catalogs = list_of_catalog_files(s3_dataset_yamls)
-
-    # Delete the catalog files in s3
-    s3_client = boto3.client('s3')
-    s3_client.delete_objects(Bucket=bucket, Delete={'Objects': [{'Key': obj} for obj in catalogs]})
-
-    # Update all parent catalogs
-    CatalogUpdater(config).update_parents_all([dts['name'] for dts in s3_dataset_yamls], bucket)
-
-    # Now check to see whether list of catalogs exist in s3
-    for catalog in catalogs:
-        assert s3_client.head_object(Bucket=bucket,
-                                     Key=catalog).get('ResponseMetadata', None) is not None
-
-
 @mock_s3
 @mock_sqs
 def test_generate_stac_item():
@@ -198,27 +133,57 @@ def test_generate_stac_item():
     assert links['parent'].endswith('catalog.json')
 
 
-def test_stac_items(s3_dataset_yamls, upload_yamls_from_prod_to_dev):
-    """
-    We upload datasets corresponding to given yaml files from prod to dev and
-    send messeges to SQS queue to create STAC item catalogs
-    """
-    sqs = boto3.client('sqs')
+test_config = {
+    'products': [
+        {'name': 'test-product',
+         'prefix': 'test-prefix/dir',
+         'description': 'must have description',
+         'catalog_structure': [
+             "x_{x}",
+             "x_{x}/y_{y}"
+         ]}
+    ],
+    'license': {
+        'short_name': 'friendly license'
+    },
+    'aws-domain': 'https://sub.example.com',
+    'root-catalog': 'https://sub.example.com/catalog.json',
+    'aus-extent': {
+        'spatial': [108, -45, 155, -10],
+        'temporal': [None, None]
+    }
+}
 
-    delete_stac_items_in_s3(s3_dataset_yamls, 'dea-public-data-dev')
 
-    queue_url = 'https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue'
+@mock_s3
+def test_creating_catalogs():
+    bucket_name = 'dea-public-data-dev'
+    s3 = boto3.resource('s3')
+    # We need to create the bucket since this is all in Moto's 'virtual' AWS account
+    bucket = s3.create_bucket(Bucket=bucket_name)
 
-    for dts in s3_dataset_yamls:
-        # send a message to SQS
-        s3_key_to_stac_queue(sqs, queue_url, 'dea-public-data-dev', dts['name'])
+    keys = ["test-prefix/dir/x_-5/y_-23/2010/02/13/foo1.yaml",
+            "test-prefix/dir/x_-5/y_-23/2010/02/13/foo2.yaml",
+            "test-prefix/dir/x_4/y_2/2010/02/13/foo3.yaml",
+            ]
 
-    # We may need to wait here a bit until messages in the queue are delivered
-    # This should be at least timeout of lambda
-    time.sleep(500)
+    cu = StacCollections(test_config)
+    cu.add_items(keys)
+    cu.persist_all_catalogs(bucket_name)
 
-    s3_client = boto3.client('s3')
-    for dts in s3_dataset_yamls:
-        stac_item_file = dts['name'].replace('.yaml', '_STAC.json')
-        assert s3_client.head_object(Bucket='dea-public-data-dev',
-                                     Key=stac_item_file).get('ResponseMetadata', None) is not None
+    objects = list(bucket.objects.all())
+    for o in objects:
+        print(o)
+        body = json.load(o.get()['Body'])
+        print(json.dumps(body, indent=4))
+
+    assert len(objects) == 5
+
+    # Check Top Level Catalog
+    top = json.load(bucket.Object(key='test-prefix/dir/catalog.json').get()['Body'])
+    assert len(top['links']) == 5
+
+    child_links = [link for link in top['links'] if link['rel'] == 'child']
+    assert len(child_links) == 2
+
+    assert all(link['href'].endswith('catalog.json') for link in top['links'])
