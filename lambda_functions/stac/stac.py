@@ -10,17 +10,18 @@ from concurrent.futures import ThreadPoolExecutor
 import boto3
 import datetime
 import pycrs
-import yaml
 from dateutil.parser import parse
 from parse import parse as pparse
 from pathlib import Path, PurePosixPath
 from pyproj import Proj, transform
-from yaml import SafeLoader
+from ruamel.yaml import YAML
+
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
 S3_RES = boto3.resource('s3')
+yaml = YAML(typ='safe')
 
 # Read the config file
 with open(Path(__file__).parent / 'stac_config.yaml', 'r') as cfg_file:

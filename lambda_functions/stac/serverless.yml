@@ -40,7 +40,9 @@ custom:
     dev: arn:aws:sns:ap-southeast-2:451924316694:DEANewDataDev
   pythonRequirements:
     dockerizePip: non-linux
+    slim: true
     fileName: requirements.txt
+    useDownloadCache: true
 
 provider:
   name: aws
@@ -66,8 +68,8 @@ provider:
 functions:
   stac:
     handler: stac.stac_handler
-    memorySize: 1024
-    timeout: 30
+    memorySize: 128
+    timeout: 5
     events:
       - sqs:
           arn: !GetAtt staticStacQueue.Arn
@@ -84,7 +86,7 @@ resources:
         VisibilityTimeout: 600
         RedrivePolicy:
           deadLetterTargetArn: !GetAtt staticStacDeadLetterQueue.Arn
-          maxReceiveCount: 10
+          maxReceiveCount: 5
     staticStacDeadLetterQueue:
       Type: AWS::SQS::Queue
       Properties:
