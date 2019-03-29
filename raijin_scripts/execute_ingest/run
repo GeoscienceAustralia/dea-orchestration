@@ -36,8 +36,8 @@ echo() {
 }
 
 WORKDIR=/g/data/v10/work/ingest/"${PRODUCT}"/$(date '+%FT%H%M')
-SUBMISSION_LOG="${WORKDIR}"/ingest-submission-${PRODUCT}-$(date '+%F-%T').log
-JOB_NAME="${YEAR}_${PRODUCT}"
+SUBMISSION_LOG="${WORKDIR}"/ingest-${PRODUCT}-$(date '+%F-%T').log
+JOB_NAME="${PRODUCT}_${YEAR}"
 count=0
 dbhostname='agdcdev-db.nci.org.au'
 dbport='6432'
@@ -96,10 +96,18 @@ psql -h ${dbhostname} -p ${dbport} -d ${dbname} \
 echo "**********************************************************************"
 
 echo ""
-echo "Executing ingest for ${YEAR} ${PRODUCT}"
+echo "Executing ${PRODUCT} ingest for the ${YEAR}"
 ##################################################################################################
 # Run dea-submit-ingest process
 ##################################################################################################
 yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --allow-product-changes \
   --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
+
+# Log the following values to the terminal, to be processed by the orchestration lambda function
+echo ingest_log="${SUBMISSION_LOG}"
+echo ingest_pbs_job_name="${JOB_NAME}"
+echo ingest_project="${PROJECT}"
+echo ingest_job_queue="${QUEUE}"
+echo ingest_work_dir="${WORKDIR}"
+echo ingest_product="${PRODUCT}"

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --job-id )              shift
+                                JOB_ID="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+function get_data
+{
+  # -r, --recursive
+  # -w, --word-regexp
+  # -o, --only-matching
+  # -i, --ignore-case
+  echo "$2" | grep "$1" | cut -f2 -d'=' | cut -f2 -d' '
+  return 0
+}
+
+function get_comment
+{
+  # -A1 tells grep to include 1 line after the match. 
+  # -B includes lines before the match
+  # -C includes lines both before and after the match
+  # cut -f2- indicates print fields from 2nd byte to end of line
+  echo "$2" | grep -A1 "$1" | tr -d '\n\t' | cut -f2- -d'='
+  return 0
+}
+
+function print_output
+{
+  [[ -z "$2" ]] && echo "$1"='NA' || echo "$1"="$2"
+  return 0
+}
+
+QSTAT_VAL=$(qstat -fx "${JOB_ID}")
+
+# Fetch QSUB job information
+_project=$(get_data 'project[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_queue=$(get_data 'queue[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_qtime=$(get_data 'qtime[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_job_name=$(get_data 'Job_Name[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_job_state=$(get_data 'job_state[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_exit_status=$(get_data 'Exit_status[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+_comment=$(get_comment 'comment[[:space:]]=[[:space:]]' "$QSTAT_VAL")
+
+print_output _job_name "$_job_name"
+print_output _job_state "$_job_state"
+print_output _project "$_project"
+print_output _queue "$_queue"
+print_output _exit_status "$_exit_status"
+print_output _comment "$_comment"

@@ -1,0 +1,17 @@
+{
+  "name": "orchestrate-nci-jobs",
+  "version": "1.0.0",
+  "description": "Orchestrate PBS Jobs using AWS Step Functions",
+  "main": "handler.py",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Geoscience Australia",
+  "license": "Apache 2",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^2.4.0",
+    "serverless-python-requirements": "^4.3.0",
+    "serverless-step-functions": "^1.17.0"
+  }
+}

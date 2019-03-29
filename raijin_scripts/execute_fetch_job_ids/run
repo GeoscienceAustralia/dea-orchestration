@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --logfile )             shift
+                                LOG_FILE="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+
+function print_output
+{
+  [[ -z "$1" ]] && echo 'NA' || echo "$1"
+  return 0
+}
+
+_job_ids=$(grep -E -rwoi '[0-9]{1,}.r-man2' $LOG_FILE | uniq | tr '\n' ', ')
+
+print_output "$_job_ids"
