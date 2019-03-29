@@ -1,8 +1,9 @@
-jinja2
+celery
 checksumdir
 click-datetime
 DAWG
 ffmpeg-python
 hdmedians
+jinja2
 meinheld
 pyDEM
