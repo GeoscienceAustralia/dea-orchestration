@@ -16,14 +16,13 @@ dependencies:
 - cachetools
 - cairo
 - cartopy
-- celery
 - ciso8601
 - click
 - click-plugins
 - cligj
 - cmocean
 - compliance-checker
-- conda == 4.6.2  # https://github.com/conda/conda/issues/8404
+- conda
 - conda-env
 - curl
 - cvxopt
@@ -53,7 +52,7 @@ dependencies:
 - glib
 - glue-geospatial
 - glueviz
-- graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
+- graphviz
 - gunicorn
 - h5py
 - hdbscan
@@ -112,7 +111,6 @@ dependencies:
 - pcre
 - pep8
 - perf
-- pip == 19.0.1
 - pixman
 - plotly
 - poppler
@@ -133,6 +131,7 @@ dependencies:
 - python >= 3.6.6
 - python-dateutil
 - pyyaml
+- qgis
 - rasterio >= 1.0.20
 - rasterstats
 - recommonmark
@@ -171,3 +170,12 @@ dependencies:
 - yamllint
 - yappi
 - yarn
+- pip:
+  - celery
+  - checksumdir
+  - click-datetime
+  - DAWG
+  - ffmpeg-python
+  - hdmedians
+  - meinheld
+  - pyDEM
