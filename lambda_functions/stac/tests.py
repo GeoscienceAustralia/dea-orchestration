@@ -6,14 +6,13 @@ import json
 
 import boto3
 import pytest
-import yaml
 from moto import mock_s3, mock_sqs
 from pathlib import Path
 
 from stac_parent_update import StacCollections
 
 
-# Disable this pylint feature. pytest fixtures defined in the same file must redefine their name.
+# When using PyTest fixtures defined in the same file, they must redefine their name.
 # pylint: disable=redefined-outer-name
 
 @pytest.fixture
@@ -80,16 +79,6 @@ def s3_dataset_yamls():
     ]
 
 
-@pytest.fixture
-def config():
-    """
-    yield the default config file of stac repo
-    """
-
-    with open(f'{Path(__file__).parent}/stac_config.yaml', 'r') as cfg_file:
-        yield yaml.load(cfg_file)
-
-
 @mock_s3
 @mock_sqs
 def test_s3_event_handler():
@@ -97,7 +86,8 @@ def test_s3_event_handler():
     key = "test-prefix/dir/x_-5/y_-23/2010/02/13/LS5_TM_FC_3577_-5_-23_20100213122216.yaml"
     s3 = boto3.resource('s3')
     # We need to create the bucket since this is all in Moto's 'virtual' AWS account
-    bucket = s3.create_bucket(Bucket=bucket_name)
+    bucket = s3.create_bucket(Bucket=bucket_name,
+                              ACL='public-read')
 
     bucket.upload_file(str(Path(__file__).parent / 'tests/LS5_TM_FC_3577_-5_-23_20100213012240.yaml'), key)
 
