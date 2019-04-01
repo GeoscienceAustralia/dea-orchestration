@@ -92,9 +92,9 @@ def config():
 
 @mock_s3
 @mock_sqs
-def test_generate_stac_item():
+def test_s3_event_handler():
     bucket_name = 'dea-public-data-dev'
-    key = "fractional-cover/fc/v2.2.0/ls5/x_-5/y_-23/2010/02/13/LS5_TM_FC_3577_-5_-23_20100213122216.yaml"
+    key = "test-prefix/dir/x_-5/y_-23/2010/02/13/LS5_TM_FC_3577_-5_-23_20100213122216.yaml"
     s3 = boto3.resource('s3')
     # We need to create the bucket since this is all in Moto's 'virtual' AWS account
     bucket = s3.create_bucket(Bucket=bucket_name)
@@ -111,8 +111,9 @@ def test_generate_stac_item():
     }
     event = {'Records': [{'body': json.dumps(event_body)}]}
 
-    from stac import stac_handler
-    stac_handler(event, {})
+    import stac
+    stac.CFG = test_config
+    stac.stac_handler(event, context={})
 
     expected_key = key.replace('.yaml', '_STAC.json')
     obj = bucket.Object(expected_key)
@@ -126,7 +127,8 @@ def test_generate_stac_item():
     assert len(stac_json['assets']) == 4
     assert {'BS', 'NPV', 'PV', 'UE'} == set(stac_json['assets'])
 
-    links = {link['rel']: link['href'] for link in stac_json['links']}
+    links = {link['rel']: link['href']
+             for link in stac_json['links']}
     assert 'self' in links
     assert 'parent' in links
     assert links['self'].endswith('STAC.json')
@@ -144,14 +146,20 @@ test_config = {
          ]}
     ],
     'license': {
-        'short_name': 'friendly license'
+        'short_name': 'friendly license',
+        'name': 'License name',
+        'copyright': 'Copyright',
     },
     'aws-domain': 'https://sub.example.com',
     'root-catalog': 'https://sub.example.com/catalog.json',
     'aus-extent': {
         'spatial': [108, -45, 155, -10],
         'temporal': [None, None]
-    }
+    },
+    'contact': {
+        'name': 'Mrs Test Contact'
+    },
+    'homepage': 'https://example.com/'
 }
 
 
@@ -183,10 +191,13 @@ def test_creating_catalogs():
     collection = json.load(bucket.Object(key='test-prefix/dir/catalog.json').get()['Body'])
     assert len(collection['links']) == 5
 
-    child_links = [link for link in collection['links'] if link['rel'] == 'child']
+    child_links = [link
+                   for link in collection['links']
+                   if link['rel'] == 'child']
     assert len(child_links) == 2
 
-    assert all(link['href'].endswith('catalog.json') for link in collection['links'])
+    assert all(link['href'].endswith('catalog.json')
+               for link in collection['links'])
     assert 'license' in collection
 
     # Check common properties of all catalogs
@@ -197,5 +208,8 @@ def test_creating_catalogs():
         assert 'description' in body
         assert 'links' in body
 
-        assert all('href' in link and 'rel' in link for link in body['links'])
-        assert any(link['rel'] == 'self' for link in body['links'])
+        assert all('href' in link and 'rel' in link
+                   for link in body['links'])
+
+        assert any(link['rel'] == 'self'
+                   for link in body['links'])

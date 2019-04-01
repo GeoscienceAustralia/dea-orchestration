@@ -74,7 +74,7 @@ def convert_yaml(file_message):
         return False
     # Load YAML file from s3
     obj = S3_RES.Object(bucket, s3_key)
-    metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'), Loader=SafeLoader)
+    metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
     # Generate STAC dict
     s3_key_ = PurePosixPath(s3_key)
     stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
