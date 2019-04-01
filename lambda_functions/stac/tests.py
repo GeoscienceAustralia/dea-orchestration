@@ -197,6 +197,7 @@ def test_creating_catalogs():
         assert 'id' in body
         assert 'description' in body
         assert 'links' in body
+        assert body['description'] == 'must have description'
 
         assert all('href' in link and 'rel' in link
                    for link in body['links'])
