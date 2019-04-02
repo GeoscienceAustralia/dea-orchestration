@@ -75,6 +75,9 @@ while read -r LINE; do
   fi
 done < "$DATACUBE_CONFIG_PATH"
 
+mkdir -p "$OUTPUT_DIR"
+chmod -R 755 "$OUTPUT_DIR"
+
 cd "$OUTPUT_DIR" || exit 1
 APP_CONFIG=/g/data/v10/public/modules/"$MODULE"/wofs/config/"${PRODUCT}".yaml
 

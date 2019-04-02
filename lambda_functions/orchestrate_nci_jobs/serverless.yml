@@ -5,19 +5,16 @@
 # For full config options, check the docs:
 #    docs.serverless.com
 #
-#    Sequence of steps before and after sls deploy:
-#      1) Create the SQS queue within your service (if sqs queue does not exist)
-#      2) Add permissions on the SQS queue to allow S3 to publish notifications
-#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html
-#  https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html
-#      3) Enable and attach event notifications for the desired S3 Bucket to SQS queue
-#      4) npm install
-#      5) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
+#    Sequence of steps to run before and after sls deploy:
+#      1) npm install --save-dev serverless-step-functions
+#      2) sls plugin install -n serverless-python-requirements
+#      3) sls plugin install -n serverless-pseudo-parameters
+#      4) sls deploy --aws-profile <Profile Name> -v --stage <Deploy Environment Name>
+#      5) sls invoke --aws-profile <Profile Name>  -s <Deploy Environment Name> stepf --name Execute_Jobs
 #
 #  An example of the Amazon States Language that runs an AWS Batch job and monitors the job until it completes
 
-
-service: orchestrate-nci-jobs
+service: execute-jobs
 
 plugins:
   - serverless-python-requirements
@@ -43,10 +40,6 @@ provider:
   runtime: python3.6
   timeout: 60  # 60 seconds. Default is 6 seconds
   memorySize: 128  # in MB, default is 1024
-  stage: prod
-  # Since SES is not supported in Sydney region, all emails are pushed to the
-  # S3 bucket in us-west-2 region. For s3 to trigger SQS and SQS trigger lambda function execution, all the aws
-  # resources need to be in the same region as S3 bucket.
   region: ap-southeast-2
   deploymentBucket: "dea-lambdas-dev"
 
@@ -79,17 +72,6 @@ provider:
     Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:provider.environment.DYNAMODB_TABLENAME}"
   - Effect: "Allow"
     Action:
-        - "sqs:SendMessage"  # Message added to the SQS queue
-    Resource: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:WaitForTheLogs"
-  - Effect: "Allow"
-    Action:
-      - "s3:GetObject"
-    Resource:
-      Fn::Join:
-        - ""
-        - - "arn:aws:s3:::dea-ncimonitoring/NCIEmails/*"
-  - Effect: "Allow"
-    Action:
       - "states:StartExecution"
     Resource:
       - "*"
@@ -100,7 +82,7 @@ provider:
     NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
     DEA_AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
-    DEA_MODULE: dea/20181213
+    DEA_MODULE: dea/20190329
     PROJECT: u46
     QUEUE: normal
     DYNAMODB_TABLENAME: "PbsJobInfo-dev"
@@ -114,140 +96,173 @@ provider:
                   --suffixpath "%(suffixpath)s"
                   --product %(product)s
                   --trasharchived %(trasharchived)s'
+    INGEST_CMD: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
+                    --queue ${self:provider.environment.QUEUE}
+                    --project ${self:provider.environment.PROJECT}
+                    --year %(year)s
+                    --product %(product)s'
+    FC_CMD: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
+                --queue ${self:provider.environment.QUEUE}
+                --project ${self:provider.environment.PROJECT}
+                --year %(year)s
+                --product %(product)s
+                --tag %(tag)s'
+    WOFS_CMD: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
+                  --queue ${self:provider.environment.QUEUE}
+                  --project ${self:provider.environment.PROJECT}
+                  --year %(year)s
+                  --product %(product)s
+                  --tag %(tag)s'
+    COG_CMD: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
+                 --s3-output %(s3_output)s
+                 --cog-product %(cog_product)s
+                 --time-range "%(time_range %)s"'
+    SUBMIT_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-submit_pbs_job"
+    FETCH_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-fetch_job_ids"
+    CHECK_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-check_job_status"
+
 functions:
   submit_pbs_job:
     handler: handler.submit_pbs_job
-    description: Submit Sync job for LS7/LS8 data and store the qsub job id in the dynamodb table
+    description: Submit Sync/Ingest/FC/WOfS job for LS7/LS8 data and store the qsub job id in aws dynamodb database
   fetch_job_ids:
     handler: handler.fetch_job_ids
-    description: Fetch the qsub job ids from the submission log file and update the same in the dynamodb table
+    description: Fetch the qsub job ids from the submission log file and update the same in aws dynamodb database
   check_job_status:
     handler: handler.check_job_status
-    description: Monitor and update qsub job status
+    description: Monitor and update qsub job status in aws dynamodb database
 
 
 stepFunctions:
   stateMachines:
-    Orchestrate_NCI_Jobs:
-      name: Orchestrate_NCI_Jobs
+    Execute_Jobs:
+      name: Execute_Jobs
       events:
         - schedule:
           rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
           enabled: false
       definition:
-        Comment: "Submit a sync job"
+        Comment: "Orchestrate NCI jobs that can self manage job dependencies"
         StartAt: Submit_Sync_Job
         States:
           Submit_Sync_Job:
             Type: Parallel
-            Next: Wait_5_Minutes
+            Next: Wait_3_Minutes
             Branches:
-            - StartAt: Sync_ls8_nbar_scene
+            - StartAt: Sync_LS8_Nbar_Scene
               States:
-                Sync_ls8_nbar_scene:
+                Sync_LS8_Nbar_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls8_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
                     suffixpath: '/??/output/nbar/'
                   End: true
-            - StartAt: Sync_ls7_nbar_scene
+            - StartAt: Sync_LS7_Nbar_Scene
               States:
-                Sync_ls7_nbar_scene:
+                Sync_LS7_Nbar_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls7_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
                     suffixpath: '/??/output/nbar/'
                   End: true
-            - StartAt: Sync_ls8_nbart_scene
+            - StartAt: Sync_LS8_Nbart_Scene
               States:
-                Sync_ls8_nbart_scene:
+                Sync_LS8_Nbart_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls8_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
                     suffixpath: '/??/output/nbart/'
                   End: true
-            - StartAt: Sync_ls7_nbart_scene
+            - StartAt: Sync_LS7_Nbart_Scene
               States:
-                Sync_ls7_nbart_scene:
+                Sync_LS7_Nbart_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls7_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
                     suffixpath: '/??/output/nbart/'
                   End: true
-            - StartAt: Sync_ls8_pq_scene
+            - StartAt: Sync_LS8_PQ_Scene
               States:
-                Sync_ls8_pq_scene:
+                Sync_LS8_PQ_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls8_pq_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_ls7_pq_scene
+            - StartAt: Sync_LS7_PQ_Scene
               States:
-                Sync_ls7_pq_scene:
+                Sync_LS7_PQ_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls7_pq_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_ls8_pq_legacy_scene
+            - StartAt: Sync_LS8_PQ_Legacy_Scene
               States:
-                Sync_ls8_pq_legacy_scene:
+                Sync_LS8_PQ_Legacy_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls8_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_ls7_pq_legacy_scene
+            - StartAt: Sync_LS7_PQ_Legacy_Scene
               States:
-                Sync_ls7_pq_legacy_scene:
+                Sync_LS7_PQ_Legacy_Scene:
                   Type: Task
-                  Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
+                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
                     product: ls7_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -260,13 +275,13 @@ stepFunctions:
           Task_Failed:
             Type: Fail
             Cause: "This is a fallback from a lambda function exception"
-          Wait_5_Minutes:  #  Wait for 5 minutes before submitting submit job status
+          Wait_3_Minutes:  #  Wait for 3 minutes before updating job status
             Type: Wait
-            Seconds: 60
-            Next: Fetch_Sync_Job_Ids
-          Fetch_Sync_Job_Ids:  # Fetch the sync job id and update the status in aws dynamodb database
+            Seconds: 180
+            Next: Get_Sync_Job_Ids
+          Get_Sync_Job_Ids:  # Fetch sync job id's and update the job status in aws dynamodb database
             Type: Task
-            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-fetch_job_ids"
+            Resource: ${self:provider.environment.FETCH_JOB_ARN}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -277,9 +292,9 @@ stepFunctions:
             Type: Wait
             Seconds: 120
             Next: Get_Sync_Job_Status
-          Get_Sync_Job_Status:  # qstat PBS job status and update the status in the dynamodb table
+          Get_Sync_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
-            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-check_job_status"
+            Resource: ${self:provider.environment.CHECK_JOB_ARN}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -290,76 +305,288 @@ stepFunctions:
             Type: Choice
             Choices:
             - Variable: "$.jobs_finished"
-              StringEquals: "FINISHED"
-              Next: Finished
+              BooleanEquals: true
+              Next: Submit_Ingest_Job
             - Variable: "$.jobs_finished"
-              StringEquals: "PENDING"
+              BooleanEquals: false
               Next: Wait_30_Minutes
-            Default: DefaultState
-          DefaultState:
+            Default: FailedChoiceState
+          FailedChoiceState:
             Type: Fail
             Cause: "No Choice Matches!"
+          Submit_Ingest_Job:
+            Type: Parallel
+            Next: Wait_5_Minutes
+            Branches:
+            - StartAt: Ingest_LS8_Nbar_Albers
+              States:
+                Ingest_LS8_Nbar_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls8_nbar_albers
+                    year: 2019
+                  End: true
+            - StartAt: Ingest_LS7_Nbar_Albers
+              States:
+                Ingest_LS7_Nbar_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls7_nbar_albers
+                    year: 2019
+                  End: true
+            - StartAt: Ingest_LS8_Nbart_Albers
+              States:
+                Ingest_LS8_Nbart_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls8_nbart_albers
+                    year: 2019
+                  End: true
+            - StartAt: Ingest_LS7_Nbart_Albers
+              States:
+                Ingest_LS7_Nbart_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls7_nbart_albers
+                    year: 2019
+                  End: true
+            - StartAt: Ingest_LS8_PQ_Albers
+              States:
+                Ingest_LS8_PQ_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls8_pq_albers
+                    year: 2019
+                  End: true
+            - StartAt: Ingest_LS7_PQ_Albers
+              States:
+                Ingest_LS7_PQ_Albers:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    product: ls7_pq_albers
+                    year: 2019
+                  End: true
+            Catch:
+            - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+              Next: Task_Failed
+          Wait_5_Minutes:  #  Wait for 5 minutes before updating job status
+            Type: Wait
+            Seconds: 60
+            Next: Get_Ingest_Job_Ids
+          Get_Ingest_Job_Ids:  # Fetch Ingest job id's and update the job status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Wait_35_Minutes
+          Wait_35_Minutes:  # Wait for 35 minutes before reading the job status
+            Type: Wait
+            Seconds: 120
+            Next: Get_Ingest_Job_Status
+          Get_Ingest_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Is_Ingest_Job_Complete
+          Is_Ingest_Job_Complete:  # Check if the ingest job is completed
+            Type: Choice
+            Choices:
+            - Variable: "$.jobs_finished"
+              BooleanEquals: true
+              Next: Submit_FC_Job
+            - Variable: "$.jobs_finished"
+              BooleanEquals: false
+              Next: Wait_35_Minutes
+            Default: FailedChoiceState
+          Submit_FC_Job:
+            Type: Parallel
+            Next: Wait_2_Minutes
+            Branches:
+            - StartAt: Run_LS8_FC
+              States:
+                Run_LS8_FC:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.FC_CMD}
+                    product: ls8_fc_albers
+                    year: 2019
+                    tag: 'ls8_fc2019'
+                  End: true
+            - StartAt: Run_LS7_FC
+              States:
+                Run_LS7_FC:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.FC_CMD}
+                    product: ls7_fc_albers
+                    year: 2019
+                    tag: 'ls7_fc2019'
+                  End: true
+            - StartAt: Run_WOfLS
+              States:
+                Run_WOfLS:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.WOFS_CMD}
+                    product: wofs_albers
+                    year: 2019
+                    tag: 'wofs_2019'
+                  End: true
+            Catch:
+            - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+              Next: Task_Failed
+          Wait_2_Minutes:  #  Wait for 2 minutes before updating job status
+            Type: Wait
+            Seconds: 60
+            Next: Get_FC_WOFS_Job_Ids
+          Get_FC_WOFS_Job_Ids:  # Fetch FC and WOfS job id's and update the job status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Get_FC_WOFS_Job_Status
+          Get_FC_WOFS_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Is_FC_WOFS_Job_Complete
+          Is_FC_WOFS_Job_Complete:  # Check if the Fractional Cover and WOfS jobs are completed
+            Type: Choice
+            Choices:
+            - Variable: "$.jobs_finished"
+              BooleanEquals: true
+              Next: Submit_Cogger_Job
+            - Variable: "$.jobs_finished"
+              BooleanEquals: false
+              Next: Wait_2_Minutes
+            Default: FailedChoiceState
+          Submit_Cogger_Job:
+            Type: Parallel
+            Next: Wait_15_Minutes
+            Branches:
+            - StartAt: Run_LS8_FC_Cog
+              States:
+                Run_LS8_FC_Cog:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    cog_product: ls8_fc_albers
+                    time_range: '2019-2019'
+                    s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls8
+                  End: true
+            - StartAt: Run_LS7_FC_Cog
+              States:
+                Run_LS7_FC_Cog:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    cog_product: ls7_fc_albers
+                    time_range: '2019-2019'
+                    s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls7
+                  End: true
+            - StartAt: Run_WOfLS_Cog
+              States:
+                Run_WOfLS_Cog:
+                  Type: Task
+                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    cog_product: wofs_albers
+                    time_range: '2019-2019'
+                    s3_output: s3://dea-public-data/WOfS/WOFLs/v2.1.5/combined
+                  End: true
+            Catch:
+            - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+              Next: Task_Failed
+          Wait_15_Minutes:  #  Wait for 15 minutes before updating job status
+            Type: Wait
+            Seconds: 60
+            Next: Get_Cogger_Job_Ids
+          Get_Cogger_Job_Ids:  # Fetch Cogger job id's and update the job status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Get_Cogger_Job_Status
+          Get_Cogger_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
+            Type: Task
+            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+            Next: Is_Cog_Job_Complete
+          Is_Cog_Job_Complete:  # Check if the cog conversion for Fractional Cover and WOfS jobs are completed
+            Type: Choice
+            Choices:
+            - Variable: "$.jobs_finished"
+              BooleanEquals: true
+              Next: Finished
+            - Variable: "$.jobs_finished"
+              BooleanEquals: false
+              Next: Wait_15_Minutes
+            Default: FailedChoiceState
           Finished:
             Type: Succeed
-#            Next: Submit_Ingest_Job
-#    Submit_Ingest_Job:
-#      definition:
-#        Comment: "Submit an Ingest job"
-#        States:
-#          Submit_Ingest_Job:
-#            Type: Task
-#            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-submit_pbs_job"
-#            Next: Wait_10_Minutes
-#    Wait_10_Minutes:
-#      definition:
-#        Comment:  "Wait for 300 seconds"
-#        States:
-#          Wait_10_Minutes:
-#            Type: Wait
-#            Minutes: 10
-#            Next: Update_Ingest_Job_Status
-#    Update_Ingest_Job_Status:
-#      definition:
-#        Comment: "Update QSUB job status information in aws dynamodb database"
-#        States:
-#          Update_Ingest_Job_Status:
-#            Type: Task
-#            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-fetch_job_ids"
-#            Next: Wait_45_Minutes
-#    Wait_45_Minutes:
-#      definition:
-#        Comment:  "Wait for 45 minutes"
-#        States:
-#          Wait_45_Minutes:
-#            Type: Wait
-#            Minutes: 45
-#            Next: Get_Ingest_Job_Status
-#    Get_Ingest_Job_Status:
-#      definition:
-#        Comment:  "Fetch PBS job status from dynamodb table"
-#        States:
-#          Get_Ingest_Job_Status:
-#            Type: Task
-#            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-check_job_status"
-#            Next: Is_Ingest_Job_Complete
-#    Is_Ingest_Job_Complete:
-#      definition:
-#        Comment:  "Check if job is completed"
-#        States:
-#          Is_Ingest_Job_Complete:
-#            Type: Choice
-#            Choices:
-#              - Variable: "$.status"
-#                StringEquals: "FAILED"
-#                End: true
-#              - Variable: "$.status"
-#                StringEquals: "SUCCEEDED"
-#                Next: Update_Ingest_Complete_Status_DynamoDB
-#              Default: Wait_45_Minutes
-#            Update_Ingest_Complete_Status_DynamoDB:
-#              Type: Task
-#              Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:orchestrate-nci-jobs-dev-fetch_job_ids"
-#              End: true
 
 #resources:
 #  Outputs:

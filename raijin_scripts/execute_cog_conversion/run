@@ -1,17 +1,14 @@
 #!/bin/bash
 set -eu
-HOME_PATH=/g/data/u46/users/sm9911/temp_repo
+
 while [[ "$#" -gt 0 ]]; do
     key="$1"
     case "${key}" in
         --dea-module )          shift
                                 MODULE="$1"
                                 ;;
-        --queue )               shift
-                                QUEUE="$1"
-                                ;;
-        --project )             shift
-                                PROJECT="$1"
+        --s3-output )           shift
+                                S3_OUTPUT_URL="$1"
                                 ;;
         --cog-product )         shift
                                 PRODUCT="$1"
@@ -28,6 +25,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+COG_CONV_DIR="$HOME/COG-Conversion/converter"
 WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"/$(date '+%F_%H-%M-%S')
 SUBMISSION_LOG="$WORKDIR"/Cog_Submission_$(date '+%s').log
 START_YEAR=$(echo "$RANGE_EXP" | cut -f 1 -d '-')
@@ -58,9 +56,12 @@ nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
 # Qsub cog-convert process
 ##################################################################################################
 echo ""
-echo "Executing: python3 $HOME_PATH/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT}
--p ${PRODUCT} --walltime 20 --output-dir ${WORKDIR} --time-range ${TIME_RANGE_TO_PROCESS}"
 
-python3 "$HOME_PATH"/COG-Conversion/converter/cog_conv_app.py qsub-cog-convert -q ${QUEUE} -P ${PROJECT} -p ${PRODUCT} \
---walltime 20 --output-dir ${WORKDIR} --time-range ${TIME_RANGE_TO_PROCESS}
+set -x  # echo ON
+
+python3 "$COG_CONV_DIR"/cog_conv_app.py qsub-cog -p ${PRODUCT} --output-dir ${WORKDIR} \
+--time-range ${TIME_RANGE_TO_PROCESS} --aws-profile default --s3-output-url ${S3_OUTPUT_URL}
+
+set +x  # echo OFF
+
 EOF

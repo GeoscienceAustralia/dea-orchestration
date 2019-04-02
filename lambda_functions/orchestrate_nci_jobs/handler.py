@@ -20,6 +20,9 @@ JOB_STATUS = {
 
 EXIT_STATUS = {
     '0': 'SUCCESS',
+    # Ignore if pbs job returns exit status of 2 to indicate incorrect usage (generally invalid or missing arguments).
+    # This scenario normally arises when the state machine in parallel detects no further tasks to process.
+    '2': 'SUCCESS',
     '271': 'JOB_TERMINATED',
     'NA': 'IN_QUEUE'
 }
@@ -34,31 +37,23 @@ def _extract_after_search_string(str_val, out_str):
 
 def fetch_job_ids(event, context):
     """
-    Handler function responsible to detect any new emails sent to 'dea-ncimonitoring/NCIEmail' S3 bucket
-     and extract PBS job related information (including dataset processing info) from the email body.
-
-    The Architecture used in this setup is as follows:
-        <New S3 object created> ---Delayed Event----> <SQS Queue> ---Event----> <AWS Lambda> --
-                 ---Processed Data--|----Log--------> AWS CloudWatch
-                                    |----Indexing---> AWS ElasticSearch Domain
-    Ref: https://aws.amazon.com/blogs/
-           1) compute/fanout-S3-event-notifications-to-multiple-endpoints/
-           2) database/indexing-metadata-in-amazon-elasticsearch-service-using-aws-lambda-and-python/
-
-    The Python lambda handler is responsible for:
-        a) Extracting PBS related information from the email body
-        b) Fetch dataset processing information from the PBS logs
-        c) Construct AWS ES metadata document
-        d) Connect to the Amazon ES domain endpoint
-        e) Creates an index if index does not exists in the AWS ES
-        f) Write the updated metadata document into Amazon ES
+    This handler function shall do the following:
+       1) Read the job submission log file
+       2) Fetch the job id's from the file
+       3) Update the job status of all the jobs in aws dynamodb table
+       4) Return the job id's, product, queue_timestamp, and work_dir as an event output dictionary along with
+          jobs pending execution status
     """
     event_olist = list()
     for event_ilist in event:
         output, stderr, exit_code = exec_command(f'execute_fetch_job_ids --logfile {event_ilist["log_path"]}')
 
+        if exit_code != 0:
+            LOG.error(f'execute_fetch_job_ids failed (exit code: {exit_code})')
+            raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
+
         # 'output' variable is in "1234567.r-man2,\n" format, hence remove new line character and any empty string
-        qsub_job_ids = [ids for ids in output.strip().split(",") if ids]
+        qsub_job_ids = set(ids for ids in output.strip().split(",") if ids)
 
         table = dynamodb.Table(os.environ['DYNAMODB_TABLENAME'])
 
@@ -78,11 +73,11 @@ def fetch_job_ids(event, context):
                 'remarks': 'NA'
             }
 
-            # write to the dynamoDB database
+            # Write to the dynamoDB database
             table.put_item(Item=item)
 
         event_olist.append({
-            'qsub_job_ids': qsub_job_ids,
+            'qsub_job_ids': list(qsub_job_ids),  # A `set()` cannot be serialized to JSON, hence convert to a list()
             'product': event_ilist["product"],
             'queue_timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             'work_dir': event_ilist["work_dir"],
@@ -90,39 +85,26 @@ def fetch_job_ids(event, context):
 
     return {
         'event_olist': event_olist,
-        'jobs_finished': 'PENDING',
+        'jobs_finished': False,
     }
 
 
 def submit_pbs_job(event, context):
     """
-    Handler function responsible to detect any new emails sent to 'dea-ncimonitoring/NCIEmail' S3 bucket
-     and extract PBS job related information (including dataset processing info) from the email body.
-
-    The Architecture used in this setup is as follows:
-        <New S3 object created> ---Delayed Event----> <SQS Queue> ---Event----> <AWS Lambda> --
-                 ---Processed Data--|----Log--------> AWS CloudWatch
-                                    |----Indexing---> AWS ElasticSearch Domain
-    Ref: https://aws.amazon.com/blogs/
-           1) compute/fanout-S3-event-notifications-to-multiple-endpoints/
-           2) database/indexing-metadata-in-amazon-elasticsearch-service-using-aws-lambda-and-python/
-
     The Python lambda handler is responsible for:
-        a) Extracting PBS related information from the email body
-        b) Fetch dataset processing information from the PBS logs
-        c) Construct AWS ES metadata document
-        d) Connect to the Amazon ES domain endpoint
-        e) Creates an index if index does not exists in the AWS ES
-        f) Write the updated metadata document into Amazon ES
+        a) SSH to raijin login node
+        b) Upon successful login, execute the ssh command
+        c) If ssh command execution is successful, return submitted job status read from the ssh output
+        d) If ssh command execution failed, raise an SSH command exception
     """
-    cmd = os.environ["SYNC_CMD"] % event
+    cmd = event["execute_cmd"] % event
     LOG.info(f'Executing Command: {cmd}')
 
     output, stderr, exit_code = exec_command(f'{cmd}')
 
     if exit_code != 0:
-        LOG.error(f'Exit code: {exit_code}')
-        raise Exception(f'SSH Execution Command stdout: {output} stderr: {stderr}')
+        LOG.error(f'Execute SSH command failed (exit code: {exit_code})')
+        raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
 
     job_name = _extract_after_search_string(r"pbs_job_name=*", output)
     log_path = _extract_after_search_string(r"_log=*", output)
@@ -145,35 +127,32 @@ def submit_pbs_job(event, context):
 
 def check_job_status(event, context):
     """
-    Handler function responsible to detect any new emails sent to 'dea-ncimonitoring/NCIEmail' S3 bucket
-     and extract PBS job related information (including dataset processing info) from the email body.
-
-    The Architecture used in this setup is as follows:
-        <New S3 object created> ---Delayed Event----> <SQS Queue> ---Event----> <AWS Lambda> --
-                 ---Processed Data--|----Log--------> AWS CloudWatch
-                                    |----Indexing---> AWS ElasticSearch Domain
-    Ref: https://aws.amazon.com/blogs/
-           1) compute/fanout-S3-event-notifications-to-multiple-endpoints/
-           2) database/indexing-metadata-in-amazon-elasticsearch-service-using-aws-lambda-and-python/
-
-    The Python lambda handler is responsible for:
-        a) Extracting PBS related information from the email body
-        b) Fetch dataset processing information from the PBS logs
-        c) Construct AWS ES metadata document
-        d) Connect to the Amazon ES domain endpoint
-        e) Creates an index if index does not exists in the AWS ES
-        f) Write the updated metadata document into Amazon ES
+    The Python lambda handler shall:
+        a) Loop through all the event list inputted to this handler from the parallel state machines
+        b) From the 'event_olist' dictionary element, loop through all the job ids and qstat to read
+           pbs job status
+        c) Once job has finished, record any job failures in job_failed flag
+        d) Update the pbs job status in the aws dynamodb table
+        e) Return the job id's, product, queue_timestamp, and work_dir as an event output dictionary along with
+           jobs pending execution status
     """
     table = dynamodb.Table(os.environ['DYNAMODB_TABLENAME'])
     event_olist = list()
 
-    jobs_finished = "FINISHED"
+    jobs_failed = False
 
+    # Loop through all the event list inputted to this handler from the parallel state machines
     for event_ilist in event['event_olist']:
         qsub_job_ids = list()
 
+        # From each event list, fetch qsub job id's
         for job_id in event_ilist["qsub_job_ids"]:
             output, stderr, exit_code = exec_command(f'execute_qstat --job-id {job_id}')
+
+            if exit_code != 0:
+                LOG.error(f'execute_qstat failed (exit code: {exit_code})')
+                raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
+
             now = datetime.now()  # Local Timestamp
 
             job_name = _extract_after_search_string(r"_job_name=*", output)
@@ -187,15 +166,19 @@ def check_job_status(event, context):
             execution_status = EXIT_STATUS.get(exit_status, 'FAILED')
 
             if not (job_status == 'FINISHED' or job_status == 'SUSPENDED'):
+                # Job is still pending
                 qsub_job_ids.append(job_id)
             else:
-                # Job has finished or deleted or suspended, if execution status still reports as IN_QUEUE then
-                # update the correct status
+                # Job has finished or the job is deleted/suspended
                 if job_status == 'SUSPENDED':
                     execution_status = 'JOB_SUSPENDED'
                 else:
-                    # Job has finished
+                    # When a job is deleted, job status is reported as completed. In this scenario update the execution
+                    # status as JOB_DELETED
                     execution_status = 'JOB_DELETED' if execution_status == 'IN_QUEUE' else execution_status
+
+                # Once a job has failed, report entire batch job execution as failed
+                jobs_failed = True if execution_status != 'SUCCESS' else jobs_failed
 
             item = {
                 'pbs_job_id': job_id,
@@ -211,11 +194,8 @@ def check_job_status(event, context):
                 'work_dir': event_ilist["work_dir"],
             }
 
-            # write to the dynamoDB database
+            # Write to the dynamoDB database
             table.put_item(Item=item)
-
-        if qsub_job_ids:
-            jobs_finished = "PENDING"  # Wait till all the jobs to complete execution
 
         event_olist.append({
             'qsub_job_ids': qsub_job_ids,
@@ -226,5 +206,5 @@ def check_job_status(event, context):
 
     return {
         'event_olist': event_olist,
-        'jobs_finished': jobs_finished,
+        'jobs_finished': jobs_failed,
     }
