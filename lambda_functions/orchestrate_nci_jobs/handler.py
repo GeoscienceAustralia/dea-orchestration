@@ -161,11 +161,11 @@ def check_job_status(event, context):
                 raise Exception(f'SSH execution command stdout: {output}')
 
             job_state = _extract_after_search_string(r"_job_state=*", output)
-            exit_status = _extract_after_search_string(r"_exit_status=*", output)
             queue_time = _extract_after_search_string(r"_exit_status=*", output)
 
             job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
-            execution_status = EXIT_STATUS.get(exit_status, 'FAILED')
+            execution_status = EXIT_STATUS.get(_extract_after_search_string(r"_exit_status=*", output),
+                                               'FAILED')
 
             if job_status not in ('FINISHED', 'SUSPENDED'):
                 # Job is still pending
