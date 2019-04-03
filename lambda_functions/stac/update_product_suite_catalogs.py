@@ -17,15 +17,34 @@ with open('stac_config.yaml', 'r') as cfg_file:
     CFG = yaml.load(cfg_file)
 
 
+def get_publisher(bucket, dry_run):
+    def fake_publisher(location, contents):
+        print(f'Publishing s3://{bucket}/{location}')
+        print(json.dumps(contents, indent=4))
+
+    def real_publisher(location, contents):
+        # Put collection catalog to s3
+        obj = S3.Object(bucket, location)
+        obj.put(Body=json.dumps(contents), ContentType='application/json')
+
+    if dry_run:
+        return fake_publisher
+    else:
+        return real_publisher
+
+
 @click.command(help=__doc__)
 @click.option('--bucket', '-b', default='dea-public-data-dev', help="AWS bucket")
-def update_stac_product_suite_catalogs(bucket):
-    do_wofs(bucket)
-    do_fractional_cover(bucket)
-    do_geomedian_australia(bucket)
+@click.option('--dry-run', is_flag=True, flag_value=True)
+def update_stac_product_suite_catalogs(bucket, dry_run):
+    publisher = get_publisher(bucket, dry_run)
+
+    do_wofs(publisher)
+    do_fractional_cover(publisher)
+    do_geomedian_australia(publisher)
 
 
-def do_wofs(bucket):
+def do_wofs(publisher):
     """
     Update WOfS (wofs_albers, wofs_filtered_summary, wofs_statistical_summary, wofs_annual_summary)
     """
@@ -39,7 +58,7 @@ def do_wofs(bucket):
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
                                     'temporal': CFG['aus-extent']['temporal']}
     collection_catalog['links'] = [
-        {'href': f'{CFG["aws-domain"]}/WOfS/catalog.json', 'ref': 'self'},
+        {'href': f'{CFG["aws-domain"]}/WOfS/catalog.json', 'rel': 'self'},
         {'href': CFG["root-catalog"], 'rel': 'parent'},
         {'href': CFG["root-catalog"], 'rel': 'root'},
         {'href': f'{CFG["aws-domain"]}/WOFLs/v2.1.0/combined/catalog.json', 'rel': 'child'},
@@ -49,12 +68,10 @@ def do_wofs(bucket):
         {'href': f'{CFG["aws-domain"]}/summary/v2.1.0/combined/catalog.json', 'rel': 'child'}
     ]
 
-    # Put collection catalog to s3
-    obj = S3.Object(bucket, f'WOfS/catalog.json')
-    obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
+    publisher('WOfS/catalog.json', collection_catalog)
 
 
-def do_fractional_cover(bucket):
+def do_fractional_cover(publisher):
     """
     Update fractional-cover ({ls5, ls7, ls8}_fc_albers, fc_percentile_annual, fc_percentile_seasonal)
     """
@@ -69,7 +86,7 @@ def do_fractional_cover(bucket):
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
                                     'temporal': CFG['aus-extent']['temporal']}
     collection_catalog['links'] = [
-        {'href': f'{CFG["aws-domain"]}/fractional-cover/catalog.json', 'ref': 'self'},
+        {'href': f'{CFG["aws-domain"]}/fractional-cover/catalog.json', 'rel': 'self'},
         {'href': CFG["root-catalog"], 'rel': 'parent'},
         {'href': CFG["root-catalog"], 'rel': 'root'},
         {'href': f'{CFG["aws-domain"]}/fractional-cover/fc/v2.2.0/ls5/catalog.json', 'rel': 'child'},
@@ -81,12 +98,10 @@ def do_fractional_cover(bucket):
          'rel': 'child'}
     ]
 
-    # Put collection catalog to s3
-    obj = S3.Object(bucket, f'fractional-cover/catalog.json')
-    obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
+    publisher('fractional-cover/catalog.json', collection_catalog)
 
 
-def do_geomedian_australia(bucket):
+def do_geomedian_australia(publisher):
     """
     Geomedian-australia ({ls5, ls7, ls8}_nbart_geomedian_annual)
     """
@@ -100,7 +115,7 @@ def do_geomedian_australia(bucket):
     collection_catalog['extent'] = {'spatial': CFG['aus-extent']['spatial'],
                                     'temporal': CFG['aus-extent']['temporal']}
     collection_catalog['links'] = [
-        {'href': f'{CFG["aws-domain"]}/geomedian-australia/catalog.json', 'ref': 'self'},
+        {'href': f'{CFG["aws-domain"]}/geomedian-australia/catalog.json', 'rel': 'self'},
         {'href': CFG["root-catalog"], 'rel': 'parent'},
         {'href': CFG["root-catalog"], 'rel': 'root'},
         {'href': f'{CFG["aws-domain"]}/geomedian-australia/v2.1.0/L5/catalog.json', 'rel': 'child'},
@@ -108,9 +123,7 @@ def do_geomedian_australia(bucket):
         {'href': f'{CFG["aws-domain"]}/geomedian-australia/v2.1.0/L8/catalog.json', 'rel': 'child'},
     ]
 
-    # Put collection catalog to s3
-    obj = S3.Object(bucket, f'geomedian-australia/catalog.json')
-    obj.put(Body=json.dumps(collection_catalog), ContentType='application/json')
+    publisher('geomedian-australia/catalog.json', collection_catalog)
 
 
 if __name__ == '__main__':

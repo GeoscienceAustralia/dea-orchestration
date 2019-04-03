@@ -1,0 +1,45 @@
+{
+    "stac_version": "0.6.2",
+    "id": "geomedian-australia",
+    "description": "Geomedian Australia suite of products include geomedian products for each landsat (ls5, ls7, ls8)",
+    "title": "Australian Surface Reflectance Geomedian",
+    "license": "CC-BY-4.0",
+    "extent": {
+        "spatial": [
+            108,
+            -45,
+            155,
+            -10
+        ],
+        "temporal": [
+            null,
+            null
+        ]
+    },
+    "links": [
+        {
+            "href": "https://data.dea.ga.gov.au/geomedian-australia/catalog.json",
+            "rel": "self"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "parent"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "root"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/geomedian-australia/v2.1.0/L5/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/geomedian-australia/v2.1.0/L7/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/geomedian-australia/v2.1.0/L8/catalog.json",
+            "rel": "child"
+        }
+    ]
+}
