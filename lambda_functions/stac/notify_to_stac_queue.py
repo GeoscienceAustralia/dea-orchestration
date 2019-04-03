@@ -15,7 +15,7 @@ import logging
 import boto3
 import click
 import dateutil.parser
-import yaml
+from ruamel.yaml import YAML
 from itertools import islice
 
 from odc.aws import make_s3_client
@@ -26,6 +26,8 @@ FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT)
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
+
+yaml = YAML(typ='safe')
 
 
 @click.command(help=__doc__)
