@@ -180,6 +180,20 @@ QueueURL: https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queu
 
 ```
 
+## Benchmarking STAC Generation
+
+After switching to `libyaml` based parsing, the following results were achieved for converting a set of Fractional Cover datasets to STAC. Each invocation converted 10 datasets.
+
+| Memory Size | Duration (in ms) | Price Per 1M Invocations (in $) | 
+|-------------|------------------|---------------------------------| 
+| 128MB       | 625.67           | 1.46                            | 
+| 256MB       | 509.72           | 2.50                            | 
+| 512MB       | 173.13           | 1.67                            | 
+| 1024MB      | 163.09           | 3.33                            | 
+| 1536MB      | 190.67           | 5.00                            | 
+| 2048MB      | 195.68           | 6.67                            | 
+| 2560MB      | 174.47           | 8.34                            | 
+| 3008MB      | 153.28           | 9.79                            | 
 
 ## Setting up STAC Browser
 
