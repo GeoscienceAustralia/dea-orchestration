@@ -164,7 +164,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_5s
               States:
-                Wait_5s:
+                Wait_5s:  # Wait for 5 seconds
                   Type: Wait
                   Seconds: 5
                   Next: Sync_LS7_Nbar_Scene
@@ -183,7 +183,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_10s
               States:
-                Wait_10s:
+                Wait_10s:  # Wait for 10 seconds
                   Type: Wait
                   Seconds: 10
                   Next: Sync_LS8_Nbart_Scene
@@ -202,7 +202,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_15s
               States:
-                Wait_15s:
+                Wait_15s:  # Wait for 15 seconds
                   Type: Wait
                   Seconds: 15
                   Next: Sync_LS7_Nbart_Scene
@@ -221,7 +221,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_20s
               States:
-                Wait_20s:
+                Wait_20s:  # Wait for 20 seconds
                   Type: Wait
                   Seconds: 20
                   Next: Sync_LS8_PQ_Scene
@@ -240,7 +240,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_8s
               States:
-                Wait_8s:
+                Wait_8s:  # Wait for 8 seconds
                   Type: Wait
                   Seconds: 8
                   Next: Sync_LS7_PQ_Scene
@@ -259,7 +259,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_16s
               States:
-                Wait_16s:
+                Wait_16s:  # Wait for 16 seconds
                   Type: Wait
                   Seconds: 16
                   Next: Sync_LS8_PQ_Legacy_Scene
@@ -278,7 +278,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_22s
               States:
-                Wait_22s:
+                Wait_22s:  # Wait for 22 seconds
                   Type: Wait
                   Seconds: 22
                   Next: Sync_LS7_PQ_Legacy_Scene
@@ -300,8 +300,8 @@ stepFunctions:
               Next: Task_Failed
           Task_Failed:
             Type: Fail
-            Cause: "This is a fallback from a lambda function exception"
-          Wait_3_Minutes:  #  Wait for 3 minutes before updating job status
+            Cause: "A lambda function exception"
+          Wait_3_Minutes:  # Wait for 3 minutes before updating job status
             Type: Wait
             Seconds: 180
             Next: Get_Sync_Job_Ids
@@ -316,7 +316,7 @@ stepFunctions:
             Next: Wait_30_Minutes
           Wait_30_Minutes:  # Wait for 30 minutes before reading the job status
             Type: Wait
-            Seconds: 120
+            Seconds: 1800
             Next: Get_Sync_Job_Status
           Get_Sync_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
@@ -358,7 +358,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_3s
               States:
-                Wait_3s:
+                Wait_3s:  # Wait for 3 seconds
                   Type: Wait
                   Seconds: 3
                   Next: Ingest_LS7_Nbar_Albers
@@ -374,7 +374,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_6s
               States:
-                Wait_6s:
+                Wait_6s:  # Wait for 6 seconds
                   Type: Wait
                   Seconds: 6
                   Next: Ingest_LS8_Nbart_Albers
@@ -390,7 +390,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_9s
               States:
-                Wait_9s:
+                Wait_9s:  # Wait for 9 seconds
                   Type: Wait
                   Seconds: 9
                   Next: Ingest_LS7_Nbart_Albers
@@ -406,7 +406,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_12s
               States:
-                Wait_12s:
+                Wait_12s:  # Wait for 12 seconds
                   Type: Wait
                   Seconds: 12
                   Next: Ingest_LS8_PQ_Albers
@@ -422,7 +422,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_14s
               States:
-                Wait_14s:
+                Wait_14s:  # Wait for 14 seconds
                   Type: Wait
                   Seconds: 14
                   Next: Ingest_LS7_PQ_Albers
@@ -439,9 +439,9 @@ stepFunctions:
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
               Next: Task_Failed
-          Wait_5_Minutes:  #  Wait for 5 minutes before updating job status
+          Wait_5_Minutes:  # Wait for 5 minutes before updating job status
             Type: Wait
-            Seconds: 60
+            Seconds: 300
             Next: Get_Ingest_Job_Ids
           Get_Ingest_Job_Ids:  # Fetch Ingest job id's and update the job status in aws dynamodb database
             Type: Task
@@ -454,7 +454,7 @@ stepFunctions:
             Next: Wait_35_Minutes
           Wait_35_Minutes:  # Wait for 35 minutes before reading the job status
             Type: Wait
-            Seconds: 120
+            Seconds: 2100
             Next: Get_Ingest_Job_Status
           Get_Ingest_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
@@ -494,7 +494,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_7s
               States:
-                Wait_7s:
+                Wait_7s:  # Wait for 7 seconds
                   Type: Wait
                   Seconds: 7
                   Next: Run_LS7_FC
@@ -511,7 +511,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_11s
               States:
-                Wait_11s:
+                Wait_11s:  # Wait for 11 seconds
                   Type: Wait
                   Seconds: 11
                   Next: Run_WOfLS
@@ -529,9 +529,9 @@ stepFunctions:
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
               Next: Task_Failed
-          Wait_2_Minutes:  #  Wait for 2 minutes before updating job status
+          Wait_2_Minutes:  # Wait for 2 minutes before updating job status
             Type: Wait
-            Seconds: 60
+            Seconds: 120
             Next: Get_FC_WOFS_Job_Ids
           Get_FC_WOFS_Job_Ids:  # Fetch FC and WOfS job id's and update the job status in aws dynamodb database
             Type: Task
@@ -580,7 +580,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_25s
               States:
-                Wait_25s:
+                Wait_25s:  # Wait for 25 seconds
                   Type: Wait
                   Seconds: 25
                   Next: Run_LS7_FC_Cog
@@ -597,7 +597,7 @@ stepFunctions:
                   End: true
             - StartAt: Wait_17s
               States:
-                Wait_17s:
+                Wait_17s:  # Wait for 17 seconds
                   Type: Wait
                   Seconds: 17
                   Next: Run_WOfLS_Cog
@@ -615,9 +615,9 @@ stepFunctions:
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
               Next: Task_Failed
-          Wait_15_Minutes:  #  Wait for 15 minutes before updating job status
+          Wait_15_Minutes:  # Wait for 15 minutes before updating job status
             Type: Wait
-            Seconds: 60
+            Seconds: 900
             Next: Get_Cogger_Job_Ids
           Get_Cogger_Job_Ids:  # Fetch Cogger job id's and update the job status in aws dynamodb database
             Type: Task
