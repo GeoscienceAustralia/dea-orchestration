@@ -42,14 +42,14 @@ def fetch_job_ids(event, context):
        1) Read the job submission log file
        2) Fetch the job id's from the file
        3) Update the job status of all the jobs in aws dynamodb table
-       4) Return the job id's, product, queue_timestamp, and work_dir as an event output dictionary along with
+       4) Return the job id's, product, and work_dir as an event output dictionary along with
           jobs pending execution status
     """
     event_olist = list()
     for event_ilist in event:
-        # We may need to wait here a bit until ssh socket is available
-        # This should be less than timeout of lambda function
-        time.sleep(30)  # Sleep 30s
+        # Wait a bit until ssh socket is available.
+        # This is to avoid multiple access of ssh socket during parallel state machine execution.
+        time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
 
         output, stderr, _ = exec_command(f'execute_fetch_job_ids --logfile {event_ilist["log_path"]}')
 
@@ -72,10 +72,10 @@ def fetch_job_ids(event, context):
                 'job_queue': event_ilist["job_queue"],
                 'job_status': event_ilist["job_status"],
                 'execution_status': event_ilist["execution_status"],
-                'work_dir': event_ilist["work_dir"],
                 'queue_timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                 'timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                'remarks': 'NA'
+                'work_dir': event_ilist["work_dir"],
+                'remarks': 'NA',
             }
 
             # Write to the dynamoDB database
@@ -84,7 +84,6 @@ def fetch_job_ids(event, context):
         event_olist.append({
             'qsub_job_ids': list(qsub_job_ids),  # A `set()` cannot be serialized to JSON, hence convert to a list()
             'product': event_ilist["product"],
-            'queue_timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             'work_dir': event_ilist["work_dir"],
         })
 
@@ -137,7 +136,7 @@ def check_job_status(event, context):
            pbs job status
         c) Once job has finished, record any job failures in job_failed flag
         d) Update the pbs job status in the aws dynamodb table
-        e) Return the job id's, product, queue_timestamp, and work_dir as an event output dictionary along with
+        e) Return the job id's, product, and work_dir as an event output dictionary along with
            jobs pending execution status
     """
     table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
@@ -151,9 +150,9 @@ def check_job_status(event, context):
 
         # From each event list, fetch qsub job id's
         for job_id in event_ilist["qsub_job_ids"]:
-            # We may need to wait here a bit until ssh socket is available
-            # This should be less than timeout of lambda function
-            time.sleep(30)  # Sleep 30s
+            # Wait a bit until ssh socket is available.
+            # This is to avoid multiple access of ssh socket during parallel state machine execution.
+            time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
 
             output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
 
@@ -163,6 +162,7 @@ def check_job_status(event, context):
 
             job_state = _extract_after_search_string(r"_job_state=*", output)
             exit_status = _extract_after_search_string(r"_exit_status=*", output)
+            queue_time = _extract_after_search_string(r"_exit_status=*", output)
 
             job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
             execution_status = EXIT_STATUS.get(exit_status, 'FAILED')
@@ -185,15 +185,15 @@ def check_job_status(event, context):
             item = {
                 'pbs_job_id': job_id,
                 'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
+                'product': event_ilist["product"],
                 'project': _extract_after_search_string(r"_project=*", output),
                 'job_queue': _extract_after_search_string(r"_queue=*", output),
                 'job_status': job_status,
                 'execution_status': execution_status,
+                'queue_timestamp': queue_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                 'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                'remarks': _extract_after_search_string(r"_comment= *", output),
-                'product': event_ilist["product"],
-                'queue_timestamp': event_ilist["queue_timestamp"],
                 'work_dir': event_ilist["work_dir"],
+                'remarks': _extract_after_search_string(r"_comment= *", output),
             }
 
             # Write to the dynamoDB database
@@ -202,7 +202,6 @@ def check_job_status(event, context):
         event_olist.append({
             'qsub_job_ids': qsub_job_ids,
             'product': event_ilist["product"],
-            'queue_timestamp': event_ilist["queue_timestamp"],
             'work_dir': event_ilist["work_dir"],
         })
 
