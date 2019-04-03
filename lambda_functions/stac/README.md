@@ -20,7 +20,7 @@ To install the `STAC item generation pipeline`:
 
 1. Deploy the `lambda` function defined in [serverless.yml](serverless.yml).
 
-```
+```bash
     npm install
     sls deploy
 ```
@@ -137,25 +137,23 @@ The following template structures have been tested:
    ```
    
 ## Manual Processing
-```
+```bash
 pip install 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_apps_cloud&subdirectory=apps/cloud'
 
-echo fractional-cover/fc/v2.2.1/ls5/x_-1/y_-11/2008/11/08/LS5_TM_FC_3577_-1_-11_20081108005928_STAC.json | jq -Rc  '{"Records": [{"s3": {"bucket": {"name": "dea-public-data"}, "object": {"key": .}}}]}' | xargs -n 1 -d '\n' aws sqs send-message --queue-url https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue --message-body
+# echo fractional-cover/fc/v2.2.1/ls5/x_-1/y_-11/2008/11/08/LS5_TM_FC_3577_-1_-11_20081108005928_STAC.json | jq -Rc  '{"Records": [{"s3": {"bucket": {"name": "dea-public-data"}, "object": {"key": .}}}]}' | xargs -n 1 -d '\n' aws sqs send-message --queue-url https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue --message-body
 
-s3-inventory-dump --prefix fractional-cover/fc/v2.2.1/ls5/ '*.yaml'
+# s3-inventory-dump --prefix fractional-cover/fc/v2.2.1/ls5/ '*.yaml'
 
-time s3-inventory-dump --prefix fractional-cover/fc/v2.2.1/ls5/ '*.yaml' > ls5_s3_yamls.txt
+time s3-inventory-dump --prefix fractional-cover/fc/v2.2.1/ '*.yaml' > ls5_s3_yamls.txt
+# Takes about 2mins 
+head ls5_s3_yamls.txt | sed '/s3:\/\/dea-public-data\//!d; s///;' 
 
-head ls5_s3_yamls.txt | sed '/s3:\/\/dea-public-data\//!d; s///;' | \
-jq -Rc  '{"Records": [{"s3": {"bucket": {"name": "dea-public-data"}, "object": {"key": .}}}]}' | \
-xargs -n 1 -d '\n' aws sqs send-message --queue-url https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue --message-body
 
-cat s3_yamls_aa | sed '/s3:\/\/dea-public-data\//!d; s///;' | \
-jq -Rc  '{"Records": [{"s3": {"bucket": {"name": "dea-public-data"}, "object": {"key": .}}}]}' | \
-xargs -n 1 -d '\n' aws sqs send-message --queue-url https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue --message-body
+cat fc_yamls.txt | sed '/s3:\/\/dea-public-data\//!d; s///;' | xargs python notify_to_stac_queue.py -b dea-public-data -q https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue
+
 ```
 
-# Prod Info
+# Production Info
  
 ```yaml
 Serverless: Stack create finished...
@@ -180,4 +178,24 @@ QueueARN: arn:aws:sqs:ap-southeast-2:538673716275:static-stac-queue
 ServerlessDeploymentBucketName: dea-lambda
 QueueURL: https://sqs.ap-southeast-2.amazonaws.com/538673716275/static-stac-queue
 
+```
+
+
+## Setting up STAC Browser
+
+**Doesn't work yet!**
+
+```bash
+
+    npm install -g parcel-bundler
+    git clone https://github.com/radiantearth/stac-browser.git
+    cd stac-browser
+    npm install
+    
+    # Add --public-url ./ into package.json build phase
+    
+    CATALOG_URL=https://data.dea.ga.gov.au/fractional-cover/fc/v2.2.1/ls5/catalog.json npm run build
+    
+    aws s3 cp --recursive dist s3://dea-public-data/stac-browser/
+    
 ```
