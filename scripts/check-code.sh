@@ -4,7 +4,7 @@
 set -eu
 set -x
 {
-    readarray -t PY_FILES < <(find raijin_scripts lambda_functions ! -path '*node_modules*' -name '*.py')
+    readarray -t PY_FILES < <(find raijin_scripts lambda_functions ! -path '*node_modules*' ! -path '*.serverless*' -name '*.py')
 } &> /dev/null
 
 export PYTHONPATH=$PWD/lambda_modules/dea_es:$PWD/lambda_modules/dea_raijin${PYTHONPATH:+:${PYTHONPATH}}
