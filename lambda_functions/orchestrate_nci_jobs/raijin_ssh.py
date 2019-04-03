@@ -47,16 +47,17 @@ def exec_command(command):
             stderr.close()
 
     if exit_code != 0:
-        LOG.error('COMMAND: %s, EXIT_CODE: %s', command, exit_code)
+        LOG.error('Execute SSH command failed (exit code: %r)', exit_code)
         if script_error:
-            LOG.error('%s: %s', command, script_error)
+            LOG.error('Command: %sSTDERR\n: %s', command, script_error)
+        raise Exception(f'SSH execution command stdout: {script_output}')
     else:
         if script_error:
             # command exited successfully; treat messages as warnings
-            LOG.warning('COMMAND: %s, STD_ERR: %s', command, script_error)
+            LOG.warning('COMMAND: %s,\nSTD_ERR: %s,\nSTD_OUT: %r', command, script_error, script_output)
 
     if script_output:
-        LOG.debug('COMMAND: %s, OUTPUT: %s', command, script_output)
+        LOG.debug('COMMAND: %s,\nOUTPUT: %s', command, script_output)
 
     return script_output, script_error, exit_code
 

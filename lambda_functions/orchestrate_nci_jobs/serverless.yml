@@ -20,80 +20,21 @@ plugins:
   - serverless-python-requirements
   - serverless-pseudo-parameters
   - serverless-step-functions
+
 custom:
   pythonRequirements:
     dockerizePip: non-linux
-
-package:
-  exclude:
-    - node_modules/**
-    - .idea/**
-    - .requirements/**
-    - env/**
-    - README.md
-    - package.json
-    - package-lock.json
-    - requirements.txt
-
-provider:
-  name: aws
-  runtime: python3.6
-  timeout: 60  # 60 seconds. Default is 6 seconds
-  memorySize: 128  # in MB, default is 1024
-  region: ap-southeast-2
-  deploymentBucket: "dea-lambdas-dev"
-
-  iamRoleStatements:
-  - Effect: 'Allow'
-    Action:
-      - 'ssm:GetParameter'
-      - 'ssm:GetParameters'
-      - 'ssm:DescribeParameters'
-    Resource:
-      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
-  - Effect: 'Allow'
-    Action: 'kms:Decrypt'
-    Resource:
-      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
-  - Effect: 'Allow'
-    Action: 'es:ESHttp*'
-    Resource: '*'
-  - Effect: 'Allow'
-    Action: 'cloudwatch:PutMetricData'
-    Resource: '*'
-  - Effect: Allow
-    Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-    Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:provider.environment.DYNAMODB_TABLENAME}"
-  - Effect: "Allow"
-    Action:
-      - "states:StartExecution"
-    Resource:
-      - "*"
-
-  # Service wide environment variables declaration
-  environment:
-    NCI_PROJECTS: 'rs0,v10,u46,fk4,r78,if87'
-    NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
-    SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    DEA_AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
-    DEA_MODULE: dea/20190329
-    PROJECT: u46
-    QUEUE: normal
-    DYNAMODB_TABLENAME: "PbsJobInfo-dev"
-    TASK_TIMEOUT: 900  # 15 minutes
-    TASK_HEARTBEAT: 60  # Ensure task sends heartbeat notifications in intervals of 60 seconds
+  arns:
+    submit_job_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-submit_pbs_job"
+    fetch_jobid_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-fetch_job_ids"
+    check_job_status_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-check_job_status"
+  cmds:
     SYNC_CMD: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                   --queue ${self:provider.environment.QUEUE}
                   --project ${self:provider.environment.PROJECT}
                   --year %(year)s
-                  --path "%(path)s"
-                  --suffixpath "%(suffixpath)s"
+                  --path %(path)s
+                  --suffixpath %(suffixpath)s
                   --product %(product)s
                   --trasharchived %(trasharchived)s'
     INGEST_CMD: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
@@ -117,9 +58,67 @@ provider:
                  --s3-output %(s3_output)s
                  --cog-product %(cog_product)s
                  --time-range "%(time_range %)s"'
-    SUBMIT_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-submit_pbs_job"
-    FETCH_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-fetch_job_ids"
-    CHECK_JOB_ARN: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-dev-check_job_status"
+
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
+provider:
+  name: aws
+  runtime: python3.6
+  timeout: 60  # 60 seconds. Default is 6 seconds
+  memorySize: 128  # in MB, default is 1024
+  region: ap-southeast-2
+  deploymentBucket: "dea-nci-orchestration"
+
+  iamRoleStatements:
+  - Effect: 'Allow'
+    Action:
+      - 'ssm:GetParameters'
+      - 'ssm:DescribeParameters'
+    Resource:
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/pipeline.*"
+  - Effect: 'Allow'
+    Action: 'kms:Decrypt'
+    Resource:
+      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+  - Effect: 'Allow'
+    Action: 'cloudwatch:PutMetricData'
+    Resource: '*'
+  - Effect: Allow
+    Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+    Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:provider.environment.DYNAMODB_TABLENAME}"
+  - Effect: "Allow"
+    Action:
+      - "states:StartExecution"
+    Resource:
+      - "*"
+
+  # Service wide environment variables declaration
+  environment:
+    NCI_PROJECTS: 'rs0,v10,u46,fk4,r78,if87'
+    NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
+    SSM_USER_PATH: 'orchestrator.raijin.users.default'
+    DEA_MODULE: dea/20190329
+    PROJECT: v10
+    QUEUE: normal
+    DYNAMODB_TABLENAME: "OrchestrationJobStatus"
+    TASK_TIMEOUT: 900  # 15 minutes
+    TASK_HEARTBEAT: 60  # Ensure task sends heartbeat notifications in intervals of 60 seconds
 
 functions:
   submit_pbs_job:
@@ -131,7 +130,6 @@ functions:
   check_job_status:
     handler: handler.check_job_status
     description: Monitor and update qsub job status in aws dynamodb database
-
 
 stepFunctions:
   stateMachines:
@@ -153,116 +151,144 @@ stepFunctions:
               States:
                 Sync_LS8_Nbar_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls8_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
                     suffixpath: '/??/output/nbar/'
                   End: true
-            - StartAt: Sync_LS7_Nbar_Scene
+            - StartAt: Wait_5s
               States:
+                Wait_5s:
+                  Type: Wait
+                  Seconds: 5
+                  Next: Sync_LS7_Nbar_Scene
                 Sync_LS7_Nbar_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls7_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
                     suffixpath: '/??/output/nbar/'
                   End: true
-            - StartAt: Sync_LS8_Nbart_Scene
+            - StartAt: Wait_10s
               States:
+                Wait_10s:
+                  Type: Wait
+                  Seconds: 10
+                  Next: Sync_LS8_Nbart_Scene
                 Sync_LS8_Nbart_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls8_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
                     suffixpath: '/??/output/nbart/'
                   End: true
-            - StartAt: Sync_LS7_Nbart_Scene
+            - StartAt: Wait_15s
               States:
+                Wait_15s:
+                  Type: Wait
+                  Seconds: 15
+                  Next: Sync_LS7_Nbart_Scene
                 Sync_LS7_Nbart_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls7_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
                     suffixpath: '/??/output/nbart/'
                   End: true
-            - StartAt: Sync_LS8_PQ_Scene
+            - StartAt: Wait_20s
               States:
+                Wait_20s:
+                  Type: Wait
+                  Seconds: 20
+                  Next: Sync_LS8_PQ_Scene
                 Sync_LS8_PQ_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls8_pq_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_LS7_PQ_Scene
+            - StartAt: Wait_8s
               States:
+                Wait_8s:
+                  Type: Wait
+                  Seconds: 8
+                  Next: Sync_LS7_PQ_Scene
                 Sync_LS7_PQ_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls7_pq_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_LS8_PQ_Legacy_Scene
+            - StartAt: Wait_16s
               States:
+                Wait_16s:
+                  Type: Wait
+                  Seconds: 16
+                  Next: Sync_LS8_PQ_Legacy_Scene
                 Sync_LS8_PQ_Legacy_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls8_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
                     path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
                     suffixpath: '/??/output/pqa/'
                   End: true
-            - StartAt: Sync_LS7_PQ_Legacy_Scene
+            - StartAt: Wait_22s
               States:
+                Wait_22s:
+                  Type: Wait
+                  Seconds: 22
+                  Next: Sync_LS7_PQ_Legacy_Scene
                 Sync_LS7_PQ_Legacy_Scene:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.SYNC_CMD}
+                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
                     product: ls7_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -281,7 +307,7 @@ stepFunctions:
             Next: Get_Sync_Job_Ids
           Get_Sync_Job_Ids:  # Fetch sync job id's and update the job status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            Resource: ${self:custom.arns.fetch_jobid_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -294,7 +320,7 @@ stepFunctions:
             Next: Get_Sync_Job_Status
           Get_Sync_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            Resource: ${self:custom.arns.check_job_status_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -322,71 +348,91 @@ stepFunctions:
               States:
                 Ingest_LS8_Nbar_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls8_nbar_albers
                     year: 2019
                   End: true
-            - StartAt: Ingest_LS7_Nbar_Albers
+            - StartAt: Wait_3s
               States:
+                Wait_3s:
+                  Type: Wait
+                  Seconds: 3
+                  Next: Ingest_LS7_Nbar_Albers
                 Ingest_LS7_Nbar_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls7_nbar_albers
                     year: 2019
                   End: true
-            - StartAt: Ingest_LS8_Nbart_Albers
+            - StartAt: Wait_6s
               States:
+                Wait_6s:
+                  Type: Wait
+                  Seconds: 6
+                  Next: Ingest_LS8_Nbart_Albers
                 Ingest_LS8_Nbart_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls8_nbart_albers
                     year: 2019
                   End: true
-            - StartAt: Ingest_LS7_Nbart_Albers
+            - StartAt: Wait_9s
               States:
+                Wait_9s:
+                  Type: Wait
+                  Seconds: 9
+                  Next: Ingest_LS7_Nbart_Albers
                 Ingest_LS7_Nbart_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls7_nbart_albers
                     year: 2019
                   End: true
-            - StartAt: Ingest_LS8_PQ_Albers
+            - StartAt: Wait_12s
               States:
+                Wait_12s:
+                  Type: Wait
+                  Seconds: 12
+                  Next: Ingest_LS8_PQ_Albers
                 Ingest_LS8_PQ_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls8_pq_albers
                     year: 2019
                   End: true
-            - StartAt: Ingest_LS7_PQ_Albers
+            - StartAt: Wait_14s
               States:
+                Wait_14s:
+                  Type: Wait
+                  Seconds: 14
+                  Next: Ingest_LS7_PQ_Albers
                 Ingest_LS7_PQ_Albers:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.INGEST_CMD}
+                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
                     product: ls7_pq_albers
                     year: 2019
                   End: true
@@ -399,7 +445,7 @@ stepFunctions:
             Next: Get_Ingest_Job_Ids
           Get_Ingest_Job_Ids:  # Fetch Ingest job id's and update the job status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            Resource: ${self:custom.arns.fetch_jobid_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -412,7 +458,7 @@ stepFunctions:
             Next: Get_Ingest_Job_Status
           Get_Ingest_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            Resource: ${self:custom.arns.check_job_status_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -437,37 +483,45 @@ stepFunctions:
               States:
                 Run_LS8_FC:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.FC_CMD}
+                    execute_cmd:  ${self:custom.cmds.FC_CMD}
                     product: ls8_fc_albers
                     year: 2019
                     tag: 'ls8_fc2019'
                   End: true
-            - StartAt: Run_LS7_FC
+            - StartAt: Wait_7s
               States:
+                Wait_7s:
+                  Type: Wait
+                  Seconds: 7
+                  Next: Run_LS7_FC
                 Run_LS7_FC:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.FC_CMD}
+                    execute_cmd:  ${self:custom.cmds.FC_CMD}
                     product: ls7_fc_albers
                     year: 2019
                     tag: 'ls7_fc2019'
                   End: true
-            - StartAt: Run_WOfLS
+            - StartAt: Wait_11s
               States:
+                Wait_11s:
+                  Type: Wait
+                  Seconds: 11
+                  Next: Run_WOfLS
                 Run_WOfLS:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.WOFS_CMD}
+                    execute_cmd:  ${self:custom.cmds.WOFS_CMD}
                     product: wofs_albers
                     year: 2019
                     tag: 'wofs_2019'
@@ -481,7 +535,7 @@ stepFunctions:
             Next: Get_FC_WOFS_Job_Ids
           Get_FC_WOFS_Job_Ids:  # Fetch FC and WOfS job id's and update the job status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            Resource: ${self:custom.arns.fetch_jobid_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -490,7 +544,7 @@ stepFunctions:
             Next: Get_FC_WOFS_Job_Status
           Get_FC_WOFS_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            Resource: ${self:custom.arns.check_job_status_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -515,37 +569,45 @@ stepFunctions:
               States:
                 Run_LS8_FC_Cog:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    execute_cmd:  ${self:custom.cmds.COG_CMD}
                     cog_product: ls8_fc_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls8
                   End: true
-            - StartAt: Run_LS7_FC_Cog
+            - StartAt: Wait_25s
               States:
+                Wait_25s:
+                  Type: Wait
+                  Seconds: 25
+                  Next: Run_LS7_FC_Cog
                 Run_LS7_FC_Cog:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    execute_cmd:  ${self:custom.cmds.COG_CMD}
                     cog_product: ls7_fc_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls7
                   End: true
-            - StartAt: Run_WOfLS_Cog
+            - StartAt: Wait_17s
               States:
+                Wait_17s:
+                  Type: Wait
+                  Seconds: 17
+                  Next: Run_WOfLS_Cog
                 Run_WOfLS_Cog:
                   Type: Task
-                  Resource: ${self:provider.environment.SUBMIT_JOB_ARN}
+                  Resource: ${self:custom.arns.submit_job_arn}
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:provider.environment.COG_CMD}
+                    execute_cmd:  ${self:custom.cmds.COG_CMD}
                     cog_product: wofs_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/WOfS/WOFLs/v2.1.5/combined
@@ -559,7 +621,7 @@ stepFunctions:
             Next: Get_Cogger_Job_Ids
           Get_Cogger_Job_Ids:  # Fetch Cogger job id's and update the job status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.FETCH_JOB_ARN}
+            Resource: ${self:custom.arns.fetch_jobid_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -568,7 +630,7 @@ stepFunctions:
             Next: Get_Cogger_Job_Status
           Get_Cogger_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
-            Resource: ${self:provider.environment.CHECK_JOB_ARN}
+            Resource: ${self:custom.arns.check_job_status_arn}
             TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
@@ -587,10 +649,3 @@ stepFunctions:
             Default: FailedChoiceState
           Finished:
             Type: Succeed
-
-#resources:
-#  Outputs:
-#    MyStateMachine:
-#      Description: The ARN of the example state machine
-#      Value:
-#        Ref: MyStateMachine

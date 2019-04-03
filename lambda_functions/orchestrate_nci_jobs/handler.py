@@ -3,12 +3,13 @@ import os
 import boto3
 from re import compile as compile_, IGNORECASE
 from datetime import datetime
+import time
 from raijin_ssh import exec_command
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
-dynamodb = boto3.resource('dynamodb')
+_DYNAMODB = boto3.resource('dynamodb')
 JOB_STATUS = {
     'F': 'FINISHED',
     'R': 'RUNNING',
@@ -46,16 +47,20 @@ def fetch_job_ids(event, context):
     """
     event_olist = list()
     for event_ilist in event:
-        output, stderr, exit_code = exec_command(f'execute_fetch_job_ids --logfile {event_ilist["log_path"]}')
+        # We may need to wait here a bit until ssh socket is available
+        # This should be less than timeout of lambda function
+        time.sleep(30)  # Sleep 30s
 
-        if exit_code != 0:
-            LOG.error(f'execute_fetch_job_ids failed (exit code: {exit_code})')
-            raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
+        output, stderr, _ = exec_command(f'execute_fetch_job_ids --logfile {event_ilist["log_path"]}')
+
+        if not output:
+            LOG.error('execute_fetch_job_ids command execution failed (stderr: %r)', stderr)
+            raise Exception(f'SSH execution command stdout: {output}')
 
         # 'output' variable is in "1234567.r-man2,\n" format, hence remove new line character and any empty string
         qsub_job_ids = set(ids for ids in output.strip().split(",") if ids)
 
-        table = dynamodb.Table(os.environ['DYNAMODB_TABLENAME'])
+        table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
 
         for job_id in qsub_job_ids:
             now = datetime.now()  # Local Timestamp
@@ -98,13 +103,12 @@ def submit_pbs_job(event, context):
         d) If ssh command execution failed, raise an SSH command exception
     """
     cmd = event["execute_cmd"] % event
-    LOG.info(f'Executing Command: {cmd}')
+    LOG.info('Executing Command: %r', cmd)
 
-    output, stderr, exit_code = exec_command(f'{cmd}')
+    output, stderr, _ = exec_command(f'{cmd}')
 
-    if exit_code != 0:
-        LOG.error(f'Execute SSH command failed (exit code: {exit_code})')
-        raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
+    if not output:
+        raise Exception(f'SSH execution command stdout is empty, {output}')
 
     job_name = _extract_after_search_string(r"pbs_job_name=*", output)
     log_path = _extract_after_search_string(r"_log=*", output)
@@ -136,7 +140,7 @@ def check_job_status(event, context):
         e) Return the job id's, product, queue_timestamp, and work_dir as an event output dictionary along with
            jobs pending execution status
     """
-    table = dynamodb.Table(os.environ['DYNAMODB_TABLENAME'])
+    table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
     event_olist = list()
 
     jobs_failed = False
@@ -147,25 +151,23 @@ def check_job_status(event, context):
 
         # From each event list, fetch qsub job id's
         for job_id in event_ilist["qsub_job_ids"]:
-            output, stderr, exit_code = exec_command(f'execute_qstat --job-id {job_id}')
+            # We may need to wait here a bit until ssh socket is available
+            # This should be less than timeout of lambda function
+            time.sleep(30)  # Sleep 30s
 
-            if exit_code != 0:
-                LOG.error(f'execute_qstat failed (exit code: {exit_code})')
-                raise Exception(f'SSH execution command stdout: {output} stderr: {stderr}')
+            output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
 
-            now = datetime.now()  # Local Timestamp
+            if not output:
+                LOG.error('execute_qstat command execution failed (stderr: %r)', stderr)
+                raise Exception(f'SSH execution command stdout: {output}')
 
-            job_name = _extract_after_search_string(r"_job_name=*", output)
             job_state = _extract_after_search_string(r"_job_state=*", output)
-            project = _extract_after_search_string(r"_project=*", output)
-            queue = _extract_after_search_string(r"_queue=*", output)
             exit_status = _extract_after_search_string(r"_exit_status=*", output)
-            qstat_comment = _extract_after_search_string(r"_comment= *", output)
 
             job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
             execution_status = EXIT_STATUS.get(exit_status, 'FAILED')
 
-            if not (job_status == 'FINISHED' or job_status == 'SUSPENDED'):
+            if job_status not in ('FINISHED', 'SUSPENDED'):
                 # Job is still pending
                 qsub_job_ids.append(job_id)
             else:
@@ -182,13 +184,13 @@ def check_job_status(event, context):
 
             item = {
                 'pbs_job_id': job_id,
-                'pbs_job_name': job_name,
-                'project': project,
-                'job_queue': queue,
+                'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
+                'project': _extract_after_search_string(r"_project=*", output),
+                'job_queue': _extract_after_search_string(r"_queue=*", output),
                 'job_status': job_status,
                 'execution_status': execution_status,
-                'timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                'remarks': qstat_comment,
+                'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'remarks': _extract_after_search_string(r"_comment= *", output),
                 'product': event_ilist["product"],
                 'queue_timestamp': event_ilist["queue_timestamp"],
                 'work_dir': event_ilist["work_dir"],
