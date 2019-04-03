@@ -1,0 +1,52 @@
+{
+    "stac_version": "0.6.0",
+    "id": "fractional-cover",
+    "description": "Fractional cover suite of products include fractional cover products corresponding to each landsat albers (ls5, ls7, ls8) and two fractional cover percentile products fc-percentile-annual and fc-percentile-seasonal",
+    "license": "CC-BY-4.0",
+    "extent": {
+        "spatial": [
+            108,
+            -45,
+            155,
+            -10
+        ],
+        "temporal": [
+            null,
+            null
+        ]
+    },
+    "links": [
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/catalog.json",
+            "rel": "self"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "parent"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "root"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/fc/v2.2.1/ls5/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/fc/v2.2.1/ls7/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/fc/v2.2.1/ls8/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/fc-percentile/annual/v2.1.0/combined/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/fractional-cover/fc-percentile/seasonal/v2.1.0/combined/catalog.json",
+            "rel": "child"
+        }
+    ]
+}
