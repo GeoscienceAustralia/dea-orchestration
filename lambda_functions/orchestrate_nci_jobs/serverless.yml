@@ -73,7 +73,7 @@ package:
 provider:
   name: aws
   runtime: python3.6
-  timeout: 60  # 60 seconds. Default is 6 seconds
+  timeout: 600  # 10 minutes. Default is 6 seconds
   memorySize: 128  # in MB, default is 1024
   region: ap-southeast-2
   deploymentBucket: "dea-nci-orchestration"
