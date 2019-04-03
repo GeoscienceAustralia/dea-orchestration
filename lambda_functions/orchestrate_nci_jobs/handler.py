@@ -161,7 +161,7 @@ def check_job_status(event, context):
                 raise Exception(f'SSH execution command stdout: {output}')
 
             job_state = _extract_after_search_string(r"_job_state=*", output)
-            queue_time = _extract_after_search_string(r"_exit_status=*", output)
+            queue_time = _extract_after_search_string(r"_queue_time=*", output)
 
             job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
             execution_status = EXIT_STATUS.get(_extract_after_search_string(r"_exit_status=*", output),
