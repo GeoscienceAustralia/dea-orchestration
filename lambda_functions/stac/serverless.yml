@@ -20,7 +20,6 @@ package:
     - tests.py
     - stac_parent_update.py
     - stac_utils.py
-    - update_product_suite_catalogs.py
 
 custom:
   # Our stage is based on what is passed in when running serverless
