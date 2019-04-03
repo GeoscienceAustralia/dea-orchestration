@@ -76,17 +76,6 @@ This script deletes all `catalog.json` objects in a bucket that start with a spe
 This prefix typically contains a single product.
 
 
-#### Update Product Suite Catalogues
-[update_product_suite_catalogs.py](update_product_suite_catalogs.py)
-
-Certain products belong to product
-suites. For example, **wofs_albers, wofs_filtered_summary, wofs_statistical_summary,**
-and **wofs_annual_summary** belong to the suite **WOfS**. This script updates the
-**collection catalogs** for each suite. Example,
- 
-```bash
-    python update_product_suite_catalogs.py -b dea-public-data-dev
-```
 
 ### Configuration
 
