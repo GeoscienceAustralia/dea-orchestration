@@ -14,18 +14,18 @@ from dateutil.parser import parse
 from parse import parse as pparse
 from pathlib import Path, PurePosixPath
 from pyproj import Proj, transform
-from ruamel.yaml import YAML
+import ruamel.yaml
 
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
 S3_RES = boto3.resource('s3')
-yaml = YAML(typ='safe')
+YAML = ruamel.yaml.YAML(typ='safe')
 
 # Read the config file
 with open(Path(__file__).parent / 'stac_config.yaml', 'r') as cfg_file:
-    CFG = yaml.load(cfg_file)
+    CFG = YAML.load(cfg_file)
 
 
 def stac_handler(event, context):
@@ -74,7 +74,7 @@ def convert_yaml(file_message):
         return False
     # Load YAML file from s3
     obj = S3_RES.Object(bucket, s3_key)
-    metadata_doc = yaml.load(obj.get()['Body'].read().decode('utf-8'))
+    metadata_doc = YAML.load(obj.get()['Body'].read().decode('utf-8'))
     # Generate STAC dict
     s3_key_ = PurePosixPath(s3_key)
     stac_s3_key = f'{s3_key_.parent}/{s3_key_.stem}_STAC.json'
@@ -214,7 +214,7 @@ def main():
     import sys
     infile, outfile = sys.argv[1], sys.argv[2]
     with open(infile) as fin, open(outfile, 'w') as fout:
-        metadata_doc = yaml.safe_load(fin)
+        metadata_doc = YAML.safe_load(fin)
         stac_doc = stac_dataset(metadata_doc, '/example_abspath', '/')
         json.dump(stac_doc, fout, indent=4)
 

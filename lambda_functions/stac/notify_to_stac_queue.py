@@ -15,7 +15,7 @@ import logging
 import boto3
 import click
 import dateutil.parser
-from ruamel.yaml import YAML
+import ruamel.yaml
 from itertools import islice
 
 from odc.aws import make_s3_client
@@ -27,7 +27,7 @@ logging.basicConfig(format=FORMAT)
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
-yaml = YAML(typ='safe')
+YAML = ruamel.yaml.YAML(typ='safe')
 
 
 @click.command(help=__doc__)
@@ -46,7 +46,7 @@ def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys=None):
     """
 
     with open(config, 'r') as cfg_file:
-        cfg = yaml.load(cfg_file)
+        cfg = YAML.load(cfg_file)
 
     if not s3_keys:
         s3_client = make_s3_client()

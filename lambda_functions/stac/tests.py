@@ -102,7 +102,7 @@ def test_s3_event_handler():
     event = {'Records': [{'body': json.dumps(event_body)}]}
 
     import stac
-    stac.CFG = test_config
+    stac.CFG = TEST_CONFIG
     stac.stac_handler(event, context={})
 
     expected_key = key.replace('.yaml', '_STAC.json')
@@ -125,7 +125,7 @@ def test_s3_event_handler():
     assert links['parent'].endswith('catalog.json')
 
 
-test_config = {
+TEST_CONFIG = {
     'products': [
         {'name': 'test-product',
          'prefix': 'test-prefix/dir',
@@ -165,7 +165,7 @@ def test_creating_catalogs():
             "test-prefix/dir/x_4/y_2/2010/02/13/foo3.yaml",
             ]
 
-    cu = StacCollections(test_config)
+    cu = StacCollections(TEST_CONFIG)
     cu.add_items(keys)
     cu.persist_all_catalogs(bucket_name)
 

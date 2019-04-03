@@ -126,12 +126,11 @@ def run_benchmark(args):
             ))
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Benchmark Lambda function with several memory sizes to' +
                     'understand the impact on performance.'
     )
-
     parser.add_argument(
         '-f',
         '--function',
@@ -169,6 +168,9 @@ if __name__ == '__main__':
         default='results.csv',
         help='Output results filename.'
     )
-
     arguments = parser.parse_args()
     run_benchmark(arguments)
+
+
+if __name__ == '__main__':
+    main()

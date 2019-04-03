@@ -17,7 +17,7 @@ from pathlib import PurePosixPath
 import boto3
 import click
 import dateutil.parser
-from ruamel.yaml import YAML
+import ruamel.yaml
 from parse import parse as pparse
 
 from odc.aws import make_s3_client
@@ -28,7 +28,7 @@ FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT)
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
-yaml = YAML(typ='safe')
+YAML = ruamel.yaml.YAML(typ='safe')
 
 
 @click.command(help=__doc__)
@@ -47,7 +47,7 @@ def cli(config, inventory_manifest, bucket, from_date, contents_file, s3_keys=No
     """
 
     with open(config, 'r') as cfg_file:
-        cfg = yaml.load(cfg_file)
+        cfg = YAML.load(cfg_file)
 
     # Call a non-click function for testability
     update_parent_catalogs(bucket, cfg, from_date, inventory_manifest, contents_file, s3_keys, dry_run)
