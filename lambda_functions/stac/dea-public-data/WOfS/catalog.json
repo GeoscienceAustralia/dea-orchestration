@@ -1,0 +1,53 @@
+{
+    "stac_version": "0.6.2",
+    "id": "wofs",
+    "description": "Water observation from space suite of products include wofs_albers, wofs_filtered_summary, wofs_statistical_summary, and wofs_annual_summary",
+    "title": "Australian Water Observations from Space",
+    "license": "CC-BY-4.0",
+    "extent": {
+        "spatial": [
+            108,
+            -45,
+            155,
+            -10
+        ],
+        "temporal": [
+            null,
+            null
+        ]
+    },
+    "links": [
+        {
+            "href": "https://data.dea.ga.gov.au/WOfS/catalog.json",
+            "rel": "self"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "parent"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "root"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/WOFLs/v2.1.0/combined/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/WOFLs/v2.1.5/combined/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/annual_summary/v2.1.5/combined/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/filtered_summary/v2.1.0/combined/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/summary/v2.1.0/combined/catalog.json",
+            "rel": "child"
+        }
+    ]
+}
