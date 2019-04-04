@@ -1,0 +1,57 @@
+{
+    "stac_version": "0.6.2",
+    "id": "dea-public-data",
+    "title": "Digital Earth Australia Public Data",
+    "description": "Digital Earth Australia Public Data",
+    "license": "CC-BY-4.0",
+    "providers": [
+        {
+            "name": "Geoscience Australia",
+            "roles": [
+                "processor"
+            ],
+            "url": "https://www.ga.gov.au/"
+        },
+        {
+            "name": "AWS",
+            "url": "https://landsatonaws.com/",
+            "roles": [
+                "host"
+            ]
+        }
+    ],
+    "extent": {
+        "spatial": [
+            108,
+            -45,
+            155,
+            -10
+        ],
+        "temporal": [
+            null,
+            null
+        ]
+    },
+    "links": [
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "self"
+        },
+        {
+            "href": "https://data.dea.ga.gov.au/catalog.json",
+            "rel": "root"
+        },
+        {
+            "href": "WOfS/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "fractional-cover/catalog.json",
+            "rel": "child"
+        },
+        {
+            "href": "geomedian-australia/catalog.json",
+            "rel": "child"
+        }
+    ]
+}
