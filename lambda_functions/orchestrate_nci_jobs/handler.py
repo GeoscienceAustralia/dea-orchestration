@@ -190,7 +190,88 @@ def check_job_status(event, context):
                 'job_queue': _extract_after_search_string(r"_queue=*", output),
                 'job_status': job_status,
                 'execution_status': execution_status,
-                'queue_timestamp': queue_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'queue_timestamp': datetime.strptime(queue_time, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'work_dir': event_ilist["work_dir"],
+                'remarks': _extract_after_search_string(r"_comment= *", output),
+            }
+
+            # Write to the dynamoDB database
+            table.put_item(Item=item)
+
+        event_olist.append({
+            'qsub_job_ids': qsub_job_ids,
+            'product': event_ilist["product"],
+            'work_dir': event_ilist["work_dir"],
+        })
+
+    return {
+        'event_olist': event_olist,
+        'jobs_finished': jobs_failed,
+    }
+
+
+def state_failed(event, context):
+    """
+    The State Machine Failed Python lambda handler shall:
+        a) Delete the job if it has started  execution or waiting in queue
+        b) Update the pbs job status as in the aws dynamodb table
+        c) Return the job id's, product, and work_dir as an event output dictionary along with
+           jobs failed execution status
+    """
+    table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
+    event_olist = list()
+
+    jobs_failed = False
+
+    # Loop through all the event list inputted to this handler from the parallel state machines
+    for event_ilist in event['event_olist']:
+        qsub_job_ids = list()
+
+        # From each event list, fetch qsub job id's
+        for job_id in event_ilist["qsub_job_ids"]:
+            # Wait a bit until ssh socket is available.
+            # This is to avoid multiple access of ssh socket during parallel state machine execution.
+            time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
+
+            output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
+
+            if not output:
+                LOG.error('execute_qstat command execution failed (stderr: %r)', stderr)
+                raise Exception(f'SSH execution command stdout: {output}')
+
+            job_state = _extract_after_search_string(r"_job_state=*", output)
+            queue_time = _extract_after_search_string(r"_queue_time=*", output)
+
+            job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
+            execution_status = EXIT_STATUS.get(_extract_after_search_string(r"_exit_status=*", output),
+                                               'FAILED')
+
+            if job_status not in ('FINISHED', 'SUSPENDED'):
+                # Job is still pending, hence delete them
+                qsub_job_ids.append(job_id)
+                exec_command(f'execute_qdel --job-id {job_id}')
+            else:
+                # Job has finished or the job is deleted/suspended
+                if job_status == 'SUSPENDED':
+                    execution_status = 'JOB_SUSPENDED'
+                else:
+                    # When a job is deleted, job status is reported as completed. In this scenario update the execution
+                    # status as JOB_DELETED
+                    execution_status = 'JOB_DELETED' if execution_status == 'IN_QUEUE' else execution_status
+
+            # Report entire batch job execution as failed
+            jobs_failed = True if execution_status != 'SUCCESS' else jobs_failed
+
+            item = {
+                'pbs_job_id': job_id,
+                'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
+                'product': event_ilist["product"],
+                'project': _extract_after_search_string(r"_project=*", output),
+                'job_queue': _extract_after_search_string(r"_queue=*", output),
+                'job_status': job_status,
+                'execution_status': execution_status,
+                'queue_timestamp': datetime.strptime(queue_time, '%Y-%m-%dT%H:%M:%S.%fZ'),
                 'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                 'work_dir': event_ilist["work_dir"],
                 'remarks': _extract_after_search_string(r"_comment= *", output),

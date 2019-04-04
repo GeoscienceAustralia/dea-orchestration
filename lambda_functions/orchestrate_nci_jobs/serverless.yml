@@ -28,6 +28,7 @@ custom:
     submit_job_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-submit_pbs_job"
     fetch_jobid_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-fetch_job_ids"
     check_job_status_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-check_job_status"
+    state_failed_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:execute-jobs-prod-state_failed"
   cmds:
     SYNC_CMD: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                   --queue ${self:provider.environment.QUEUE}
@@ -130,6 +131,9 @@ functions:
   check_job_status:
     handler: handler.check_job_status
     description: Monitor and update qsub job status in aws dynamodb database
+  state_failed:
+    handler: handler.state_failed
+    description: Update the job status in aws dynamodb database and exit the state machine execution
 
 stepFunctions:
   stateMachines:
@@ -297,10 +301,19 @@ stepFunctions:
                   End: true
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-              Next: Task_Failed
+              Next: StateMachineFailed
           Task_Failed:
+            Type: Task
+            Resource: ${self:custom.arns.state_failed_arn}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: StateMachineFailed
+            Next: StateMachineFailed
+          StateMachineFailed:
             Type: Fail
-            Cause: "A lambda function exception"
+            Cause: "A State Machine Failure"
           Wait_3_Minutes:  # Wait for 3 minutes before updating job status
             Type: Wait
             Seconds: 180
@@ -326,8 +339,8 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
-            Next: Is_Sync_Job_Complete
-          Is_Sync_Job_Complete:  # Check if the sync job is completed
+            Next: Sync_Job_Completed?
+          Sync_Job_Completed?:  # Check if the sync job is completed
             Type: Choice
             Choices:
             - Variable: "$.jobs_finished"
@@ -438,7 +451,7 @@ stepFunctions:
                   End: true
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-              Next: Task_Failed
+              Next: StateMachineFailed
           Wait_5_Minutes:  # Wait for 5 minutes before updating job status
             Type: Wait
             Seconds: 300
@@ -464,8 +477,8 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
-            Next: Is_Ingest_Job_Complete
-          Is_Ingest_Job_Complete:  # Check if the ingest job is completed
+            Next: Ingest_Job_Completed?
+          Ingest_Job_Completed?:  # Check if the ingest job is completed
             Type: Choice
             Choices:
             - Variable: "$.jobs_finished"
@@ -528,7 +541,7 @@ stepFunctions:
                   End: true
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-              Next: Task_Failed
+              Next: StateMachineFailed
           Wait_2_Minutes:  # Wait for 2 minutes before updating job status
             Type: Wait
             Seconds: 120
@@ -550,8 +563,8 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
-            Next: Is_FC_WOFS_Job_Complete
-          Is_FC_WOFS_Job_Complete:  # Check if the Fractional Cover and WOfS jobs are completed
+            Next: FC_WOFS_Job_Completed?
+          FC_WOFS_Job_Completed?:  # Check if the Fractional Cover and WOfS jobs are completed
             Type: Choice
             Choices:
             - Variable: "$.jobs_finished"
@@ -614,7 +627,7 @@ stepFunctions:
                   End: true
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-              Next: Task_Failed
+              Next: StateMachineFailed
           Wait_15_Minutes:  # Wait for 15 minutes before updating job status
             Type: Wait
             Seconds: 900
@@ -636,8 +649,8 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
-            Next: Is_Cog_Job_Complete
-          Is_Cog_Job_Complete:  # Check if the cog conversion for Fractional Cover and WOfS jobs are completed
+            Next: Cog_Job_Completed?
+          Cog_Job_Completed?:  # Check if the cog conversion for Fractional Cover and WOfS jobs are completed
             Type: Choice
             Choices:
             - Variable: "$.jobs_finished"
