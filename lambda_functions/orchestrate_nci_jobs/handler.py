@@ -3,6 +3,7 @@ import os
 import boto3
 from re import compile as compile_, IGNORECASE
 from datetime import datetime
+from dateutil.tz import gettz
 import time
 from raijin_ssh import exec_command
 
@@ -28,6 +29,8 @@ EXIT_STATUS = {
     'NA': 'IN_QUEUE'
 }
 
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+
 
 def _extract_after_search_string(str_val, out_str):
     p = compile_(str_val, IGNORECASE)
@@ -46,10 +49,12 @@ def fetch_job_ids(event, context):
           jobs pending execution status
     """
     event_olist = list()
+    table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
+
     for event_ilist in event:
         # Wait a bit until ssh socket is available.
         # This is to avoid multiple access of ssh socket during parallel state machine execution.
-        time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
+        time.sleep(5)  # Sleep 5s, this time should be less than timeout of the lambda function
 
         output, stderr, _ = exec_command(f'execute_fetch_job_ids --logfile {event_ilist["log_path"]}')
 
@@ -60,10 +65,8 @@ def fetch_job_ids(event, context):
         # 'output' variable is in "1234567.r-man2,\n" format, hence remove new line character and any empty string
         qsub_job_ids = set(ids for ids in output.strip().split(",") if ids)
 
-        table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
-
         for job_id in qsub_job_ids:
-            now = datetime.now()  # Local Timestamp
+            now = datetime.now(gettz("Australia/Sydney"))  # Local Timestamp
             item = {
                 'pbs_job_id': job_id,
                 'pbs_job_name': event_ilist["job_name"],
@@ -72,8 +75,8 @@ def fetch_job_ids(event, context):
                 'job_queue': event_ilist["job_queue"],
                 'job_status': event_ilist["job_status"],
                 'execution_status': event_ilist["execution_status"],
-                'queue_timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                'timestamp': now.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'queue_timestamp': now.strftime(DATETIME_FORMAT),
+                'timestamp': now.strftime(DATETIME_FORMAT),
                 'work_dir': event_ilist["work_dir"],
                 'remarks': 'NA',
             }
@@ -141,7 +144,7 @@ def check_job_status(event, context):
     """
     table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
     event_olist = list()
-
+    pending_jobs = list()
     jobs_failed = False
 
     # Loop through all the event list inputted to this handler from the parallel state machines
@@ -152,22 +155,22 @@ def check_job_status(event, context):
         for job_id in event_ilist["qsub_job_ids"]:
             # Wait a bit until ssh socket is available.
             # This is to avoid multiple access of ssh socket during parallel state machine execution.
-            time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
+            time.sleep(5)  # Sleep 5s, this time should be less than timeout of the lambda function
 
             output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
 
             if not output:
-                LOG.error('execute_qstat command execution failed (stderr: %r)', stderr)
-                raise Exception(f'SSH execution command stdout: {output}')
+                raise Exception(f'SSH execution command: execute_qstat command execution failed {stderr}')
 
-            job_state = _extract_after_search_string(r"_job_state=*", output)
-            queue_time = _extract_after_search_string(r"_queue_time=*", output)
+            queue_time = datetime.strptime(_extract_after_search_string(r"_queue_time=*", output),
+                                           '%a %b %d %H:%M:%S %Y')
 
-            job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
+            job_status = JOB_STATUS.get(_extract_after_search_string(r"_job_state=*", output),
+                                        'UNKNOWN')
             execution_status = EXIT_STATUS.get(_extract_after_search_string(r"_exit_status=*", output),
                                                'FAILED')
 
-            if job_status not in ('FINISHED', 'SUSPENDED'):
+            if job_status not in ('FINISHED', 'SUSPENDED') and execution_status == 'IN_QUEUE':
                 # Job is still pending
                 qsub_job_ids.append(job_id)
             else:
@@ -190,8 +193,8 @@ def check_job_status(event, context):
                 'job_queue': _extract_after_search_string(r"_queue=*", output),
                 'job_status': job_status,
                 'execution_status': execution_status,
-                'queue_timestamp': datetime.strptime(queue_time, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                'queue_timestamp': queue_time.strftime(DATETIME_FORMAT),
+                'timestamp': datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
                 'work_dir': event_ilist["work_dir"],
                 'remarks': _extract_after_search_string(r"_comment= *", output),
             }
@@ -204,36 +207,37 @@ def check_job_status(event, context):
             'product': event_ilist["product"],
             'work_dir': event_ilist["work_dir"],
         })
+        pending_jobs.extend(qsub_job_ids)
+
+    if not pending_jobs and jobs_failed:
+        return {
+            'event_olist': event_olist,
+            'jobs_finished': -1,  # Report failure as something happened during batch execution
+        }
 
     return {
         'event_olist': event_olist,
-        'jobs_finished': jobs_failed,
+        'jobs_finished': not pending_jobs,
     }
 
 
 def state_failed(event, context):
     """
     The State Machine Failed Python lambda handler shall:
-        a) Delete the job if it has started  execution or waiting in queue
-        b) Update the pbs job status as in the aws dynamodb table
-        c) Return the job id's, product, and work_dir as an event output dictionary along with
-           jobs failed execution status
+        a) Delete the job if it has started execution or waiting in queue
+        b) Update the pbs job status in the aws dynamodb table
     """
     table = _DYNAMODB.Table(os.environ['DYNAMODB_TABLENAME'])
-    event_olist = list()
-
     jobs_failed = False
 
-    # Loop through all the event list inputted to this handler from the parallel state machines
     for event_ilist in event['event_olist']:
-        qsub_job_ids = list()
-
-        # From each event list, fetch qsub job id's
         for job_id in event_ilist["qsub_job_ids"]:
             # Wait a bit until ssh socket is available.
             # This is to avoid multiple access of ssh socket during parallel state machine execution.
-            time.sleep(10)  # Sleep 10s, this time should be less than timeout of the lambda function
+            time.sleep(5)  # Sleep 5s, this time should be less than timeout of the lambda function
 
+            # Read from the dynamoDB database
+            result = table.get_item(Key={"pbs_job_id": str(job_id)})
             output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
 
             if not output:
@@ -241,7 +245,8 @@ def state_failed(event, context):
                 raise Exception(f'SSH execution command stdout: {output}')
 
             job_state = _extract_after_search_string(r"_job_state=*", output)
-            queue_time = _extract_after_search_string(r"_queue_time=*", output)
+            queue_time = datetime.strptime(_extract_after_search_string(r"_queue_time=*", output),
+                                           '%a %b %d %H:%M:%S %Y')
 
             job_status = JOB_STATUS.get(job_state, 'UNKNOWN')
             execution_status = EXIT_STATUS.get(_extract_after_search_string(r"_exit_status=*", output),
@@ -249,8 +254,8 @@ def state_failed(event, context):
 
             if job_status not in ('FINISHED', 'SUSPENDED'):
                 # Job is still pending, hence delete them
-                qsub_job_ids.append(job_id)
                 exec_command(f'execute_qdel --job-id {job_id}')
+                execution_status = 'JOB_DELETED'
             else:
                 # Job has finished or the job is deleted/suspended
                 if job_status == 'SUSPENDED':
@@ -266,27 +271,16 @@ def state_failed(event, context):
             item = {
                 'pbs_job_id': job_id,
                 'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
-                'product': event_ilist["product"],
+                'product': result["product"],
                 'project': _extract_after_search_string(r"_project=*", output),
                 'job_queue': _extract_after_search_string(r"_queue=*", output),
                 'job_status': job_status,
                 'execution_status': execution_status,
-                'queue_timestamp': datetime.strptime(queue_time, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                'work_dir': event_ilist["work_dir"],
+                'queue_timestamp': queue_time.strftime(DATETIME_FORMAT),
+                'timestamp': datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
+                'work_dir': result["work_dir"],
                 'remarks': _extract_after_search_string(r"_comment= *", output),
             }
 
             # Write to the dynamoDB database
             table.put_item(Item=item)
-
-        event_olist.append({
-            'qsub_job_ids': qsub_job_ids,
-            'product': event_ilist["product"],
-            'work_dir': event_ilist["work_dir"],
-        })
-
-    return {
-        'event_olist': event_olist,
-        'jobs_finished': jobs_failed,
-    }

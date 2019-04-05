@@ -9,8 +9,8 @@
 #      1) npm install --save-dev serverless-step-functions
 #      2) sls plugin install -n serverless-python-requirements
 #      3) sls plugin install -n serverless-pseudo-parameters
-#      4) sls deploy --aws-profile <Profile Name> -v --stage <Deploy Environment Name>
-#      5) sls invoke --aws-profile <Profile Name>  -s <Deploy Environment Name> stepf --name Execute_Jobs
+#      4) sls deploy --aws-profile <Profile Name> -v --stage <Deploy Environment Name (dev or prod)>
+#      5) sls invoke --aws-profile <Profile Name> -s <Deploy Environment Name (dev or prod)> stepf --name Execute_Jobs
 #
 #  An example of the Amazon States Language that runs an AWS Batch job and monitors the job until it completes
 
@@ -22,6 +22,7 @@ plugins:
   - serverless-step-functions
 
 custom:
+  Stage: ${opt:stage, self:provider.stage}
   pythonRequirements:
     dockerizePip: non-linux
   arns:
@@ -41,17 +42,20 @@ custom:
     INGEST_CMD: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
                     --queue ${self:provider.environment.QUEUE}
                     --project ${self:provider.environment.PROJECT}
+                    --stage ${self:custom.Stage}
                     --year %(year)s
                     --product %(product)s'
     FC_CMD: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
                 --queue ${self:provider.environment.QUEUE}
                 --project ${self:provider.environment.PROJECT}
+                --stage ${self:custom.Stage}
                 --year %(year)s
                 --product %(product)s
                 --tag %(tag)s'
     WOFS_CMD: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
                   --queue ${self:provider.environment.QUEUE}
                   --project ${self:provider.environment.PROJECT}
+                  --stage ${self:custom.Stage}
                   --year %(year)s
                   --product %(product)s
                   --tag %(tag)s'
@@ -313,7 +317,7 @@ stepFunctions:
             Next: StateMachineFailed
           StateMachineFailed:
             Type: Fail
-            Cause: "A State Machine Failure"
+            Cause: "State Machine Failed"
           Wait_3_Minutes:  # Wait for 3 minutes before updating job status
             Type: Wait
             Seconds: 180
@@ -325,7 +329,7 @@ stepFunctions:
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-                Next: Task_Failed
+                Next: StateMachineFailed
             Next: Wait_30_Minutes
           Wait_30_Minutes:  # Wait for 30 minutes before reading the job status
             Type: Wait
@@ -339,6 +343,7 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
+                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
             Next: Sync_Job_Completed?
           Sync_Job_Completed?:  # Check if the sync job is completed
             Type: Choice
@@ -463,7 +468,8 @@ stepFunctions:
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-                Next: Task_Failed
+                Next: StateMachineFailed
+                ResultPath: "$.error"  # Return both error and event input to StateMachineFailed state
             Next: Wait_35_Minutes
           Wait_35_Minutes:  # Wait for 35 minutes before reading the job status
             Type: Wait
@@ -477,6 +483,7 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
+                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
             Next: Ingest_Job_Completed?
           Ingest_Job_Completed?:  # Check if the ingest job is completed
             Type: Choice
@@ -553,7 +560,8 @@ stepFunctions:
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-                Next: Task_Failed
+                Next: StateMachineFailed
+                ResultPath: "$.error"  # Return both error and event input to StateMachineFailed state
             Next: Get_FC_WOFS_Job_Status
           Get_FC_WOFS_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
@@ -563,6 +571,7 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
+                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
             Next: FC_WOFS_Job_Completed?
           FC_WOFS_Job_Completed?:  # Check if the Fractional Cover and WOfS jobs are completed
             Type: Choice
@@ -639,7 +648,8 @@ stepFunctions:
             HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-                Next: Task_Failed
+                Next: StateMachineFailed
+                ResultPath: "$.error"  # Return both error and event input to StateMachineFailed state
             Next: Get_Cogger_Job_Status
           Get_Cogger_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
             Type: Task
@@ -649,6 +659,7 @@ stepFunctions:
             Catch:
               - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
                 Next: Task_Failed
+                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
             Next: Cog_Job_Completed?
           Cog_Job_Completed?:  # Check if the cog conversion for Fractional Cover and WOfS jobs are completed
             Type: Choice

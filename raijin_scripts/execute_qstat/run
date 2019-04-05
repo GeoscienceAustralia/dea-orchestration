@@ -22,7 +22,7 @@ function get_data
   # -w, --word-regexp
   # -o, --only-matching
   # -i, --ignore-case
-  echo "$2" | grep "$1" | cut -f2 -d'=' | cut -f2 -d' '
+  echo "$2" | grep "$1" | cut -f2- -d'=' | cut -f2- -d' '
   return 0
 }
 
