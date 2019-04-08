@@ -354,10 +354,7 @@ stepFunctions:
             - Variable: "$.jobs_finished"
               BooleanEquals: false
               Next: Wait_30_Minutes
-            Default: FailedChoiceState
-          FailedChoiceState:
-            Type: Fail
-            Cause: "No Choice Matches!"
+            Default: Task_Failed
           Submit_Ingest_Job:
             Type: Parallel
             Next: Wait_5_Minutes
@@ -494,7 +491,7 @@ stepFunctions:
             - Variable: "$.jobs_finished"
               BooleanEquals: false
               Next: Wait_35_Minutes
-            Default: FailedChoiceState
+            Default: Task_Failed
           Submit_FC_Job:
             Type: Parallel
             Next: Wait_2_Minutes
@@ -582,7 +579,7 @@ stepFunctions:
             - Variable: "$.jobs_finished"
               BooleanEquals: false
               Next: Wait_2_Minutes
-            Default: FailedChoiceState
+            Default: Task_Failed
           Submit_Cogger_Job:
             Type: Parallel
             Next: Wait_15_Minutes
@@ -670,6 +667,6 @@ stepFunctions:
             - Variable: "$.jobs_finished"
               BooleanEquals: false
               Next: Wait_15_Minutes
-            Default: FailedChoiceState
+            Default: Task_Failed
           Finished:
             Type: Succeed

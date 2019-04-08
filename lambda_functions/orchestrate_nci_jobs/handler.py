@@ -210,8 +210,9 @@ def check_job_status(event, context):
         pending_jobs.extend(qsub_job_ids)
 
     if not pending_jobs and jobs_failed:
+        # Jobs has been deleted or aborted
         return {
-            'event_olist': event_olist,
+            'event_olist': event,  # Pass event so that we can qstat job id's and update dynamodb
             'jobs_finished': -1,  # Report failure as something happened during batch execution
         }
 
