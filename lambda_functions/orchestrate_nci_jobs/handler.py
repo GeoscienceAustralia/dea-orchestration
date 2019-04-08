@@ -212,7 +212,7 @@ def check_job_status(event, context):
     if not pending_jobs and jobs_failed:
         # Jobs has been deleted or aborted
         return {
-            'event_olist': event,  # Pass event so that we can qstat job id's and update dynamodb
+            'event_olist': event['event_olist'],  # Pass event so that we can qstat job id's and update dynamodb
             'jobs_finished': -1,  # Report failure as something happened during batch execution
         }
 
@@ -237,8 +237,6 @@ def state_failed(event, context):
             # This is to avoid multiple access of ssh socket during parallel state machine execution.
             time.sleep(5)  # Sleep 5s, this time should be less than timeout of the lambda function
 
-            # Read from the dynamoDB database
-            result = table.get_item(Key={"pbs_job_id": str(job_id)})
             output, stderr, _ = exec_command(f'execute_qstat --job-id {job_id}')
 
             if not output:
@@ -268,6 +266,10 @@ def state_failed(event, context):
 
             # Report entire batch job execution as failed
             jobs_failed = True if execution_status != 'SUCCESS' else jobs_failed
+
+            # Read from the dynamoDB database
+            LOG.info('Read dynamodb key {"pbs_job_id": str(%r)} value', job_id)
+            result = table.get_item(Key={"pbs_job_id": str(job_id)})
 
             item = {
                 'pbs_job_id': job_id,
