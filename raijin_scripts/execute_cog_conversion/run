@@ -27,6 +27,7 @@ done
 
 COG_CONV_DIR="$HOME/COG-Conversion/converter"
 WORKDIR=/g/data/v10/work/cog_conversion/"$PRODUCT"/$(date '+%F_%H-%M-%S')
+JOB_NAME="Cog-$PRODUCT"
 SUBMISSION_LOG="$WORKDIR"/Cog_Submission_$(date '+%s').log
 START_YEAR=$(echo "$RANGE_EXP" | cut -f 1 -d '-')
 END_YEAR=$(echo "$RANGE_EXP" | cut -f 2 -d '-')
@@ -65,3 +66,11 @@ python3 "$COG_CONV_DIR"/cog_conv_app.py qsub-cog -p ${PRODUCT} --output-dir ${WO
 set +x  # echo OFF
 
 EOF
+
+# Log the following values to the terminal, to be processed by the orchestration lambda function
+echo cog_log="${SUBMISSION_LOG}"
+echo cog_pbs_job_name="${JOB_NAME}"
+echo cog_project="v10"
+echo cog_job_queue="normal"
+echo cog_work_dir="${WORKDIR}"
+echo cog_product="${PRODUCT}"

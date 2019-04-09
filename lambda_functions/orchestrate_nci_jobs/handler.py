@@ -67,22 +67,29 @@ def fetch_job_ids(event, context):
 
         for job_id in qsub_job_ids:
             now = datetime.now(gettz("Australia/Sydney"))  # Local Timestamp
-            item = {
-                'pbs_job_id': job_id,
-                'pbs_job_name': event_ilist["job_name"],
-                'product': event_ilist["product"],
-                'project': event_ilist["project"],
-                'job_queue': event_ilist["job_queue"],
-                'job_status': event_ilist["job_status"],
-                'execution_status': event_ilist["execution_status"],
-                'queue_timestamp': now.strftime(DATETIME_FORMAT),
-                'timestamp': now.strftime(DATETIME_FORMAT),
-                'work_dir': event_ilist["work_dir"],
-                'remarks': 'NA',
-            }
-
-            # Write to the dynamoDB database
-            table.put_item(Item=item)
+            table.update_item(Key={'pbs_job_id': job_id},
+                              UpdateExpression="SET pbs_job_name = :jname, "
+                                               "product = :prod, "
+                                               "job_project = :proj, "
+                                               "job_queue = :queue, "
+                                               "job_status = :jstatus, "
+                                               "execution_status = :estatus, "
+                                               "queue_timestamp = :tqueue,"
+                                               "updated_timestamp = :tstamp, "
+                                               "work_dir = :wdir, "
+                                               "remarks = :comments",
+                              ExpressionAttributeValues={
+                                  ":jname": event_ilist["job_name"],
+                                  ":prod": event_ilist["product"],
+                                  ":proj": event_ilist["project"],
+                                  ":queue": event_ilist["job_queue"],
+                                  ":jstatus": event_ilist["job_status"],
+                                  ":estatus": event_ilist["execution_status"],
+                                  ":tqueue": now.strftime(DATETIME_FORMAT),
+                                  ":tstamp": now.strftime(DATETIME_FORMAT),
+                                  ":wdir": event_ilist["work_dir"],
+                                  ":comments": 'NA'}
+                              )
 
         event_olist.append({
             'qsub_job_ids': list(qsub_job_ids),  # A `set()` cannot be serialized to JSON, hence convert to a list()
@@ -185,22 +192,30 @@ def check_job_status(event, context):
                 # Once a job has failed, report entire batch job execution as failed
                 jobs_failed = True if execution_status != 'SUCCESS' else jobs_failed
 
-            item = {
-                'pbs_job_id': job_id,
-                'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
-                'product': event_ilist["product"],
-                'project': _extract_after_search_string(r"_project=*", output),
-                'job_queue': _extract_after_search_string(r"_queue=*", output),
-                'job_status': job_status,
-                'execution_status': execution_status,
-                'queue_timestamp': queue_time.strftime(DATETIME_FORMAT),
-                'timestamp': datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
-                'work_dir': event_ilist["work_dir"],
-                'remarks': _extract_after_search_string(r"_comment= *", output),
-            }
-
             # Write to the dynamoDB database
-            table.put_item(Item=item)
+            table.update_item(Key={'pbs_job_id': job_id},
+                              UpdateExpression="SET pbs_job_name = :jname, "
+                                               "product = :prod, "
+                                               "job_project = :proj, "
+                                               "job_queue = :queue, "
+                                               "job_status = :jstatus, "
+                                               "execution_status = :estatus, "
+                                               "queue_timestamp = :tqueue,"
+                                               "updated_timestamp = :tstamp, "
+                                               "work_dir = :wdir, "
+                                               "remarks = :comments",
+                              ExpressionAttributeValues={
+                                  ":jname": _extract_after_search_string(r"_job_name=*", output),
+                                  ":prod": event_ilist["product"],
+                                  ":proj": _extract_after_search_string(r"_project=*", output),
+                                  ":queue": _extract_after_search_string(r"_queue=*", output),
+                                  ":jstatus": job_status,
+                                  ":estatus": execution_status,
+                                  ":tqueue": queue_time.strftime(DATETIME_FORMAT),
+                                  ":tstamp": datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
+                                  ":wdir": event_ilist["work_dir"],
+                                  ":comments": _extract_after_search_string(r"_comment= *", output)}
+                              )
 
         event_olist.append({
             'qsub_job_ids': qsub_job_ids,
@@ -269,21 +284,29 @@ def state_failed(event, context):
 
             # Read from the dynamoDB database
             LOG.info('Read dynamodb key {"pbs_job_id": str(%r)} value', job_id)
-            result = table.get_item(Key={"pbs_job_id": str(job_id)})
-
-            item = {
-                'pbs_job_id': job_id,
-                'pbs_job_name': _extract_after_search_string(r"_job_name=*", output),
-                'product': result["product"],
-                'project': _extract_after_search_string(r"_project=*", output),
-                'job_queue': _extract_after_search_string(r"_queue=*", output),
-                'job_status': job_status,
-                'execution_status': execution_status,
-                'queue_timestamp': queue_time.strftime(DATETIME_FORMAT),
-                'timestamp': datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
-                'work_dir': result["work_dir"],
-                'remarks': _extract_after_search_string(r"_comment= *", output),
-            }
+            result = table.get_item(Key={"pbs_job_id": job_id})
 
             # Write to the dynamoDB database
-            table.put_item(Item=item)
+            table.update_item(Key={'pbs_job_id': job_id},
+                              UpdateExpression="SET pbs_job_name = :jname, "
+                                               "product = :prod, "
+                                               "job_project = :proj, "
+                                               "job_queue = :queue, "
+                                               "job_status = :jstatus, "
+                                               "execution_status = :estatus, "
+                                               "queue_timestamp = :tqueue,"
+                                               "updated_timestamp = :tstamp, "
+                                               "work_dir = :wdir, "
+                                               "remarks = :comments",
+                              ExpressionAttributeValues={
+                                  ":jname": _extract_after_search_string(r"_job_name=*", output),
+                                  ":prod": result["product"],
+                                  ":proj": _extract_after_search_string(r"_project=*", output),
+                                  ":queue": _extract_after_search_string(r"_queue=*", output),
+                                  ":jstatus": job_status,
+                                  ":estatus": execution_status,
+                                  ":tqueue": queue_time.strftime(DATETIME_FORMAT),
+                                  ":tstamp": datetime.now(gettz("Australia/Sydney")).strftime(DATETIME_FORMAT),
+                                  ":wdir": result["work_dir"],
+                                  ":comments": _extract_after_search_string(r"_comment= *", output)}
+                              )
