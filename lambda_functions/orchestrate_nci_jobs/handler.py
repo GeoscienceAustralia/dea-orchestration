@@ -36,7 +36,11 @@ def _extract_after_search_string(str_val, out_str):
     p = compile_(str_val, IGNORECASE)
     # Extract string after the substring
     # Split newline character before returning the string
-    return p.split(out_str)[1].split('\n')[0]
+    try:
+        return p.split(out_str)[1].split('\n')[0]
+    except IndexError:
+        # Did not find any matching string
+        return "NA"
 
 
 def fetch_job_ids(event, context):

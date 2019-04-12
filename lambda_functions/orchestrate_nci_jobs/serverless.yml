@@ -63,6 +63,8 @@ custom:
                  --s3-output %(s3_output)s
                  --cog-product %(cog_product)s
                  --time-range "%(time_range %)s"'
+    DAM_SCRIPT_CMD: 'execute_dam_scripts --dea-module ${self:provider.environment.DEA_MODULE}
+                  --dam-script-path %(dam_script_path)s'
 
 package:
   exclude:
@@ -163,7 +165,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls8_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -182,7 +184,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls7_nbar_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -201,7 +203,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls8_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -220,7 +222,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls7_nbart_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -239,7 +241,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls8_pq_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -258,7 +260,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls7_pq_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -277,7 +279,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls8_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -296,7 +298,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.SYNC_CMD}
+                    execute_cmd: ${self:custom.cmds.SYNC_CMD}
                     product: ls7_pq_legacy_scene
                     trasharchived: no
                     year: '2019-2019'
@@ -367,7 +369,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls8_nbar_albers
                     year: 2019
                   End: true
@@ -383,7 +385,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls7_nbar_albers
                     year: 2019
                   End: true
@@ -399,7 +401,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls8_nbart_albers
                     year: 2019
                   End: true
@@ -415,7 +417,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls7_nbart_albers
                     year: 2019
                   End: true
@@ -431,7 +433,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls8_pq_albers
                     year: 2019
                   End: true
@@ -447,7 +449,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.INGEST_CMD}
+                    execute_cmd: ${self:custom.cmds.INGEST_CMD}
                     product: ls7_pq_albers
                     year: 2019
                   End: true
@@ -504,7 +506,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.FC_CMD}
+                    execute_cmd: ${self:custom.cmds.FC_CMD}
                     product: ls8_fc_albers
                     year: 2019
                     tag: 'ls8_fc2019'
@@ -521,7 +523,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.FC_CMD}
+                    execute_cmd: ${self:custom.cmds.FC_CMD}
                     product: ls7_fc_albers
                     year: 2019
                     tag: 'ls7_fc2019'
@@ -538,7 +540,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.WOFS_CMD}
+                    execute_cmd: ${self:custom.cmds.WOFS_CMD}
                     product: wofs_albers
                     year: 2019
                     tag: 'wofs_2019'
@@ -592,7 +594,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.COG_CMD}
+                    execute_cmd: ${self:custom.cmds.COG_CMD}
                     cog_product: ls8_fc_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls8
@@ -609,7 +611,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.COG_CMD}
+                    execute_cmd: ${self:custom.cmds.COG_CMD}
                     cog_product: ls7_fc_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/fractional-cover/fc/v2.2.1/ls7
@@ -626,7 +628,7 @@ stepFunctions:
                   TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
                   HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
                   Parameters:
-                    execute_cmd:  ${self:custom.cmds.COG_CMD}
+                    execute_cmd: ${self:custom.cmds.COG_CMD}
                     cog_product: wofs_albers
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/WOfS/WOFLs/v2.1.5/combined
@@ -663,10 +665,23 @@ stepFunctions:
             Choices:
             - Variable: "$.jobs_finished"
               BooleanEquals: true
-              Next: Finished
+              Next: DamScript_Append_WaterBodyCSV
             - Variable: "$.jobs_finished"
               BooleanEquals: false
               Next: Wait_15_Minutes
             Default: Task_Failed
+          DamScript_Append_WaterBodyCSV:  # Run Dam Script to append the water bodies CSV's
+            Type: Task
+            Resource: ${self:custom.arns.submit_job_arn}
+            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+            Parameters:
+              execute_cmd: ${self:custom.cmds.DAM_SCRIPT_CMD}
+              dam_script_path: /g/data/r78/vmn547/Dams/Dams_scripts/append_water_bodies.sh
+            Catch:
+              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+                Next: Task_Failed
+                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
+            Next: Finished
           Finished:
             Type: Succeed
