@@ -38,7 +38,7 @@ provider:
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
-    DEA_MODULE: dea/20181213
+    DEA_MODULE: dea/20190329
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -74,7 +74,7 @@ functions:
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
-    description: Sync Landsat 7/8 Scenes (NBAR/NBART/PQ/PQ_LEGACY Scenes) and Sentinal 2 ARD Granules
+    description: Sync Sentinal 2 ARD Granules
     environment:
       cmd: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
                          --queue ${self:provider.environment.QUEUE}
@@ -86,79 +86,7 @@ functions:
                          --trasharchived <%= trasharchived %>'
     events:
       - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls8_nbar_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
-            suffixpath: '/??/output/nbar/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls7_nbar_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
-            suffixpath: '/??/output/nbar/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls8_nbart_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls8/'
-            suffixpath: '/??/output/nbart/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls7_nbart_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/nbar-scenes-tmp/ls7/'
-            suffixpath: '/??/output/nbart/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls8_pq_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls8/'
-            suffixpath: '/??/output/pqa/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls7_pq_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/pq-scenes-tmp/ls7/'
-            suffixpath: '/??/output/pqa/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls8_pq_legacy_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls8/'
-            suffixpath: '/??/output/pqa/'
-      - schedule:
-          rate: cron(10 10 ? * FRI *)  # Run every Friday, at 08:10 pm Canberra time
-          enabled: true
-          input:
-            product: ls7_pq_legacy_scene
-            trasharchived: no
-            year: '2019-2019'
-            path: '/g/data/rs0/scenes/pq-legacy-scenes-tmp/ls7/'
-            suffixpath: '/??/output/pqa/'
-      - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -167,7 +95,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-01-'  # Process January month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -176,7 +104,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-02-'  # Process February month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -185,8 +113,8 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-03-'  # Process March month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
-          enabled: false
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
+          enabled: true
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -194,8 +122,8 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-04-'  # Process April month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
-          enabled: false
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
+          enabled: true
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -203,7 +131,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-05-'  # Process May month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -212,7 +140,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-06-'  # Process June month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -221,7 +149,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-07-'  # Process July month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -230,7 +158,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-08-'  # Process August month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -239,7 +167,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-09-'  # Process September month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -248,7 +176,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-10-'  # Process October month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -257,7 +185,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-11-'  # Process November month data
       - schedule:
-          rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+          rate: cron(10 10 ? * MON *)  # Run every Monday, at 08:10 pm Canberra time
           enabled: false
           input:
             product: s2_ard_granule
@@ -265,98 +193,6 @@ functions:
             year: '2019-2019'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-12-'  # Process December month data
-  execute_ingest:
-    handler: handler.execute_ssh_command
-    description: Execute dea-submit-ingest qsub tool to ingest datasets to the database
-    environment:
-      cmd: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
-                           --queue ${self:provider.environment.QUEUE}
-                           --project ${self:provider.environment.PROJECT}
-                           --stage ${self:custom.Stage}
-                           --year <%= year %>
-                           --product <%= product %>'
-    events:
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls8_nbart_albers
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls8_nbar_albers
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls8_pq_albers
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls7_nbart_albers
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls7_nbar_albers
-      - schedule:
-          rate: cron(15 10 ? * SAT *)  # Run every Saturday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls7_pq_albers
-  execute_fractional_cover:
-    handler: handler.execute_ssh_command
-    description: Execute datacube-fc submit tool to generate fc and ingest them to the database
-    environment:
-      cmd: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
-                                     --queue ${self:provider.environment.QUEUE}
-                                     --project ${self:provider.environment.PROJECT}
-                                     --stage ${self:custom.Stage}
-                                     --year <%= year %>
-                                     --product <%= product %>
-                                     --tag <%= tag %>'
-    events:
-      - schedule:
-          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls8_fc_albers
-            tag: 'ls8_fc2019'
-      - schedule:
-          rate: cron(15 10 ? * SUN *)  # Run every Sunday, at 08:15 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: ls7_fc_albers
-            tag: 'ls7_fc2019'
-  execute_wofs:
-    handler: handler.execute_ssh_command
-    description: Execute datacube-wofs submit tool to generate wofs and ingest them to the database
-    environment:
-      cmd: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
-                         --queue ${self:provider.environment.QUEUE}
-                         --project ${self:provider.environment.PROJECT}
-                         --stage ${self:custom.Stage}
-                         --year <%= year %>
-                         --product <%= product %>
-                         --tag <%= tag %>'
-    events:
-      - schedule:
-          rate: cron(20 10 ? * SUN *)  # Run every Sunday, at 08:20 pm Canberra time
-          enabled: true
-          input:
-            year: 2019
-            product: wofs_albers
-            tag: '2019'
   execute_coherence:
     # Note: Keep `--timequery` argument as the last argument in the environment.cmd
     handler: handler.execute_ssh_command
@@ -468,19 +304,3 @@ functions:
             copy_parent_dir_count: 0  # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
-  execute_cog_conversion:
-    handler: handler.execute_ssh_command
-    description: Execute COG-Conversion process for the specified product and upload the files back to S3
-    environment:
-      cmd: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
-                                   --queue ${self:provider.environment.QUEUE}
-                                   --project ${self:provider.environment.PROJECT}
-                                   --cog-product <%= cog_product %>
-                                   --time-range <%= time_range %>'
-    events:
-      - schedule:
-          rate: cron(30 10 ? * MON *)  # Run every Monday, at 08:30 pm Canberra time
-          enabled: true
-          input:
-            cog_product: wofs_albers
-            time_range: '2019-2019'
