@@ -633,12 +633,31 @@ stepFunctions:
                     time_range: '2019-2019'
                     s3_output: s3://dea-public-data/WOfS/WOFLs/v2.1.5/combined
                   End: true
+            - StartAt: Wait_2s
+              States:
+                Wait_2s:  # Wait for 2 seconds
+                  Type: Wait
+                  Seconds: 2
+                  Next: DamScript_Append_WaterBodyCSV
+                DamScript_Append_WaterBodyCSV:  # Run Dam Script to append the water bodies CSV's
+                  Type: Task
+                  Resource: ${self:custom.arns.submit_job_arn}
+                  TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+                  HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+                  Parameters:
+                    execute_cmd: ${self:custom.cmds.DAM_SCRIPT_CMD}
+                    dam_script_path: /g/data/r78/vmn547/Dams/Dams_scripts/append_water_bodies.sh
+                  End: true
             Catch:
             - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
               Next: StateMachineFailed
-          Wait_15_Minutes:  # Wait for 15 minutes before updating job status
+          Wait_15_Minutes:  # Wait for 15 minutes before reading and updating job status
             Type: Wait
             Seconds: 900
+            Next: Get_Cogger_Job_Ids
+          Wait_45_Minutes:  # Wait for 45 minutes before reading and updating job status
+            Type: Wait
+            Seconds: 2700
             Next: Get_Cogger_Job_Ids
           Get_Cogger_Job_Ids:  # Fetch Cogger job id's and update the job status in aws dynamodb database
             Type: Task
@@ -665,23 +684,10 @@ stepFunctions:
             Choices:
             - Variable: "$.jobs_finished"
               BooleanEquals: true
-              Next: DamScript_Append_WaterBodyCSV
+              Next: Finished
             - Variable: "$.jobs_finished"
               BooleanEquals: false
-              Next: Wait_15_Minutes
+              Next: Wait_45_Minutes
             Default: Task_Failed
-          DamScript_Append_WaterBodyCSV:  # Run Dam Script to append the water bodies CSV's
-            Type: Task
-            Resource: ${self:custom.arns.submit_job_arn}
-            TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
-            HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
-            Parameters:
-              execute_cmd: ${self:custom.cmds.DAM_SCRIPT_CMD}
-              dam_script_path: /g/data/r78/vmn547/Dams/Dams_scripts/append_water_bodies.sh
-            Catch:
-              - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
-                Next: Task_Failed
-                ResultPath: "$.error"  # Return both error and event input to Task_Failed state
-            Next: Finished
           Finished:
             Type: Succeed
