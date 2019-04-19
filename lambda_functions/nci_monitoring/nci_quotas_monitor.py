@@ -7,7 +7,7 @@ import boto3
 
 from es_connection import get_es_connection
 from log_cfg import LOG
-from raijin_ssh import exec_command
+from ssh import exec_command
 from utils import human2bytes, human2decimal
 
 NCI_PROJECTS = os.environ['NCI_PROJECTS'].split(',')
