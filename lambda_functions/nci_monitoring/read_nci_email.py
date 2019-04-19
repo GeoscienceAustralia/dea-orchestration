@@ -6,7 +6,7 @@ import json
 from re import compile as compile_, IGNORECASE
 from datetime import datetime
 from es_connection import get_es_connection
-from raijin_ssh import exec_command
+from ssh import exec_command
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)

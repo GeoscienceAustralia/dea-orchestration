@@ -13,13 +13,14 @@ SSM = boto3.client('ssm')
 
 
 def exec_command(command):
-    """Runs commands in the raijin ssh session
+    """
+    Connect and run a command on a remote host
 
     stdout logged to debug
     stderr logged to error if exit code is non zero use warn
 
     Args:
-        command (str): text to be "executed" in raijin environment.
+        command (str): command to be "executed" on the ssh host
 
     Returns:
         (str): Output of command to stdout
