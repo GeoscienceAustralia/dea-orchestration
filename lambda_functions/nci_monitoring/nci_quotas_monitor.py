@@ -5,7 +5,7 @@ from datetime import datetime
 
 import boto3
 
-from es_connection import get_es_connection
+from es_connection import upload_to_elasticsearch
 from log_cfg import LOG
 from ssh import exec_command
 from utils import human2bytes, human2decimal
@@ -19,48 +19,35 @@ STORAGE_FIELDS = ['grant', 'usage', 'avail', 'igrant', 'iusage', 'iavail']
 CLOUDWATCH_NAMESPACE = 'nci_metrics'
 CLOUDWATCH_MAX_SEND = 20
 
+CLOUDWATCH = boto3.client('cloudwatch')
 ES_INDEX = 'nci-quota-usage-'
 ES_DOC_TYPE = 'nci_quota_usage'
-
-CLOUDWATCH = boto3.client('cloudwatch')
 
 
 def handler(event, context):
     """Main Entry Point"""
     with ThreadPoolExecutor() as executor:
-        usages = executor.map(get_project_usage, NCI_PROJECTS)
+        usages = executor.map(record_project_usage, NCI_PROJECTS)
 
         for usage in usages:
             LOG.info("Usage: %s", usage)
 
 
-def get_project_usage(project):
+def record_project_usage(project):
     output, stderr, exit_code = exec_command('monitor {}'.format(project))
 
     if exit_code != 0:
-        LOG.error('Could not get quota report for %s, with exit code %s', project, exit_code)
-        raise Exception()
+        msg = 'Could not get quota report for %s, with exit code %s' % (project, exit_code)
+        LOG.error(msg)
+        raise RuntimeError(msg)
 
     usage = project_usage(output)
     assert project == usage['project']
 
     upload_to_cloudwatch_metrics(usage)
-    upload_to_elasticsearch(usage)
+    upload_to_elasticsearch(usage, ES_INDEX, ES_DOC_TYPE)
 
     return usage
-
-
-def upload_to_elasticsearch(usage):
-    es_connection = get_es_connection()
-    now = datetime.utcnow()
-
-    usage = usage.copy()
-    usage['@timestamp'] = now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-
-    summary = es_connection.index(index=ES_INDEX + now.strftime('%Y'),
-                                  doc_type=ES_DOC_TYPE,
-                                  body=usage)
-    LOG.info(summary)
 
 
 def upload_to_cloudwatch_metrics(usage):
@@ -134,9 +121,9 @@ def storage_usage(storage_pt, text):
     return {}
 
 
-def update_es_template(es):
-    usage_template = {
-        'template': ES_INDEX + '*',
+def update_es_template(es_connection, index_prefix):
+    template = {
+        'template': index_prefix + '*',
         'mappings': {
             'nci_quota_usage': {
                 'properties': {
@@ -149,4 +136,4 @@ def update_es_template(es):
         }
     }
 
-    es.indices.put_template('nci-usage', body=usage_template)
+    es_connection.indices.put_template('nci-usage', body=template)
