@@ -1,3 +1,10 @@
+import logging
+
+import boto3
+
+LOG = logging.getLogger(__name__)
+
+
 def timestr_to_seconds(time_str):
     if not time_str:
         return time_str
@@ -97,3 +104,18 @@ def human2decimal(s):
         raise ValueError('Error parsing "%s" into integer.' % s)
 
     return ret_val
+
+
+SSM = boto3.client('ssm')
+
+
+def get_ssm_parameter(name, with_decryption=True):
+    response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
+
+    if response:
+        try:
+            return response['Parameters'][0]['Value']
+        except (TypeError, IndexError):
+            LOG.error("AWS SSM parameter not found in '%s'", response)
+            raise
+    raise AttributeError("Key '{}' not found in SSM".format(name))
