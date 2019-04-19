@@ -23,6 +23,8 @@ def record_repo_stats(event, context):
 
     repo = stats['data']['repository']
 
+    repo['traffic'] = get_repo_traffic(owner, repo)
+
     upload_es_template()
 
     upload_to_elasticsearch(repo, index_prefix=INDEX_PREFIX)
@@ -168,13 +170,22 @@ def get_repo_stats(owner, repo):
     return gh_graphql_query(query, variables)
 
 
-def getRepoTraffic(owner, name):
-    r = requests.get('https://api.github.com/user', headers=GH_HEADERS)
+def get_repo_traffic(owner, repo):
+    LOG.info('Requesting GitHub Repo Traffic information for %s/%s', owner, repo)
+    url_prefix = f'https://api.github.com/repos/{owner}/{repo}/traffic/'
+    parts = ['popular/referrers', 'popular/paths', 'views', 'clones']
+
+    traffic = {}
+    for part in parts:
+        r = requests.get(url_prefix + part, headers=GH_HEADERS)
+        traffic[part] = r.json()
+
+    return traffic
 
 
 def upload_es_template():
-    es_connection = get_connection()
     LOG.debug('Uploading Elastic Search Mapping Template: %s', es_connection)
+    es_connection = get_connection()
     template = {
         'template': INDEX_PREFIX + '*',
         'mappings': {
