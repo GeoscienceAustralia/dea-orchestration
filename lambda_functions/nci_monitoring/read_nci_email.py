@@ -5,7 +5,7 @@ import boto3
 import json
 from re import compile as compile_, IGNORECASE
 from datetime import datetime
-from es_connection import get_es_connection
+from es_connection import get_connection
 from ssh import exec_command
 
 LOG = logging.getLogger()
@@ -29,7 +29,7 @@ def _fetch_ds_count(re_exp, output):
 
 
 def _push_metadata_to_es(doc):
-    es = get_es_connection()
+    es = get_connection()
 
     now = datetime.utcnow()
     doc = copy.deepcopy(doc)

@@ -2,14 +2,14 @@ import logging
 import os
 from io import StringIO
 
-import boto3
 import paramiko
+
+from utils import get_ssm_parameter
 
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SSM_USER_PATH = os.environ['SSM_USER_PATH']
 
-SSM = boto3.client('ssm')
 
 
 def exec_command(command):
@@ -73,18 +73,6 @@ def ssh_config_from_ssm_user_path(path=DEFAULT_SSM_USER_PATH):
     return {'user': get_ssm_parameter(path + '.user'),
             'host': get_ssm_parameter(path + '.host'),
             'pkey': get_ssm_parameter(path + '.pkey')}
-
-
-def get_ssm_parameter(name, with_decryption=True):
-    response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
-
-    if response:
-        try:
-            return response['Parameters'][0]['Value']
-        except (TypeError, IndexError):
-            LOG.error("AWS SSM parameter not found in '%s'", response)
-            raise
-    raise AttributeError("Key '{}' not found in SSM".format(name))
 
 
 def connect():
