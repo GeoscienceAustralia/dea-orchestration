@@ -6,13 +6,11 @@ import boto3
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
-from log_cfg import LOG
-
 LOG = logging.getLogger()
-ES_HOST = os.environ['AWS_ES_HOST']
+ES_HOST = os.environ['ES_HOST']
 ES_PORT = int(os.environ.get('ES_PORT', 443))
 
-AWS_REGION = os.environ['AWS_REGION']
+AWS_REGION = os.environ['ES_AWS_REGION']
 
 _ES_CONNECTION = None
 

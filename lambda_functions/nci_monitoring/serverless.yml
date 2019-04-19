@@ -18,6 +18,11 @@ plugins:
 
 custom:
   pythonRequirements:
+#    pipCmdExtraArgs:
+#      - '--platform'
+#      - 'manylinux1'
+#      - '--only-binary'
+#      - ':all:'
     dockerizePip: non-linux
 
 package:
@@ -36,9 +41,9 @@ resources:
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.7
   timeout: 60  # 60 seconds. Default is 6 seconds
-  memorySize: 128  # in MB, default is 1024
+  memorySize: 512  # in MB, default is 1024
   stage: prod
   # Since SES is not supported in Sydney region, all emails are pushed to the
   # S3 bucket in us-west-2 region. For s3 to trigger SQS and SQS trigger lambda function execution, all the aws
@@ -81,7 +86,8 @@ provider:
     NCI_PROJECTS: 'rs0,v10,u46,fk4,r78,if87'
     NCI_STORAGE: 'gdata1,gdata1a,gdata1b,gdata2,gdata3,short,massdata'
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    AWS_ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
+    ES_HOST: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
+    ES_AWS_REGION: ap-southeast-2
     SSM_GH_TOKEN_PATH: 'orchestrator.github_stats.auth_token'
 
 functions:
