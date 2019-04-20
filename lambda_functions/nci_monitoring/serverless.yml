@@ -92,19 +92,19 @@ provider:
 
 functions:
   nci_quota_monitor:
-    handler: nci_quotas_monitor.handler
+    handler: dea_monitoring.nci_quotas_monitor.handler
     description: Record Quota/Usage for projects on the NCI into Cloudwatch Metrics and ElasticSearch
     events:
       - schedule: rate(2 hours)
 
   nci_pbsjob_monitor:
-    handler: read_nci_email.handler
+    handler: dea_monitoring.read_nci_email.handler
     description: Process PBS jobs and dataset info, once an email is sent to nci monitoring S3 bucket
     events:
       - sqs: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:WaitForTheLogs"
 
   gh_repo_stats:
-    handler: github.record_repo_stats
+    handler: dea_monitoring.github.record_repo_stats
     description: Record metrics about the size and activity of a GitHub Repository into ElasticSearch
     events:
       - schedule: rate(1 day)

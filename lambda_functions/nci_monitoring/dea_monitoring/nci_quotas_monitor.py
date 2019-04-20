@@ -6,10 +6,12 @@ from datetime import datetime
 
 import boto3
 
-from es_connection import upload_to_elasticsearch
-from ssh import exec_command
-from utils import human2bytes, human2decimal
+from .es_connection import upload_to_elasticsearch
+from .ssh import exec_command
+from .utils import human2bytes, human2decimal
+from .log_cfg import setup_logging
 
+setup_logging()
 LOG = logging.getLogger(__name__)
 
 NCI_PROJECTS = os.environ['NCI_PROJECTS'].split(',')

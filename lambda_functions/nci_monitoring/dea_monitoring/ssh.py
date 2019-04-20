@@ -4,12 +4,11 @@ from io import StringIO
 
 import paramiko
 
-from utils import get_ssm_parameter
+from .utils import get_ssm_parameter
 
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SSM_USER_PATH = os.environ['SSM_USER_PATH']
-
 
 
 def exec_command(command):
