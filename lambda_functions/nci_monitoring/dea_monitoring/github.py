@@ -3,8 +3,8 @@ import os
 
 import requests
 
-from es_connection import upload_to_elasticsearch, get_connection
-from utils import get_ssm_parameter
+from .es_connection import upload_to_elasticsearch, get_connection
+from .utils import get_ssm_parameter
 
 LOG = logging.getLogger(__name__)
 
@@ -13,21 +13,20 @@ GH_HEADERS = {"Authorization": "token " + _GH_TOKEN}
 
 INDEX_PREFIX = 'github-stats-'
 
+ES_CONN = get_connection()
 
-# Main EntryPoint
-def record_repo_stats(event, context):
-    owner = event['owner']
-    repo = event['repo']
 
-    stats = get_repo_stats(owner, repo)
+class GitHubRecorder:
+    def __init__(self, stats_retriever, es_connection):
+        self.stats_retriever = stats_retriever
+        self.es_connection = es_connection
 
-    repo = stats['data']['repository']
+        upload_es_template(es_connection)
 
-    repo['traffic'] = get_repo_traffic(owner, repo)
+    def gh_stats_to_es(self, owner, repo)
+        stats = self.stats_retriever(owner, repo)
 
-    upload_es_template()
-
-    upload_to_elasticsearch(repo, index_prefix=INDEX_PREFIX)
+        upload_to_elasticsearch(repo, index_prefix=INDEX_PREFIX)
 
 
 def gh_graphql_query(query, variables):
@@ -42,36 +41,37 @@ def gh_graphql_query(query, variables):
 
 
 def get_commits_on_repo():
+    # language=GraphQL
     query = '''
-    query CommitsOnRepo($owner: String!, $name: String!, 
-                        $hash: GitObjectID!, $branch: String!) {
-      repository(owner:$owner, name:$name) {
-                    name
-        id
-        selectedCommit:object(oid: $hash) {
-          ...commitAuthor
+        query CommitsOnRepo($owner: String!, $name: String!,
+           $hash: GitObjectID!, $branch: String!) {
+           repository(owner:$owner, name:$name) {
+              id
+              name
+              selectedCommit:object(oid: $hash) {
+                 ...commitAuthor
+              }
+
+              latestCommit:ref(qualifiedName: $branch) {
+                 name
+                 prefix
+
+                 target {
+                    ...commitAuthor
+                 }
+              }
+           }
         }
 
-        latestCommit:ref(qualifiedName: $branch) {
-          name
-          prefix
-
-          target {
-            ...commitAuthor
-          }
+        fragment commitAuthor on Commit {
+           id
+           message
+           author {
+              name
+              email
+              date
+           }
         }
-      }
-    }
-
-    fragment commitAuthor on Commit {
-      id
-      message
-      author {
-        name
-        email
-        date
-      }
-    }
     '''
     variables = {
         "owner": "opendatacube",
@@ -83,31 +83,32 @@ def get_commits_on_repo():
 
 
 def get_closed_issue_actors(owner, repo):
+    # language=GraphQL
     query = '''
-    query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo){
-      issues(states: CLOSED, first:10){
-        edges{
-          node{
-            ... on Issue{
-          timeline(last: 100){
-            edges{
-              node{
-                __typename
-                  ... on ClosedEvent{
-                      actor {
-                        login
-                      }
+        query($owner: String!, $repo: String!) {
+           repository(owner: $owner, name: $repo){
+              issues(states: CLOSED, first:10){
+                 edges{
+                    node{
+                       ... on Issue{
+                          timeline(last: 100){
+                             edges{
+                                node{
+                                   __typename
+                                   ... on ClosedEvent{
+                                      actor {
+                                         login
+                                      }
+                                   }
+                                }
+                             }
+                          }
+                       }
                     }
-                  }
-                }
+                 }
               }
-            }
-          }
-        }
-      }
-    }
-    }'''
+           }
+        }'''
 
     variables = {
         "owner": owner,
@@ -118,6 +119,14 @@ def get_closed_issue_actors(owner, repo):
 
 
 def get_repo_stats(owner, repo):
+    stats = graphql_stats(owner, repo)
+
+    stats['traffic'] = get_repo_traffic(owner, repo)
+
+    return stats
+
+def graphql_stats(owner, repo):
+    # language=GraphQL
     query = '''
         query RepoStats($owner: String!, $repo: String!) { 
           repository(owner:$owner, name:$repo) {
@@ -167,7 +176,8 @@ def get_repo_stats(owner, repo):
         "name": repo
     }
 
-    return gh_graphql_query(query, variables)
+    response = gh_graphql_query(query, variables)
+    return response['data']['repository']
 
 
 def get_repo_traffic(owner, repo):
@@ -183,9 +193,8 @@ def get_repo_traffic(owner, repo):
     return traffic
 
 
-def upload_es_template():
+def upload_es_template(es_connection):
     LOG.debug('Uploading Elastic Search Mapping Template: %s', es_connection)
-    es_connection = get_connection()
     template = {
         'template': INDEX_PREFIX + '*',
         'mappings': {
@@ -267,3 +276,13 @@ DOC_MAPPING = {
         },
     }
 }
+
+recorder = GitHubRecorder(get_repo_stats, ES_CONN)
+
+
+# Main EntryPoint
+def record_repo_stats(event, context):
+    owner = event['owner']
+    repo = event['repo']
+
+    recorder.gh_stats_to_es(owner, repo)
