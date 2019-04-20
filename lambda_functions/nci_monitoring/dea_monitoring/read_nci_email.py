@@ -1,13 +1,17 @@
 import copy
+import json
 import logging
 import urllib
-import boto3
-import json
-from re import compile as compile_, IGNORECASE
 from datetime import datetime
-from es_connection import get_connection
-from ssh import exec_command
+from re import compile as compile_, IGNORECASE
 
+import boto3
+
+from .es_connection import get_connection
+from .log_cfg import setup_logging
+from .ssh import exec_command
+
+setup_logging()
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
@@ -71,7 +75,7 @@ def _fetch_ds_info(job_id, job_name):
         ds_efficiency = float((ndatasets_found - nds_failed) / ndatasets_found) * 100
 
     return ndatasets_found, nfiles_created, nfiles_create_fail, \
-        nds_index_pass, nds_index_fail, service_units, ds_efficiency
+           nds_index_pass, nds_index_fail, service_units, ds_efficiency
 
 
 def _process_pbs_job_info(email_body):
