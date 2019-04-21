@@ -1,121 +1,7 @@
-import logging
-import os
-
 import requests
 
-from .es_connection import upload_to_elasticsearch, get_connection
-from .utils import get_ssm_parameter
-
-LOG = logging.getLogger(__name__)
-
-_GH_TOKEN = get_ssm_parameter(os.environ['SSM_GH_TOKEN_PATH'])
-GH_HEADERS = {"Authorization": "token " + _GH_TOKEN}
-
-INDEX_PREFIX = 'github-stats-'
-
-ES_CONN = get_connection()
-
-
-class GitHubRecorder:
-    def __init__(self, stats_retriever, es_connection):
-        self.stats_retriever = stats_retriever
-        self.es_connection = es_connection
-
-        upload_es_template(es_connection)
-
-    def gh_stats_to_es(self, owner, repo)
-        stats = self.stats_retriever(owner, repo)
-
-        upload_to_elasticsearch(repo, index_prefix=INDEX_PREFIX)
-
-
-def gh_graphql_query(query, variables):
-    # A simple function to use requests.post to make the API call. Note the json= section.
-    request = requests.post('https://api.github.com/graphql',
-                            json={'query': query, 'variables': variables},
-                            headers=GH_HEADERS)
-    if request.status_code == 200:
-        return request.json()
-    else:
-        raise Exception("GH GraphQL query failed to run by returning code of {}. {}".format(request.status_code, query))
-
-
-def get_commits_on_repo():
-    # language=GraphQL
-    query = '''
-        query CommitsOnRepo($owner: String!, $name: String!,
-           $hash: GitObjectID!, $branch: String!) {
-           repository(owner:$owner, name:$name) {
-              id
-              name
-              selectedCommit:object(oid: $hash) {
-                 ...commitAuthor
-              }
-
-              latestCommit:ref(qualifiedName: $branch) {
-                 name
-                 prefix
-
-                 target {
-                    ...commitAuthor
-                 }
-              }
-           }
-        }
-
-        fragment commitAuthor on Commit {
-           id
-           message
-           author {
-              name
-              email
-              date
-           }
-        }
-    '''
-    variables = {
-        "owner": "opendatacube",
-        "name": "datacube-core",
-        "hash": "ae60b5c58428bdf0004db4ba6b843fe137db4a32",
-        "branch": "develop"
-    }
-    return gh_graphql_query(query, variables)
-
-
-def get_closed_issue_actors(owner, repo):
-    # language=GraphQL
-    query = '''
-        query($owner: String!, $repo: String!) {
-           repository(owner: $owner, name: $repo){
-              issues(states: CLOSED, first:10){
-                 edges{
-                    node{
-                       ... on Issue{
-                          timeline(last: 100){
-                             edges{
-                                node{
-                                   __typename
-                                   ... on ClosedEvent{
-                                      actor {
-                                         login
-                                      }
-                                   }
-                                }
-                             }
-                          }
-                       }
-                    }
-                 }
-              }
-           }
-        }'''
-
-    variables = {
-        "owner": owner,
-        "repo": repo
-    }
-
-    return gh_graphql_query(query, variables)
+from dea_monitoring.es_connection import upload_to_elasticsearch
+from dea_monitoring.github_lambda import LOG, INDEX_PREFIX
 
 
 def get_repo_stats(owner, repo):
@@ -124,6 +10,7 @@ def get_repo_stats(owner, repo):
     stats['traffic'] = get_repo_traffic(owner, repo)
 
     return stats
+
 
 def graphql_stats(owner, repo):
     # language=GraphQL
@@ -180,14 +67,15 @@ def graphql_stats(owner, repo):
     return response['data']['repository']
 
 
-def get_repo_traffic(owner, repo):
+def get_repo_traffic(owner, repo, token):
     LOG.info('Requesting GitHub Repo Traffic information for %s/%s', owner, repo)
+    gh_headers = {"Authorization": "token " + token}
     url_prefix = f'https://api.github.com/repos/{owner}/{repo}/traffic/'
     parts = ['popular/referrers', 'popular/paths', 'views', 'clones']
 
     traffic = {}
     for part in parts:
-        r = requests.get(url_prefix + part, headers=GH_HEADERS)
+        r = requests.get(url_prefix + part, headers=gh_headers)
         traffic[part] = r.json()
 
     return traffic
@@ -277,12 +165,28 @@ DOC_MAPPING = {
     }
 }
 
-recorder = GitHubRecorder(get_repo_stats, ES_CONN)
+
+class GitHubRecorder:
+    def __init__(self, token, stats_retriever, es_connection):
+        self.token = token
+        self.stats_retriever = stats_retriever
+        self.es_connection = es_connection
+
+        upload_es_template(es_connection)
+
+    def gh_stats_to_es(self, owner, repo):
+        stats = self.stats_retriever(self.token, owner, repo)
+
+        upload_to_elasticsearch(self.es_connection, stats, index_prefix=INDEX_PREFIX)
 
 
-# Main EntryPoint
-def record_repo_stats(event, context):
-    owner = event['owner']
-    repo = event['repo']
-
-    recorder.gh_stats_to_es(owner, repo)
+def gh_graphql_query(query, variables, token):
+    # A simple function to use requests.post to make the API call. Note the json= section.
+    gh_headers = {"Authorization": "token " + token}
+    request = requests.post('https://api.github.com/graphql',
+                            json={'query': query, 'variables': variables},
+                            headers=gh_headers)
+    if request.status_code == 200:
+        return request.json()
+    else:
+        raise Exception("GH GraphQL query failed to run by returning code of {}. {}".format(request.status_code, query))
