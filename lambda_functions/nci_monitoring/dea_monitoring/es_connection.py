@@ -35,8 +35,7 @@ def get_connection():
         return _ES_CONNECTION
 
 
-def upload_to_elasticsearch(doc, index_prefix, index_time_suffix='%Y'):
-    es_connection = get_connection()
+def upload_to_elasticsearch(es_connection, doc, index_prefix, index_time_suffix='%Y'):
     now = datetime.utcnow()
 
     doc = doc.copy()
