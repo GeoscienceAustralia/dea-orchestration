@@ -52,13 +52,13 @@ def record_project_usage(project):
     usage = parse_usage_from_monitor_output(output)
     assert project == usage['project']
 
-    upload_to_cloudwatch_metrics(usage)
+    upload_to_cloudwatch_metrics(CLOUDWATCH_NAMESPACE, usage)
     upload_to_elasticsearch(ES_CONNECTION, usage, index_prefix=ES_INDEX_PREFIX)
 
     return usage
 
 
-def upload_to_cloudwatch_metrics(usage):
+def upload_to_cloudwatch_metrics(namespace, usage):
     now = datetime.utcnow()
     cloud_metrics = [make_cw_metric(resource_name, resource_value, usage['project'], now)
                      for resource_name, resource_value in usage.items()
@@ -68,7 +68,7 @@ def upload_to_cloudwatch_metrics(usage):
                        for x in range(0, len(cloud_metrics), CLOUDWATCH_MAX_SEND)]
     for some_cloud_metrics in chunked_metrics:
         CLOUDWATCH.put_metric_data(
-            Namespace=CLOUDWATCH_NAMESPACE,
+            Namespace=namespace,
             MetricData=some_cloud_metrics
         )
 
