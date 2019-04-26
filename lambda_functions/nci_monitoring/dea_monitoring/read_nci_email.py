@@ -7,7 +7,7 @@ from re import compile as compile_, IGNORECASE
 
 import boto3
 
-from .es_connection import get_connection
+from .elasticsearch import get_connection
 from .log_cfg import setup_logging
 from .ssh import exec_command
 

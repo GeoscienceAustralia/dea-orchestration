@@ -106,10 +106,14 @@ def human2decimal(s):
     return ret_val
 
 
-SSM = boto3.client('ssm')
+SSM = None
 
 
 def get_ssm_parameter(name, with_decryption=True):
+    global SSM
+    if SSM is None:
+        SSM = boto3.client('ssm')
+
     response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
 
     if response:

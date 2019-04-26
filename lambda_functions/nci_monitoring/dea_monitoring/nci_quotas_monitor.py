@@ -1,15 +1,15 @@
 import logging
 import os
 import re
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import boto3
 
-from .es_connection import upload_to_elasticsearch
+from dea_monitoring.elasticsearch import get_connection
+from .elasticsearch import upload_to_elasticsearch
+from .log_cfg import setup_logging
 from .ssh import exec_command
 from .utils import human2bytes, human2decimal
-from .log_cfg import setup_logging
 
 setup_logging()
 LOG = logging.getLogger(__name__)
@@ -24,17 +24,21 @@ CLOUDWATCH_NAMESPACE = 'nci_metrics'
 CLOUDWATCH_MAX_SEND = 20
 
 CLOUDWATCH = boto3.client('cloudwatch')
-ES_INDEX = 'nci-quota-usage-'
-ES_DOC_TYPE = 'nci_quota_usage'
+ES_INDEX_PREFIX = 'nci-quota-usage-'
+
+ES_CONNECTION = None
 
 
 def handler(event, context):
     """Main Entry Point"""
-    with ThreadPoolExecutor() as executor:
-        usages = executor.map(record_project_usage, NCI_PROJECTS)
+    global ES_CONNECTION
+    if ES_CONNECTION is None:
+        ES_CONNECTION = get_connection()
 
-        for usage in usages:
-            LOG.info("Usage: %s", usage)
+    for project in NCI_PROJECTS:
+        usage = record_project_usage(project)
+
+        LOG.info("Usage: %s", usage)
 
 
 def record_project_usage(project):
@@ -45,11 +49,11 @@ def record_project_usage(project):
         LOG.error(msg)
         raise RuntimeError(msg)
 
-    usage = project_usage(output)
+    usage = parse_usage_from_monitor_output(output)
     assert project == usage['project']
 
     upload_to_cloudwatch_metrics(usage)
-    upload_to_elasticsearch(usage, ES_INDEX, ES_DOC_TYPE)
+    upload_to_elasticsearch(ES_CONNECTION, usage, index_prefix=ES_INDEX_PREFIX)
 
     return usage
 
@@ -83,7 +87,7 @@ def make_cw_metric(resource_name, resource_value, project, time):
     }
 
 
-def project_usage(output):
+def parse_usage_from_monitor_output(output):
     usage = {
         'project': re.findall(r'.*Project=([\w\d]+)', output)[0],
         'period': re.findall(r'.*Compute Period=(.*?) .*', output, re.MULTILINE)[0],
@@ -129,7 +133,7 @@ def update_es_template(es_connection, index_prefix):
     template = {
         'template': index_prefix + '*',
         'mappings': {
-            'nci_quota_usage': {
+            '_doc': {
                 'properties': {
                     'cpu_avail': {'type': 'float'},
                     'cpu_bonus_used': {'type': 'float'},

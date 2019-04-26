@@ -8,12 +8,12 @@ from .utils import get_ssm_parameter
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_SSM_USER_PATH = os.environ['SSM_USER_PATH']
+DEFAULT_SSM_USER_PATH = os.environ.get('SSM_USER_PATH')
 
 
 def exec_command(command):
     """
-    Connect and run a command on a remote host
+    Connect and run a command on a remote host, as defined by AWS SSM settings
 
     stdout logged to debug
     stderr logged to error if exit code is non zero use warn

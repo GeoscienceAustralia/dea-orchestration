@@ -92,6 +92,7 @@ provider:
     ES_HOST: ${self:custom.esURL.${self:custom.Stage}}
     ES_AWS_REGION: ap-southeast-2
     SSM_GH_TOKEN_PATH: 'orchestrator.github_stats.auth_token'
+    GH_INDEX_PREFIX: github-stats-
 
 functions:
   nci_quota_monitor:

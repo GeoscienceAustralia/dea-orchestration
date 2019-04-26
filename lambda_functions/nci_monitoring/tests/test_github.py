@@ -1,3 +1,6 @@
+import os
+
+from dea_monitoring.github_metrics import GitHubStatsRetriever
 
 EXAMPLE_RESPONSE = {
     "data": {
@@ -46,3 +49,35 @@ EXAMPLE_RESPONSE = {
         }
     }
 }
+
+
+def test_get_repo_stats():
+    """
+    Integration Test - That we can retrieve public statistics about a GH repository
+
+    Requires an environment variable `GH_TOKEN` to be set with a valid GitHub Token with `public` scope permission
+    """
+    token = os.environ['GH_TOKEN']
+
+    retriever = GitHubStatsRetriever(token)
+    stats = retriever.get_repo_stats('opendatacube', 'datacube-core')
+
+    assert stats['name'] == 'datacube-core'
+    assert stats['nameWithOwner'] == 'opendatacube/datacube-core'
+
+    assert 'diskUsage' in stats
+    assert 'forkCount' in stats
+    assert 'pushedAt' in stats
+
+    expected_metrics = 'stargazers watchers issues openIssues closedIssues ' \
+                       'pullRequests openPullRequests branches collaborators releases'.split()
+
+    for metric in expected_metrics:
+        assert metric in stats
+        assert isinstance(stats[metric]['totalCount'], int)
+
+    assert 'traffic' in stats
+    assert 'popular/referrers' in stats['traffic']
+    assert 'popular/paths' in stats['traffic']
+    assert 'views' in stats['traffic']
+    assert 'clones' in stats['traffic']
