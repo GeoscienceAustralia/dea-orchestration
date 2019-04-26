@@ -7,10 +7,10 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
 LOG = logging.getLogger()
-ES_HOST = os.environ['ES_HOST']
+ES_HOST = os.environ.get('ES_HOST')
 ES_PORT = int(os.environ.get('ES_PORT', 443))
 
-AWS_REGION = os.environ['ES_AWS_REGION']
+AWS_REGION = os.environ.get('ES_AWS_REGION')
 
 _ES_CONNECTION = None
 
