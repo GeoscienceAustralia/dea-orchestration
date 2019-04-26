@@ -1,0 +1,42 @@
+Return-Path: <pbs.raijin@nci.org.au>
+Received: from pigeon.nci.org.au (pigeon.nci.org.au [150.203.254.174])
+ by inbound-smtp.us-west-2.amazonaws.com with SMTP id 01mr4j4vek7i8e6m2v43drie5v79nu1ihfrm8mg1
+ for nci.monitor@dea.ga.gov.au;
+ Fri, 05 Apr 2019 05:38:45 +0000 (UTC)
+X-SES-Spam-Verdict: PASS
+X-SES-Virus-Verdict: PASS
+Received-SPF: pass (spfCheck: domain of nci.org.au designates 150.203.254.174 as permitted sender) client-ip=150.203.254.174; envelope-from=pbs.raijin@nci.org.au; helo=pigeon.nci.org.au;
+Authentication-Results: amazonses.com;
+ spf=pass (spfCheck: domain of nci.org.au designates 150.203.254.174 as permitted sender) client-ip=150.203.254.174; envelope-from=pbs.raijin@nci.org.au; helo=pigeon.nci.org.au;
+ dmarc=pass header.from=nci.org.au;
+X-SES-RECEIPT: AEFBQUFBQUFBQUFIaENrL0hQRTRBdFhJOWMwNkdwbWtCNFM0WXRzaDNWUm1TTlhTUjRPYXpSTnNBekVoV1BacnJ0RkoxU0t3OXRFc0lKOWxIREIzK2NvanZudUhvRndHSXhqZk9jTjhSK0FJcndzd3hkcXNUZkJTM2szMFdRVzc4QzdoZlZyU3dTakhWOXZSUlhndTVMZlhnY2FKbzROUW9qQzhCYUFIRGcxcktvNkttYlNqd3d5VGlSdmF3VUhUbnBaZ2lSelNCU3FvRmI0U2FKV1V3di9YZmdxdUR5c1hzUGFqMFpuNGhYSDlzbDJqTDRpbUpzbkpHVjZFMy80Wk5tWjRRd2JlRHpjbjJkRnd3MVZTL0ZSaXlPNWhZeW5DSGY2dXp0bTB1OEV1TGpwTVlWaDZCV2c9PQ==
+X-SES-DKIM-SIGNATURE: a=rsa-sha256; q=dns/txt; b=BxgCzI/ixFgnfuz/jw3Wq9QWX4kMbHqsn6+ahCH5guBI7N8T1DQGxtK4+DoeQPaN5QShLqL7rf4U0oz1M1qZwL7KrUBQ8PNGldM89iJPDl4hn/TparD3K5c1h23o3VvJcCHtqCCLx9ED4Xa+Ck4K4MCfQilQ8igxI1dgwfhVQPs=; c=relaxed/simple; s=gdwg2y3kokkkj5a55z2ilkup5wp5hhxx; d=amazonses.com; t=1554442726; v=1; bh=+8E69FSIgO1JwX4W+wLGII5WE573biixjMTuZGoghys=; h=From:To:Cc:Bcc:Subject:Date:Message-ID:MIME-Version:Content-Type:X-SES-RECEIPT;
+Received: from sf.anu.edu.au (anusf.anu.edu.au [150.203.5.130])
+	by pigeon.nci.org.au (Postfix) with ESMTP id C4BB160A90
+	for <nci.monitor@dea.ga.gov.au>; Fri,  5 Apr 2019 16:38:44 +1100 (AEDT)
+Received: from r-man2.nci.org.au (r-man2.nci.org.au [192.43.239.92])
+	by sf.anu.edu.au (Postfix) with ESMTP id B6879D0CBC5
+	for <nci.monitor@dea.ga.gov.au>; Fri,  5 Apr 2019 16:38:44 +1100 (AEDT)
+Received: from r-man2.nci.org.au (localhost [127.0.0.1])
+	by r-man2.nci.org.au (8.14.4/8.14.4) with ESMTP id x355cig4005340
+	for <nci.monitor@dea.ga.gov.au>; Fri, 5 Apr 2019 16:38:44 +1100
+Received: (from root@localhost)
+	by r-man2.nci.org.au (8.14.4/8.14.4/Submit) id x355cil0005339
+	for nci.monitor@dea.ga.gov.au; Fri, 5 Apr 2019 16:38:44 +1100
+Date: Fri, 5 Apr 2019 16:38:44 +1100
+From: pbs.raijin@nci.org.au
+Message-Id: <201904050538.x355cil0005339@r-man2.nci.org.au>
+To: nci.monitor@dea.ga.gov.au
+Subject: PBS JOB 7387595.r-man2
+
+PBS Job Id: 7387595.r-man2
+Job Name:   sync_ls7_pq_scene_2019-2019
+Execution terminated
+Exit_status=0
+resources_used.cpupercent=65
+resources_used.cput=00:01:32
+resources_used.jobfs=0b
+resources_used.mem=167972kb
+resources_used.ncpus=1
+resources_used.vmem=3145728kb
+resources_used.walltime=00:05:01
