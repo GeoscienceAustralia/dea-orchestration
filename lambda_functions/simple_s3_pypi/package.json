@@ -9,6 +9,7 @@
   "license": "Apache-2.0",
   "repository": "https://github.com/GeoscienceAustralia/dea-orchestration/",
   "dependencies": {
+    "serverless-plugin-existing-s3": "^2.3.3",
     "serverless-pseudo-parameters": "^2.2.0",
     "serverless-python-requirements": "^4.2.5"
   }
