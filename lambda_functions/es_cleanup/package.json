@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Some ElasticSearch Cleanup Lambda",
   "scripts": {
-    "test": "python -m pytest"
+    "test": "echo \"No tests for es-cleanup yet.\""
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",

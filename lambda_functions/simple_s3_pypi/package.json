@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Maintain index.html files in an S3 bucket, to allow using it as a simplistic PyPI server with pip.",
   "scripts": {
-    "test": "python -m pytest"
+    "test": "echo \"No tests for simple-s3-pypi yet.\""
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",
