@@ -6,7 +6,8 @@
     "test": "echo \"No tests for simple-s3-pypi yet.\""
   },
   "author": "Geoscience Australia",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/GeoscienceAustralia/dea-orchestration/",
   "dependencies": {
     "serverless-pseudo-parameters": "^2.2.0",
     "serverless-python-requirements": "^4.2.5"
