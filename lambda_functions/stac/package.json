@@ -2,6 +2,8 @@
   "name": "stac-catalog-generator",
   "description": "",
   "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/GeoscienceAustralia/dea-orchestration/",
   "dependencies": {
     "serverless": "^1.34.1",
     "serverless-pseudo-parameters": "^2.2.0"
