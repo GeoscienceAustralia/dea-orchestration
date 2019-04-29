@@ -52,9 +52,7 @@ def upload_es_template(es_connection, index_prefix, mapping_doc):
     template = {
         'template': index_prefix + '*',
         'mappings': {
-            '_doc': {
-                mapping_doc
-            }
+            '_doc': mapping_doc
         }
     }
 
