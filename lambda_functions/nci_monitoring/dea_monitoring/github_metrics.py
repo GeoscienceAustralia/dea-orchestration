@@ -31,7 +31,7 @@ class GitHubStatsRetriever:
     def get_graphql_stats(self, owner, repo):
         # language=GraphQL
         query = '''
-            query RepoStats($owner: String!, $repo: String!) { 
+            query RepoStats($owner: String!, $repo: String!) {
               repository(owner:$owner, name:$repo) {
                 name
                 nameWithOwner
