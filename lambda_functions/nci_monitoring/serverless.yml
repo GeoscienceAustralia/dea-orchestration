@@ -117,6 +117,22 @@ functions:
         input:
           owner: opendatacube
           repo: datacube-core
+      - schedule: rate(1 day)
+        input:
+          owner: opendatacube
+          repo: datacube-stats
+      - schedule: rate(1 day)
+        input:
+          owner: opendatacube
+          repo: datacube-explorer
+      - schedule: rate(1 day)
+        input:
+          owner: opendatacube
+          repo: datacube-ows
+      - schedule: rate(1 day)
+        input:
+          owner: opendatacube
+          repo: dea-proto
 
 devResources:
   Resources:
