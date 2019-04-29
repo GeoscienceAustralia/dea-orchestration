@@ -1,0 +1,3 @@
+./lambda_modules/dea_raijin
+./lambda_modules/dea_es
+elasticsearch
