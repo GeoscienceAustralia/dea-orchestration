@@ -1,9 +1,9 @@
-dist: trusty
-# tests primarily focused on lambda component
+dist: xenial
 language: python
 
 python:
   - "3.6"
+  - "3.7"
 
 sudo: false
 
@@ -19,7 +19,6 @@ env:
 git:
   depth: 99999
 
-
 cache:
   directories:
     - $HOME/.cache/pip
@@ -29,11 +28,9 @@ install:
 
 script:
   - npm install -g serverless
-  - pushd lambda_functions/execute_ssh_command_js && serverless plugin install --name serverless-pseudo-parameters && popd
   - ./scripts/check-code.sh
 
 before_deploy:
-  - cd lambda_functions/execute_ssh_command_js/ && npm install
   - npm --version
   # Configure serverless AWS custom profile settings.
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
