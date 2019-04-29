@@ -175,6 +175,6 @@ ES_GH_MAPPING_DOC = {
                     }
                 }
             }
-        },
+        }
     }
 }
