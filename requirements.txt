@@ -2,6 +2,7 @@
 pytest
 pycodestyle
 pylint
+moto
 
 # Modules required by the NCI Environment Modules. Checked by pylint
 boto3
