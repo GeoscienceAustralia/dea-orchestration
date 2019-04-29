@@ -29,4 +29,4 @@ def record_repo_stats(event, context):
 
     stats = stats_retriever.get_repo_stats(owner, repo)
 
-    upload_to_elasticsearch(ES_CONN, stats, INDEX_PREFIX)
+    upload_to_elasticsearch(ES_CONN, stats, index_prefix=INDEX_PREFIX)

@@ -114,12 +114,12 @@ def get_ssm_parameter(name, with_decryption=True):
     if SSM is None:
         SSM = boto3.client('ssm')
 
-    response = SSM.get_parameters(Names=[name], WithDecryption=with_decryption)
+    response = SSM.get_parameter(Name=name, WithDecryption=with_decryption)
 
     if response:
         try:
-            return response['Parameters'][0]['Value']
+            return response['Parameter']['Value']
         except (TypeError, IndexError):
-            LOG.error("AWS SSM parameter not found in '%s'", response)
+            LOG.error("AWS SSM parameter not found in '%s'. Check regions match, SSM is region specific.", response)
             raise
     raise AttributeError("Key '{}' not found in SSM".format(name))
