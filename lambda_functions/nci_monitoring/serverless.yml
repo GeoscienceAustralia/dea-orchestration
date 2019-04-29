@@ -54,6 +54,7 @@ provider:
   # resources need to be in the same region as S3 bucket.
   region: us-west-2
   deploymentBucket: "dea-ncimonitoring"
+  profile: ${self:custom.profile.${opt:stage}}
   tags:
     repo: https://github.com/GeoscienceAustralia/dea-orchestration
     author: nci.monitor@dea.ga.gov.au
