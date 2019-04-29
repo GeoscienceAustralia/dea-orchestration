@@ -4,7 +4,7 @@
   "description": "Monitor NCI Quotas, PBS Jobs, and datasets processing information on the NCI",
   "main": "nci_quotas_monitor.py, read_nci_email.py",
   "scripts": {
-    "test": "pytest"
+    "test": "python -m pytest"
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",
