@@ -110,7 +110,7 @@ functions:
       - sqs: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:WaitForTheLogs"
 
   gh_repo_stats:
-    handler: dea_monitoring.github.record_repo_stats
+    handler: dea_monitoring.github_lambda.record_repo_stats
     description: Record metrics about the size and activity of a GitHub Repository into ElasticSearch
     events:
       - schedule: rate(1 day)
