@@ -20,22 +20,28 @@ shellcheck -e SC1071,SC1090,SC1091 "${SHELL_SCRIPTS[@]}"
 
 # Run tests, taking coverage.
 # Users can specify extra folders as arguments.
-pytest -r sx --doctest-ignore-import-errors --durations=5 lambda_functions "$@"
+pytest -r sx --doctest-ignore-import-errors --durations=5 raijin_scripts "$@"
 
 set +x
 
-# Check the serverless configuration file
+# Check serverless configuration files
 if command -v serverless;
 then
-    set +ex
-    pushd "$PWD/lambda_functions/execute_ssh_command_js"
-    _TMP="$(mktemp -d)"
-    echo "writing temporary serverless artifacts to $_TMP"
-    serverless package -s prod -p "${_TMP}"  # test prod setting
-    _RET=$?
-    rm -rf "${_TMP}"  # clean up test directory
-    if [ $_RET -ne 0 ]; then echo "serverless failed to generate a package" && exit 1; fi
-    set -ex
+    for lambda_dir in "$PWD/lambda_functions/*"
+    do
+        set +ex
+        pushd "$lambda_dir"
+        _TMP="$(mktemp -d)"
+        npm install
+        npm test
+        echo "writing temporary serverless artifacts to ${_TMP}"
+        serverless package -s prod -p "${_TMP}"  # test prod setting
+        _RET=$?
+        rm -rf "${_TMP}"  # clean up test directory
+        if [[ ${_RET} -ne 0 ]]; then echo "serverless failed to generate a package" && exit 1; fi
+        set -ex
+        popd
+    done
 fi
 
 # If yamllint is available, validate yaml documents

@@ -1,0 +1,14 @@
+{
+  "name": "es-cleanup",
+  "version": "1.0.0",
+  "description": "Some ElasticSearch Cleanup Lambda",
+  "scripts": {
+    "test": "python -m pytest"
+  },
+  "author": "Geoscience Australia",
+  "license": "Apache 2",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.2.0",
+    "serverless-python-requirements": "^4.2.5"
+  }
+}

@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "serverless-python-requirements": "^4.2.5"
+  },
+  "scripts": {
+    "test": "python -m pytest"
   }
 }
