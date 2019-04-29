@@ -86,7 +86,7 @@ def _process_pbs_job_info(email_body):
     job_id = job_name = exe_status = "NA", "NA", "NA"
     mem_used = vmem_used = "0kb", "0kb"
 
-    for line in email_body.split('\r\n'):
+    for line in email_body.splitlines():
         if "resources_used.walltime" in line:
             val = line.split("=")[1]
             walltime = sum(int(i) * 60 ** index for index, i in enumerate(val.split(":")[::-1]))
