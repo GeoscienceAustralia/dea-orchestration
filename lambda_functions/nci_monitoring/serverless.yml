@@ -24,7 +24,8 @@ custom:
     dev: dea-dev
     prod: dea-prod
   esURL:
-    dev:  Fn::GetAtt: [ ElasticSearchInstance , DomainEndpoint ]
+    dev:
+      Fn::GetAtt: [ ElasticSearchInstance , DomainEndpoint ]
     prod: search-digitalearthaustralia-lz7w5p3eakto7wrzkmg677yebm.ap-southeast-2.es.amazonaws.com
 
 package:
