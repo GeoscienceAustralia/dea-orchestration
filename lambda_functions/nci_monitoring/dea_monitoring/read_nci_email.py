@@ -74,8 +74,8 @@ def _fetch_ds_info(job_id, job_name):
         # Dataset Efficiency (%) = (Total number of datasets - number of datasets failed) / total number of ds
         ds_efficiency = float((ndatasets_found - nds_failed) / ndatasets_found) * 100
 
-    return ndatasets_found, nfiles_created, nfiles_create_fail, \
-           nds_index_pass, nds_index_fail, service_units, ds_efficiency
+    return (ndatasets_found, nfiles_created, nfiles_create_fail, nds_index_pass,
+            nds_index_fail, service_units, ds_efficiency)
 
 
 def _process_pbs_job_info(email_body):
