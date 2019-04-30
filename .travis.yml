@@ -24,6 +24,9 @@ script:
   - npm install -g serverless
   - ./scripts/check-code.sh
 
+after_success:
+  - codecov
+
 before_deploy:
   - npm --version
   # Configure serverless AWS custom profile settings.
