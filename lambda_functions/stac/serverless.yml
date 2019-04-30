@@ -46,7 +46,7 @@ custom:
 provider:
   name: aws
   stage: dev
-  runtime: python3.6
+  runtime: python3.7
   profile: ${self:custom.profile.${self:custom.Stage}}
   deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   region: ap-southeast-2
