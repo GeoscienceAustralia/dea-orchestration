@@ -5,7 +5,7 @@ from datetime import datetime
 
 import boto3
 
-from dea_monitoring.elasticsearch import get_connection
+from dea_monitoring.elasticsearch import get_connection, upload_es_template
 from .elasticsearch import upload_to_elasticsearch
 from .log_cfg import setup_logging
 from .ssh import exec_command
@@ -35,6 +35,7 @@ def handler(event, context):
     if ES_CONNECTION is None:
         ES_CONNECTION = get_connection()
 
+    upload_es_template(ES_CONNECTION, ES_INDEX_PREFIX, ES_MAPPING_TEMPLATE)
     for project in NCI_PROJECTS:
         usage = record_project_usage(project)
 
@@ -129,19 +130,11 @@ def storage_usage(storage_pt, text):
     return {}
 
 
-def update_es_template(es_connection, index_prefix):
-    template = {
-        'template': index_prefix + '*',
-        'mappings': {
-            '_doc': {
-                'properties': {
-                    'cpu_avail': {'type': 'float'},
-                    'cpu_bonus_used': {'type': 'float'},
-                    'cpu_grant': {'type': 'float'},
-                    'cpu_usage': {'type': 'float'}
-                }
-            }
-        }
+ES_MAPPING_TEMPLATE = {
+    'properties': {
+        'cpu_avail': {'type': 'float'},
+        'cpu_bonus_used': {'type': 'float'},
+        'cpu_grant': {'type': 'float'},
+        'cpu_usage': {'type': 'float'}
     }
-
-    es_connection.indices.put_template('nci-usage', body=template)
+}
