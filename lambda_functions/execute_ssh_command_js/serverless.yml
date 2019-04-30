@@ -1,18 +1,5 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
 service: execute-on
 
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
-
-# plugins:
 plugins:
   # install serverless pseudo parameters using the following:
   #   1) $ npm install serverless-pseudo-parameters --save-dev
@@ -244,8 +231,8 @@ functions:
           input:
             min_trash_age: 72  # 72 hours
             search_paths: /g/data/rs0/datacube/002/
-                          /g/data/fk4/datacube/002/FC/
-                          /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/
+              /g/data/fk4/datacube/002/FC/
+              /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/
   execute_s2ard:
     handler: handler.execute_ssh_command
     description: Entrypoints for Sentinel-2 level-1 yaml generation and level-2 processing
@@ -261,44 +248,44 @@ functions:
                           --obs-year <%= obs_year %>'
     events:
       - schedule:
-          rate: cron(5 1 ? * TUE *) # Run weekly at 11:05AM AEST
+          rate: cron(5 1 ? * TUE *)  # Run weekly at 11:05AM AEST
           enabled: true
           input:
             task: level1
-            start_date_offset: 7 # Process last 7 days up until 00:00 Tuesday
+            start_date_offset: 7  # Process last 7 days up until 00:00 Tuesday
             days_to_process: 7
             output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
             copy_parent_dir_count: 1
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(10 1 1 * ? *) # Run on the 1st of every month at 11:10 AM AEST
+          rate: cron(10 1 1 * ? *)  # Run on the 1st of every month at 11:10 AM AEST
           enabled: true
           input:
             task: level1
-            start_date_offset: 31 # Process last 31 days up until 00:00 TODAY
+            start_date_offset: 31  # Process last 31 days up until 00:00 TODAY
             days_to_process: 31
             output_dir: /g/data/v10/AGDCv2/datacube-ingestion/indexed-products/cophub/s2/s2_l1c_yamls
             copy_parent_dir_count: 1
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: previous
       - schedule:
-          rate: cron(5 1 ? * SAT *) # Run every Saturday at 11:05 AM, AEST
+          rate: cron(5 1 ? * SAT *)  # Run every Saturday at 11:05 AM, AEST
           enabled: true
           input:
             task: level2
-            start_date_offset: 12 # Process from Monday 00:00 to Monday 00:00
+            start_date_offset: 12  # Process from Monday 00:00 to Monday 00:00
             days_to_process: 7
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
             copy_parent_dir_count: 0  # IGNORED FOR L2
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(5 5 5 * ? *) # Run monthly on the 5th, kick off find command at 3:05pm
+          rate: cron(5 5 5 * ? *)  # Run monthly on the 5th, kick off find command at 3:05pm
           enabled: true
           input:
             task: level2
-            start_date_offset: 35 # Kicks off re-processing for the past month for previous years on the 5th
+            start_date_offset: 35  # Kicks off re-processing for the past month for previous years on the 5th
             days_to_process: 31
             output_dir: /g/data/if87/datacube/002/S2_MSI_ARD/packaged
             copy_parent_dir_count: 0  # IGNORED FOR L2
