@@ -6,11 +6,6 @@ python:
 
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - shellcheck
-
 env:
   global:
     - DEA_ENVIRONMENT='test'
