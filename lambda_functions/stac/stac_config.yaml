@@ -29,76 +29,158 @@ aus-extent:
   temporal: [null, null]
 
 products:
-#  - name: wofs_filtered_summary
-#    prefix: WOfS/filtered_summary/v2.1.0/combined
-#    product_suite: WOfS
-#    description: 'Water Observations from Space Statistics confidence filtered.
-#
-#      In previous versions of WOfS, the basic water classifications, statistical summaries
-#      and confidence products were contained within one product with several datasets. As of
-#      version 2.1.5, WOfS is split into three products: Water Observation Feature Layers
-#      (WO_25_2.1.5), Summary Statistics (WO-STATS_25_2.1.5), and Filtered Summary Statistics
-#      (WO-FILT-STATS_25_2.1.5).
-#
-#      This product is Water Observations from Space - Filtered Statistics (WO-FILT-STATS),
-#      consisting of a Confidence layer that compares the WO-STATS water summary to other
-#      national water datasets, and the Filtered Water Summary which uses the Confidence to
-#      mask areas of the WO-STATS water summary where Confidence is low. The Filtered Water
-#      Summary provides the long term understanding of the recurrence of water in the
-#      landscape, with much of the noise due to misclassification filtered out.
-#
-#      WO-FILT-STATS consists of the following datasets:
-#
-#      Confidence: the degree of agreement between water shown in the Water Summary
-#                  and other national datasets. The Confidence layer provides understanding of
-#                  whether the water shown in the Water Summary agrees with where water should
-#                  exist in the landscape, such as due to sloping land or whether water has been
-#                  detected in a location by other means.
-#
-#      Filtered Water Summary: A simplified version of the Water Summary, showing the
-#                  frequency of water observations where the Confidence is above a cutoff level.
-#                  This layer gives a noise-reduced view of surface water across Australia.
-#                  Even though confidence filtering is applied to the Filtered Water Summary, some cloud
-#                  and shadow, and sensor noise does persist.'
-#    extent:
-#      spatial: [113, -44, 153, -10]
-#      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: wofs_albers
-#    prefix: WOfS/WOFLs/v2.1.5/combined
-#    product_suite: WOfS
-#    description: 'Historic Flood Mapping Water Observations from Space'
-#    extent:
-#      spatial: [113, -44, 153, -10]
-#      temporal: ["1987-01-01T00:00:00Z", null]
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: wofs_statistical_summary
-#    prefix: WOfS/summary/v2.1.0/combined
-#    product_suite: WOfS
-#    description: 'Water Observations from Space Statistics'
-#    extent:
-#      spatial: [113, -44, 153, -10]
-#      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: wofs_annual_summary
-#    prefix: WOfS/annual_summary/v2.1.5/combined
-#    product_suite: WOfS
-#    description: 'Water Observations from Space Annual Statistics'
-#    extent:
-#      spatial: [113, -44, 153, -10]
-#      temporal: ["1987-01-01T00:00:00Z", null]
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
+  #  - name: wofs_filtered_summary
+  #    prefix: WOfS/filtered_summary/v2.1.0/combined
+  #    product_suite: WOfS
+  #    description: 'Water Observations from Space Statistics confidence filtered.
+  #
+  #      In previous versions of WOfS, the basic water classifications, statistical summaries
+  #      and confidence products were contained within one product with several datasets. As of
+  #      version 2.1.5, WOfS is split into three products: Water Observation Feature Layers
+  #      (WO_25_2.1.5), Summary Statistics (WO-STATS_25_2.1.5), and Filtered Summary Statistics
+  #      (WO-FILT-STATS_25_2.1.5).
+  #
+  #      This product is Water Observations from Space - Filtered Statistics (WO-FILT-STATS),
+  #      consisting of a Confidence layer that compares the WO-STATS water summary to other
+  #      national water datasets, and the Filtered Water Summary which uses the Confidence to
+  #      mask areas of the WO-STATS water summary where Confidence is low. The Filtered Water
+  #      Summary provides the long term understanding of the recurrence of water in the
+  #      landscape, with much of the noise due to misclassification filtered out.
+  #
+  #      WO-FILT-STATS consists of the following datasets:
+  #
+  #      Confidence: the degree of agreement between water shown in the Water Summary
+  #                  and other national datasets. The Confidence layer provides understanding of
+  #                  whether the water shown in the Water Summary agrees with where water should
+  #                  exist in the landscape, such as due to sloping land or whether water has been
+  #                  detected in a location by other means.
+  #
+  #      Filtered Water Summary: A simplified version of the Water Summary, showing the
+  #                  frequency of water observations where the Confidence is above a cutoff level.
+  #                  This layer gives a noise-reduced view of surface water across Australia.
+  #                  Even though confidence filtering is applied to the Filtered Water Summary, some cloud
+  #                  and shadow, and sensor noise does persist.'
+  #    extent:
+  #      spatial: [113, -44, 153, -10]
+  #      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: wofs_albers
+  #    prefix: WOfS/WOFLs/v2.1.5/combined
+  #    product_suite: WOfS
+  #    description: 'Historic Flood Mapping Water Observations from Space'
+  #    extent:
+  #      spatial: [113, -44, 153, -10]
+  #      temporal: ["1987-01-01T00:00:00Z", null]
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: wofs_statistical_summary
+  #    prefix: WOfS/summary/v2.1.0/combined
+  #    product_suite: WOfS
+  #    description: 'Water Observations from Space Statistics'
+  #    extent:
+  #      spatial: [113, -44, 153, -10]
+  #      temporal: ["2018-01-01T00:00:00Z", "2018-12-31T23:23:59Z"]
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: wofs_annual_summary
+  #    prefix: WOfS/annual_summary/v2.1.5/combined
+  #    product_suite: WOfS
+  #    description: 'Water Observations from Space Annual Statistics'
+  #    extent:
+  #      spatial: [113, -44, 153, -10]
+  #      temporal: ["1987-01-01T00:00:00Z", null]
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #  - name: ls8_barest_earth_mosaic
+  #    prefix: bare-earth/summary/v2.1.1/L8
+  #    description: 'Landsat-8 Barest Earth pixel composite mosaic 25 metre, 25km tile,
+  #    Australian Albers Equal Area projection (EPSG:3577)'
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: ls5_nbart_geomedian_annual
+  #    prefix: geomedian-australia/v2.1.0/L5
+  #    product_suite: geomedian-australia
+  #    description: 'Landsat-5 Surface Reflectance Geometric Median 25 metre, 100km tile,
+  #    Australian Albers Equal Area projection (EPSG:3577)'
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: ls7_nbart_geomedian_annual
+  #    prefix: geomedian-australia/v2.1.0/L7
+  #    product_suite: geomedian-australia
+  #    description: 'Landsat-7 Surface Reflectance Geometric Median 25 metre, 100km tile,
+  #    Australian Albers Equal Area projection (EPSG:3577)'
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: ls8_nbart_geomedian_annual
+  #    prefix: geomedian-australia/v2.1.0/L8
+  #    product_suite: geomedian-australia
+  #    description: 'Landsat-8 Surface Reflectance Geometric Median 25 metre, 100km tile,
+  #    Australian Albers Equal Area projection (EPSG:3577)'
+  #    catalog_structure:
+  #      - x_{x}
+  #      - x_{x}/y_{y}
+  #
+  #  - name: item_v2
+  #    prefix: item_v2/v2.0.1/relative
+  #    description: 'Intertidal Extents Model'
+  #    catalog_structure:
+  #      - lon_{lon}
+  #      - lon_{lon}/lat_{lat}
+  #
+  #  - name: item_v2_conf
+  #    prefix: item_v2/v2.0.1/confidence
+  #    description: 'Average ndwi Standard Deviation'
+  #    catalog_structure:
+  #      - lon_{lon}
+  #      - lon_{lon}/lat_{lat}
+  #
+  #  - name: multi-scale-topographic-position
+  #    prefix: multi-scale-topographic-position/v1.0.1
+  #    description: ''
+  #    catalog_structure:
+  #      - lon_{lon}
+  #      - lon_{lon}/lat_{lat}
+  #
+  #  - name: nidem
+  #    prefix: nidem/v1.0.0
+  #    description: 'nidem'
+  #    catalog_structure:
+  #      - lon_{lon}
+  #      - lon_{lon}/lat_{lat}
+  #
+  #  - name: weathering-intensity
+  #    prefix: weathering-intensity/v1.0.1
+  #    description: 'weathering-intensity'
+  #    catalog_structure:
+  #      - lon_{lon}
+  #      - lon_{lon}/lat_{lat}
+  #
+  #  - name: mangrove_cover
+  #    prefix: mangrove_cover
+  #    description: 'mangrove_cover'
+  #    catalog_structure:
+  #      - mangrove_cover/{x}_{y}
+  #
+  #  - name: sentinel-2-nrt
+  #    prefix: L2/sentinel-2-nrt
+  #    description: 's2-nbar-nrt'
+  #    catalog_structure:
+  #      - L2/sentinel-2-nrt/S2MSIARD
+  #      - L2/sentinel-2-nrt/S2MSIARD/{year:4}-{month:2}-{day:2}
 
   - name: ls5_fc_albers
     prefix: fractional-cover/fc/v2.2.1/ls5
@@ -150,86 +232,3 @@ products:
     catalog_structure:
       - x_{x}
       - x_{x}/y_{y}
-
-#  - name: ls8_barest_earth_mosaic
-#    prefix: bare-earth/summary/v2.1.1/L8
-#    description: 'Landsat-8 Barest Earth pixel composite mosaic 25 metre, 25km tile,
-#    Australian Albers Equal Area projection (EPSG:3577)'
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: ls5_nbart_geomedian_annual
-#    prefix: geomedian-australia/v2.1.0/L5
-#    product_suite: geomedian-australia
-#    description: 'Landsat-5 Surface Reflectance Geometric Median 25 metre, 100km tile,
-#    Australian Albers Equal Area projection (EPSG:3577)'
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: ls7_nbart_geomedian_annual
-#    prefix: geomedian-australia/v2.1.0/L7
-#    product_suite: geomedian-australia
-#    description: 'Landsat-7 Surface Reflectance Geometric Median 25 metre, 100km tile,
-#    Australian Albers Equal Area projection (EPSG:3577)'
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: ls8_nbart_geomedian_annual
-#    prefix: geomedian-australia/v2.1.0/L8
-#    product_suite: geomedian-australia
-#    description: 'Landsat-8 Surface Reflectance Geometric Median 25 metre, 100km tile,
-#    Australian Albers Equal Area projection (EPSG:3577)'
-#    catalog_structure:
-#      - x_{x}
-#      - x_{x}/y_{y}
-#
-#  - name: item_v2
-#    prefix: item_v2/v2.0.1/relative
-#    description: 'Intertidal Extents Model'
-#    catalog_structure:
-#      - lon_{lon}
-#      - lon_{lon}/lat_{lat}
-#
-#  - name: item_v2_conf
-#    prefix: item_v2/v2.0.1/confidence
-#    description: 'Average ndwi Standard Deviation'
-#    catalog_structure:
-#      - lon_{lon}
-#      - lon_{lon}/lat_{lat}
-#
-#  - name: multi-scale-topographic-position
-#    prefix: multi-scale-topographic-position/v1.0.1
-#    description: ''
-#    catalog_structure:
-#      - lon_{lon}
-#      - lon_{lon}/lat_{lat}
-#
-#  - name: nidem
-#    prefix: nidem/v1.0.0
-#    description: 'nidem'
-#    catalog_structure:
-#      - lon_{lon}
-#      - lon_{lon}/lat_{lat}
-#
-#  - name: weathering-intensity
-#    prefix: weathering-intensity/v1.0.1
-#    description: 'weathering-intensity'
-#    catalog_structure:
-#      - lon_{lon}
-#      - lon_{lon}/lat_{lat}
-#
-#  - name: mangrove_cover
-#    prefix: mangrove_cover
-#    description: 'mangrove_cover'
-#    catalog_structure:
-#      - mangrove_cover/{x}_{y}
-#
-#  - name: sentinel-2-nrt
-#    prefix: L2/sentinel-2-nrt
-#    description: 's2-nbar-nrt'
-#    catalog_structure:
-#      - L2/sentinel-2-nrt/S2MSIARD
-#      - L2/sentinel-2-nrt/S2MSIARD/{year:4}-{month:2}-{day:2}

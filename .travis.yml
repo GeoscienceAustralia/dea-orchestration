@@ -32,7 +32,7 @@ before_deploy:
   - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
 
 deploy:
-# Serverless deploy to production environment after merging to production branch
+ # Serverless deploy to production environment after merging to production branch
  - provider: script
    script: sls deploy -v -s prod
    skip_cleanup: true  # Don't re-run the tests

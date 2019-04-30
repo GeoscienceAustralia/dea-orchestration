@@ -11,6 +11,9 @@ set -x
 pycodestyle "${PY_FILES[@]}"
 pylint -j 2 --reports no "${PY_FILES[@]}"
 
+# Lint all YAML files
+find . \( -iname '*.yaml' -o -iname '*.yml' \) ! -path '*node_modules*' -print0 | xargs -0 yamllint
+
 # Run shellcheck on all raijin shell scripts
 readarray -t SHELL_SCRIPTS < <(find scripts raijin_scripts -type f -exec file {} \; | grep "Bourne-Again shell" | cut -d: -f1)
 shellcheck -e SC1071,SC1090,SC1091 "${SHELL_SCRIPTS[@]}"
@@ -46,6 +49,3 @@ do
 
     popd
 done
-
-# Lint all YAML files
-find . \( -iname '*.yaml' -o -iname '*.yml' \) ! -path '*node_modules*' -print0 | xargs -0 yamllint

@@ -77,7 +77,7 @@ functions:
 # Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
 resources:
   Resources:
-  ### PART ONE: SQS Queues
+    ### PART ONE: SQS Queues
     staticStacQueue:
       Type: AWS::SQS::Queue
       Properties:
@@ -91,8 +91,9 @@ resources:
       Properties:
         QueueName: static-stac-dead-letter-queue
         VisibilityTimeout: 600
-  ### PART TWO: Create SQS Queue Policies
-  # Create our queue policy for the 'firstQueue'
+
+    ### PART TWO: Create SQS Queue Policies
+    # Create our queue policy for the 'firstQueue'
     snsToFirstQueueSqsPolicy:
       Type: AWS::SQS::QueuePolicy
       Properties:
@@ -109,8 +110,9 @@ resources:
                   "aws:SourceArn": ${self:custom.snsTopic.${self:custom.Stage}}
         Queues:
           - Ref: staticStacQueue
-  ### PART THREE: Subscribe our SQS Queues to our SNS Topic
-  # Create the subscription to the 'firstQueue'
+
+    ### PART THREE: Subscribe our SQS Queues to our SNS Topic
+    # Create the subscription to the 'firstQueue'
     staticStacQueueSubscription:
       Type: 'AWS::SNS::Subscription'
       Properties:
