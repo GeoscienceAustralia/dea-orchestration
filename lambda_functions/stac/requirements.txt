@@ -5,3 +5,5 @@ parse==1.9.0
 python_dateutil==2.8.0
 pycrs==1.0.0
 
+# Only used for the parent update script, which is not currently run as a Lambda function
+git+https://github.com/opendatacube/dea-proto.git#egg=odc_apps_cloud&subdirectory=apps/cloud
