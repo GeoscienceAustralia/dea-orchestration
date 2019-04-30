@@ -70,24 +70,24 @@ while [[ $# -gt 0 ]]; do
 done
 
 # IF START DATE OFFSET IS DEFINED SHIFT START DATE BACK
-if [ -n "$FILE_MOD_START_OFFSET" ]; then
+if [[ -n "$FILE_MOD_START_OFFSET" ]]; then
     FILE_MOD_START="$(date -d"$FILE_MOD_START - $FILE_MOD_START_OFFSET days" +"%Y-%m-%d")"
 fi
 
 # SET FILE_MOD_END BASED ON DAYS TO PROCESS IF NOT SET
-if [ -z "$FILE_MOD_END" ]; then
+if [[ -z "$FILE_MOD_END" ]]; then
     FILE_MOD_END="$(date -d"$FILE_MOD_START + $DAYS_TO_PROCESS days" +"%Y-%m-%d")"
 fi
 
-if [ "$OBS_YEAR" == "current" ]; then
+if [[ "$OBS_YEAR" == "current" ]]; then
     # Calculates start and end years from the observation window to hand Dec - Jan window
     _OBS_YEAR_START="$(date -d"$FILE_MOD_START" +"%Y")"
     _OBS_YEAR_END="$(date -d"$FILE_MOD_END" +"%Y")"
-elif [ "$OBS_YEAR" == "previous" ]; then
+elif [[ "$OBS_YEAR" == "previous" ]]; then
     # Process all prior years; there should be less new datasets from previous periods
     _OBS_YEAR_START="${S2_START_YEAR}"
     _OBS_YEAR_END="$(date -d"$FILE_MOD_END - 1 year" +"%Y")"
-elif [ ! -z "${OBS_YEAR}" ]; then
+elif [[ -n "${OBS_YEAR}" ]]; then
     # If defined just process that year
     _OBS_YEAR_START="${OBS_YEAR}"
     _OBS_YEAR_END="${OBS_YEAR}"
