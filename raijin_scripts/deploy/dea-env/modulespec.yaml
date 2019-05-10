@@ -3,7 +3,7 @@ variables:
   module_description: DEA Environment Module
   modules_dir: "/g/data/v10/public/modules"
   conda_path: "/g/data/v10/private/miniconda3-new/bin/conda"
-  python_version: 3.6
+  python_version: 3.7
 
 # These templated variables are filled and included in the available variables used
 # in template files and configuration sections below
@@ -15,16 +15,9 @@ install_conda_packages: environment.yaml
 
 dea_env_miniconda3: reinstall_miniconda.sh
 
-install_pip_packages:
-  requirements: pip_install_packages.txt
-  prefix: "{module_path}"
-  pip_cmd: "{module_path}/bin/pip "
-
 copy_files:
 - src: environment.yaml
   dest: "{modules_dir}/{module_name}/{module_version}/environment.yaml"
-- src: pip_install_packages.txt
-  dest: "{module_path}/pip_install_packages.txt"
 
 template_files:
 - src: modulefile.template
