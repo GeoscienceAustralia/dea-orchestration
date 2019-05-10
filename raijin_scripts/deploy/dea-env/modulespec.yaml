@@ -40,6 +40,8 @@ finalise_commands:
 - jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
 - jupyter labextension install --no-build jupyter-leaflet
 - jupyter labextension install --no-build nbdime-jupyterlab
+- jupyter labextension install --no-build dask-labextension
 - jupyter lab build
 - jupyter serverextension enable --py jupyterlab_git --sys-prefix
 - jupyter serverextension enable --py nbdime --sys-prefix
+- jupyter serverextension enable --py dask_labextension --sys-prefix
