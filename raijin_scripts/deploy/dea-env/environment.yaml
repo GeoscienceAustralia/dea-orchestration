@@ -176,6 +176,7 @@ dependencies:
   - checksumdir
   - click-datetime
   - DAWG
+  - dask_labextension
   - ffmpeg-python
   - hdmedians
   - jupyterlab-git
