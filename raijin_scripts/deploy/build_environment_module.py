@@ -257,7 +257,7 @@ def fix_module_permissions(module_path):
     :return: None
     """
     LOG.info('Setting module "%s" permission as world readable', module_path)
-    run_command(f'chmod -R u+rwx,go+rx,go-w "{module_path}"')
+    run_command(f'chmod -R u+rx,go+rx,go-w "{module_path}"')
 
 
 def install_pip_packages(pip_conf, variables):
@@ -370,7 +370,8 @@ def main(config_path):
     if 'install_conda_packages' in config:
         install_conda_packages(config['install_conda_packages'], variables)
 
-    install_pip_packages(config['install_pip_packages'], variables)
+    if 'install_pip_packages' in config:
+        install_pip_packages(config['install_pip_packages'], variables)
 
     copy_files(config.get('copy_files', []), variables)
     copy_and_fill_templates(config.get('template_files', []), variables)
