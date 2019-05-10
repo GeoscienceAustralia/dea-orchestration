@@ -97,6 +97,7 @@ dependencies:
 - munch
 - mypy
 - nb_conda_kernels
+- nbdime
 - netcdf4
 - nodejs
 - notebook
