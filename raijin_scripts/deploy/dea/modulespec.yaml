@@ -4,7 +4,7 @@ variables:
   modules_base: "/g/data/v10/public/modules"
   dbhost: 130.56.244.105
   dbport: 6432
-  python_version: 3.7
+  python_version: 3.6
 
 templated_variables:
   module_path: "{modules_base}/{module_name}/{module_version}"
