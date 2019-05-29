@@ -28,8 +28,8 @@ dependencies:
 - cvxopt
 - cvxpy
 - cython
-- dask == 0.19.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
-- distributed == 1.23.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
+- dask
+- distributed
 - docutils
 - ephem
 - expat
@@ -79,6 +79,7 @@ dependencies:
 - kealib
 - keras
 - krb5
+- lark-parser
 - libgdal
 - libgfortran
 - libgfortran-ng
@@ -122,6 +123,7 @@ dependencies:
 - pthread-stubs
 - pudb
 - py6s
+- pyephem
 - pydash
 - pylint
 - pyparsing
@@ -129,7 +131,7 @@ dependencies:
 - pytables
 - pytest
 - pytest-cov
-- python >= 3.6.6
+- python >= 3.6.2  # jjhelmus::tensorflow requires python 3.6
 - python-dateutil
 - pyyaml
 - qgis
@@ -137,7 +139,7 @@ dependencies:
 - rasterstats
 - recommonmark
 - redis
-- redis-py == 2.10.6  # FC, wofs, and datacube-stats app has an issue (digitalearthau issue #205), with later revisions
+- redis-py
 - rios
 - rsgislib
 - rtree
