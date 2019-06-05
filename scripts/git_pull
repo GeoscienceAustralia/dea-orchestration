@@ -4,6 +4,17 @@ PATH_TO_SSH_KEY="$HOME/.ssh/id_rsa"
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 GIT_REPO="https://github.com/GeoscienceAustralia/COG-Conversion.git"
 COG_CONV_DIR="$HOME/COG-Conversion"
+DATAKUBE_APPS_REPO="git@bitbucket.org:geoscienceaustralia/datakube-apps.git"
+DATAKUBE_APPS_DIR="$HOME/datakube-apps"
+PATH_TO_BITBUCKET_SSH_KEY="$HOME/.ssh/id_rsa_bitbucket"
+
+if [ ! -d "$DATAKUBE_APPS_DIR" ]; then
+  cd "$HOME" || exit 1  # Changes home folder to be in repo
+  ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git clone $DATAKUBE_APPS_REPO;"
+fi
+
+cd "$DATAKUBE_APPS_DIR" || exit 1  # Changes home folder to be in repo
+ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git checkout dev; git reset --hard origin/dev; git pull"
 
 cd "$SCRIPT_DIR" || exit 1  # Changes home folder to be in repo
 
