@@ -8,8 +8,8 @@ LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
-def _update_cubedash_db_config(updatefile, dbname, branch):
-    exec_command(f'execute_update_cubedash_config --file {updatefile} --dbname {dbname} --bitbucket-branch {branch}')
+def _update_cubedash_db_config(updatefile, dbname, branch, execute_command=exec_command):
+    execute_command(f'execute_update_cubedash_config --file {updatefile} --dbname {dbname} --bitbucket-branch {branch}')
 
 
 def handler(event, context):
