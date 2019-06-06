@@ -79,7 +79,7 @@ functions:
 resources:
   Resources:
     # This creates a new sns topic, if it does not exists
-    SnsTopic: # Logical name
+    SnsTopic:  # Logical name
       Type: AWS::SNS::Topic
       Properties:
         DisplayName: "SNS Topic for cubedash db update, created via CloudFormation"
@@ -89,5 +89,5 @@ resources:
             Endpoint:
               # Lambda reference by ARN, by default serverless generates logical names by
               # concatenating FunctionName with "LambdaFunction"
-              Fn::GetAtt: [ UpdateCubedashDbConfigLambdaFunction , "Arn" ]
-            Protocol: lambda # Protocol to invoke endpoint
+              Fn::GetAtt: [UpdateCubedashDbConfigLambdaFunction, "Arn"]
+            Protocol: lambda  # Protocol to invoke endpoint
