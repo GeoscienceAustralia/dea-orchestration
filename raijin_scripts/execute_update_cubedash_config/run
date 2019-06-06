@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --file )                shift
+                                UPDATE_FILE="$1"
+                                ;;
+        --dbname )              shift
+                                DB_NAME="$1"
+                                ;;
+        --bitbucket-branch )    shift
+                                BRANCH="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+DATAKUBE_APPS_REPO="git@bitbucket.org:geoscienceaustralia/datakube-apps.git"
+DATAKUBE_APPS_DIR="$HOME/datakube-apps"
+PATH_TO_BITBUCKET_SSH_KEY="$HOME/.ssh/id_rsa_bitbucket"
+
+if [ ! -d "$DATAKUBE_APPS_DIR" ]; then
+  cd "$HOME" || exit 1  # Changes home folder to be in repo
+  ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git clone $DATAKUBE_APPS_REPO;"
+fi
+
+cd "$DATAKUBE_APPS_DIR" || exit 1  # Changes home folder to be in repo
+ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git fetch && git checkout ${BRANCH}; git reset --hard origin/${BRANCH}; git pull"
+
+ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; 
+   sed -i -E 's/nci_[0-9]*/${DB_NAME}/g' ${DATAKUBE_APPS_DIR}/${UPDATE_FILE}; 
+   git add ${DATAKUBE_APPS_DIR}/${UPDATE_FILE}; 
+   git commit -m '[skip ci] Updating NCI CubeDash config with new Database name ${DB_NAME}'; 
+   git push -u origin ${BRANCH}"
+

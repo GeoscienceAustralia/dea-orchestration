@@ -1,0 +1,93 @@
+# This serverless setup assumes ssh key for bitbucket is stored within "$HOME/.ssh/id_rsa_bitbucket" file path
+service: automate
+
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+  Stage: ${opt:stage, self:provider.stage}
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+  snstopic:
+    prod: "cubedash-db-update-prod"
+    dev: "cubedash-db-update-dev"
+  bitbucketbranch:
+    prod: "prod"
+    dev: "test-db-update"
+
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
+provider:
+  name: aws
+  runtime: python3.6
+  timeout: 60  # 60 seconds. Default is 6 seconds
+  memorySize: 128  # in MB, default is 1024
+  region: ap-southeast-2
+  stage: dev
+  profile: ${self:custom.profiles.${self:custom.Stage}}
+  iamRoleStatements:
+  - Effect: 'Allow'
+    Action:
+      - 'ssm:GetParameters'
+      - 'ssm:DescribeParameters'
+    Resource:
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/pipeline.*"
+  - Effect: 'Allow'
+    Action: 'kms:Decrypt'
+    Resource:
+      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+  - Effect: "Allow"
+    Resource: "*"
+    Action:
+      - "sns:*"
+
+  # Service wide environment variables declaration
+  environment:
+    SSM_USER_PATH: 'orchestrator.raijin.users.default'
+    CUBEDASH_CONFIG: "services/cubedash.yaml"
+    BITBUCKET_BRANCH: ${self:custom.bitbucketbranch.${self:custom.Stage}}
+    SNS_TOPIC: ${self:custom.snstopic.${self:custom.Stage}}
+
+functions:
+  UpdateCubedashDbConfig:
+    handler: handler.handler
+    events:
+      - sns:
+          topicName: ${self:provider.environment.SNS_TOPIC}
+          displayName: "Update cubedash db name"
+          arn:
+            Fn::Join:
+              - ":"
+              - - "arn:aws:sns"
+                - Ref: "AWS::Region"
+                - Ref: "AWS::AccountId"
+                - ${self:provider.environment.SNS_TOPIC}
+
+resources:
+  Resources:
+    # This creates a new sns topic, if it does not exists
+    SnsTopic: # Logical name
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: "SNS Topic for cubedash db update, created via CloudFormation"
+        TopicName: ${self:provider.environment.SNS_TOPIC}
+        Subscription:
+          -
+            Endpoint:
+              # Lambda reference by ARN, by default serverless generates logical names by
+              # concatenating FunctionName with "LambdaFunction"
+              Fn::GetAtt: [ UpdateCubedashDbConfigLambdaFunction , "Arn" ]
+            Protocol: lambda # Protocol to invoke endpoint
