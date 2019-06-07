@@ -31,7 +31,7 @@ package:
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.7
   timeout: 60  # 60 seconds. Default is 6 seconds
   memorySize: 128  # in MB, default is 1024
   region: ap-southeast-2
