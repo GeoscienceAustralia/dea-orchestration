@@ -15,11 +15,13 @@ from collections import namedtuple
 from textwrap import dedent
 
 import click
-import psycopg2
 import pwd
 import pytest
+import psycopg2
 from boltons.fileutils import atomic_save
 from pathlib import Path
+import mock
+import unittest
 
 OLD_DB_HOST = '130.56.244.105'
 PASSWORD_LENGTH = 32
@@ -28,7 +30,8 @@ DBCreds = namedtuple('DBCreds', ['host', 'port', 'database', 'username', 'passwo
 
 CANNOT_CONNECT_MSG = """
 Unable to connect to the Data Cube database (host={}, port={}, db={}, username={})
-Please contact an administrator for help.
+
+Please contact a datacube administrator to help resolve user account creation\n
 """
 
 USER_ALREADY_EXISTS_MSG = """
@@ -38,6 +41,8 @@ Cube from raijin, and are now trying to access from VDI, or vice-versa.
 
 To fix this problem, please copy your ~/.pgpass file from the system you
 initially used to access the Data Cube, onto the current system.
+
+Please contact a datacube administrator to help resolve user account creation\n
 """
 
 
@@ -46,20 +51,20 @@ class CredentialsNotFound(Exception):
 
 
 def print_stderr(msg):
-    """ Print stderr on the terminal """
+    """ Log message on the terminal """
     print(msg, file=sys.stderr)
 
 
 def can_connect(dbcreds):
     """ Can we connect to the database defined by these credentials? """
     try:
-        conn = psycopg2.connect(host=dbcreds.host,
-                                port=dbcreds.port,
-                                user=dbcreds.username,
-                                database=dbcreds.database)
-        cur = conn.cursor()
-        cur.execute('SELECT 1;')
-        return True
+        with psycopg2.connect(host=dbcreds.host,
+                              port=dbcreds.port,
+                              user=dbcreds.username,
+                              database=dbcreds.database) as conn:
+            with conn.cursor() as cur:
+                cur.execute('SELECT 1;')
+                return True
     except psycopg2.Error:
         return False
 
@@ -83,7 +88,7 @@ def find_credentials(pgpass, host, dbcreds):
                 creds = DBCreds(*line.strip().split(':'))
                 if creds.host == host and creds.username == dbcreds.username:
                     # Production database credentials exists
-                    new_creds = creds._replace(host="*", port="*")
+                    new_creds = creds._replace(host=dbcreds.host, port=dbcreds.port, database=dbcreds.database)
                 elif creds.host == "*" and creds.username == dbcreds.username:
                     # Already migrated to new database format, do noting
                     new_creds = None
@@ -138,28 +143,31 @@ def main(hostname, port, dbusername):
     try:
         new_creds = find_credentials(pgpass, OLD_DB_HOST, dbcreds)
     except CredentialsNotFound:
-        print('\nAttempting to create a database account for the db_user ({}).'.format(dbcreds.username))
+        print_stderr(f'\nCreate database account for the db_user ({dbcreds.username})')
         new_creds = create_db_account(dbcreds)
-        print('Created new database account.')
 
     # Append new credentials to ~/.pgpass file
     if new_creds:
-        print('Migrating {} to the new database server.'.format(dbcreds.username))
+        print_stderr(f'Migrating {dbcreds.username} to the new database server')
         # Add new credentials to ~/.pgpass file
-        append_credentials(pgpass, new_creds._replace(host="*", port="*"))
+        append_credentials(pgpass, new_creds._replace(host="*", port="*", database="*"))
+    else:
+        new_creds = dbcreds
 
-    if not can_connect(dbcreds):
-        print_stderr(CANNOT_CONNECT_MSG.format(dbcreds.host,
-                                               dbcreds.port,
-                                               dbcreds.database,
-                                               dbcreds.username))
+    # Connect to the database with new credentials. If connection fails, then
+    # create a new agdc_user account and provide login access
+    if not can_connect(new_creds):
+        create_db_account(new_creds)
+        print_stderr('Created new database user account')
+    else:
+        print_stderr(f'{new_creds.username} migrated to new database server ({new_creds.host}:{new_creds.port})!')
 
 
 def create_db_account(dbcreds):
     """ Create AGDC user account on the requested """
     real_name = CURRENT_REAL_NAME if dbcreds.username == CURRENT_USER else ''
 
-    dbcreds = dbcreds._replace(database='*', password=gen_password())
+    dbcreds = dbcreds._replace(password=gen_password())
     try:
         with psycopg2.connect(host=dbcreds.host, port=dbcreds.port,
                               user='guest', database='guest', password='guest') as conn:
@@ -169,12 +177,17 @@ def create_db_account(dbcreds):
                                                                               dbcreds.password,
                                                                               real_name))
                 return dbcreds
+    except psycopg2.ProgrammingError as perr:
+        print_stderr(USER_ALREADY_EXISTS_MSG.format(dbcreds.username))
+        print_stderr(f'Connection Error: {perr}')
+        raise perr
     except psycopg2.Error as err:
-        if err.pgerror and 'already exists' in err.pgerror:
-            print_stderr(USER_ALREADY_EXISTS_MSG.format(dbcreds.username))
-        else:
-            print_stderr('Error creating user account for {}: {}'.format(dbcreds.username, err))
-        print_stderr('Please contact a datacube administrator to help resolve user account creation.')
+        print_stderr(CANNOT_CONNECT_MSG.format(
+            dbcreds.host,
+            dbcreds.port,
+            dbcreds.database,
+            dbcreds.username))
+        print_stderr(f'Connection Error: {err}')
         raise err
 
 
@@ -242,7 +255,7 @@ def test_db_host_doesnot_match_productiondb(tmpdir):
     assert creds.password == 'asdf'
 
     # Use production db credentials with new host and port being glob star
-    append_credentials(path, creds._replace(host='*', port='*'))
+    append_credentials(path, creds._replace(host='*', port='*', database='*'))
 
     with path.open() as src:
         contents = src.read()
@@ -356,3 +369,48 @@ def test_against_comment_in_pgpass(tmpdir):
 
     expected = existing_pgpass + '*:*:*:foo_user:asdf\n'
     assert contents == expected
+
+
+class TestPsycopg2(unittest.TestCase):
+    def setUp(self):
+        self.dbcreds = DBCreds(host="1.2.3.4", port="1234", username="test_user",
+                               database="test_db", password=None)
+
+    @mock.patch('psycopg2.connect')
+    def test_can_connect(self, mock_connect):
+        mock_connect().__enter__().cursor().__enter__().fetchall.return_value = ['Testing']
+        ret = can_connect(self.dbcreds)
+        mock_connect().__enter__().cursor().__enter__().execute.assert_called_with('SELECT 1;')
+        assert ret
+
+    @mock.patch('psycopg2.connect', mock.Mock(side_effect=psycopg2.Error))
+    def test_add_new_user(self):
+        self.dbcreds = DBCreds(host="1.2.3.4", port="1234", username=CURRENT_USER,
+                               database="test_db", password=None)
+        ret = can_connect(self.dbcreds)
+        assert not ret
+
+    @mock.patch('psycopg2.connect')
+    def test_create_db_account(self, mock_connect):
+        self.dbcreds = DBCreds(host="1.2.3.4", port="1234", username=CURRENT_USER,
+                               database="test_db", password=None)
+        mock_connect().__enter__().cursor().__enter__().fetchall.return_value = ['Testing']
+        ret = create_db_account(self.dbcreds)
+        mock_connect().__enter__().cursor().__enter__().execute.assert_called()
+        assert ret
+
+    @mock.patch('psycopg2.connect', mock.Mock(side_effect=psycopg2.Error("Connection Timeout")))
+    def test_create_db_account_host_doesnot_exists(self):
+        self.dbcreds = DBCreds(host="1.2.3.0", port="1234", username=CURRENT_USER,
+                               database="test_db", password=None)
+        with pytest.raises(psycopg2.Error):
+            ret = create_db_account(self.dbcreds)
+            assert not ret
+
+    @mock.patch('psycopg2.connect', mock.Mock(side_effect=psycopg2.ProgrammingError("User already exists")))
+    def test_create_db_account_user_exists(self):
+        self.dbcreds = DBCreds(host="1.2.3.0", port="1234", username=CURRENT_USER,
+                               database="test_db", password=None)
+        with pytest.raises(psycopg2.Error):
+            ret = create_db_account(self.dbcreds)
+            assert not ret
