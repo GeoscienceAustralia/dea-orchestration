@@ -138,6 +138,11 @@ functions:
           input:
             owner: opendatacube
             repo: dea-proto
+      - schedule:
+          rate: rate(12 hours)
+          input:
+            owner: GeoscienceAustralia
+            repo: digitalearthau
 
 devResources:
   Resources:
