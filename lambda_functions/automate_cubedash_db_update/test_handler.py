@@ -28,10 +28,11 @@ class TestLambdaFunction(unittest.TestCase):
     def test_lambda_handler(self, mock_client, mock_update_cubedash_call):
         event = {
             "Records": [
-                {"Sns": {
-                    "Message": "Test message\n",
-                    "Timestamp": "Timestamp",
-                    "MessageId": "Message_1234"
+                {
+                    "Sns": {
+                        "Message": "Test message\n",
+                        "Timestamp": "Timestamp",
+                        "MessageId": "Message_1234"
                     },
                 },
             ]
