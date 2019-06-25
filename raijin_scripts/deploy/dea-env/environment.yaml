@@ -3,7 +3,6 @@ channels:
 - conda-forge
 dependencies:
 - affine
-- apscheduler
 - attrs
 - awscli
 - basemap
@@ -22,8 +21,10 @@ dependencies:
 - cligj
 - cmocean
 - compliance-checker
+- colour
 - conda
 - conda-env
+- anaconda::cudatoolkit
 - curl
 - cvxopt
 - cvxpy
@@ -31,8 +32,8 @@ dependencies:
 - dask
 - distributed
 - docutils
-- ephem
 - expat
+- eventlet
 - brittainhard::fancyimpute
 - flask
 - flask-caching
@@ -48,6 +49,7 @@ dependencies:
 - geos
 - geotiff
 - gettext
+- anaconda::gevent
 - giflib
 - glib
 - glue-geospatial
@@ -94,6 +96,7 @@ dependencies:
 - mkl_random
 - mock
 - modernize
+- moto
 - mpi4py
 - munch
 - mypy
@@ -109,6 +112,7 @@ dependencies:
 - openmpi
 - pandas
 - parallel
+- anaconda::paramiko
 - parse
 - pcre
 - pep8
@@ -118,21 +122,24 @@ dependencies:
 - poppler
 - poppler-data
 - proj4
+- prometheus_client
 - psutil
 - psycopg2
 - pthread-stubs
 - pudb
-- py6s
+#- py6s
 - pyephem
 - pydash
 - pylint
 - pyparsing
 - pypeg2
+- pysolar >= 0.8
 - pytables
 - pytest
 - pytest-cov
 - python >= 3.6.2  # jjhelmus::tensorflow requires python 3.6
 - python-dateutil
+- pytorch::pytorch >= 1.1.0
 - pyyaml
 - qgis
 - rasterio >= 1.0.20
@@ -140,6 +147,7 @@ dependencies:
 - recommonmark
 - redis
 - redis-py
+- anaconda::requests
 - rios
 - rsgislib
 - rtree
@@ -161,10 +169,13 @@ dependencies:
 - structlog
 - jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
+- tmux
+- pytorch::torchvision
 - tqdm
 - tuiview
 - vega_datasets
 - voluptuous
+- watchdog
 - widgetsnbextension
 - xarray
 - xerces-c
@@ -174,13 +185,17 @@ dependencies:
 - yappi
 - yarn
 - pip:
+  - apscheduler
   - celery
   - checksumdir
   - click-datetime
-  - DAWG
   - dask_labextension
+  - DAWG
   - ffmpeg-python
+  - gpytorch  # GPyTorch will not run on PyTorch 0.4.1 or earlier versions
   - hdmedians
   - jupyterlab-git
   - meinheld
+  - ptpython
   - pyDEM
+  - requests-aws4auth

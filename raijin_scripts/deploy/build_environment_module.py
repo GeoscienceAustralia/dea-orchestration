@@ -12,14 +12,14 @@ It is configured by a YAML file, which specifies:
 It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
 New DEA-Env Module
   $ module use /g/data/v10/public/modules/modulefiles/
-  $ module load python3/3.6.2
+  $ module load python3/3.7.2
 
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml
 
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
-  $ module load python3/3.6.2
+  $ module load python3/3.7.2
 
   $ # Building a new DEA Module
   $ ./build_environment_module.py dea/modulespec.yaml
