@@ -172,9 +172,9 @@ echo "
 cd "$WORKDIR"/work/fc || exit 0
 set -x  # echo is on
 
-qsub -V -W depend=afterok:"$ingest_job" \
+fc_job="$(qsub -V -W depend=afterok:"$ingest_job" \
 -v WORKDIR="$WORKDIR",MUT="$MODULE",YEAR=2018,CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", \
-"$TESTDIR"/dea_testscripts/datacube-fc.sh
+"$TESTDIR"/dea_testscripts/datacube-fc.sh)"
 
 set +x  # echo is off
 
@@ -228,8 +228,8 @@ for i in "${stats_yaml_array[@]}"
 do
   set -x  # echo is on
 
-  qsub -V -W depend=afterok:"$wofs_job" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",CONFIGFILE="$CONFIGFILE",\
-DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh
+  qsub -V -W depend=afterok:"$wofs_job":"$fc_job" -v WORKDIR="$WORKDIR",MUT="$MODULE",PRODUCT="$i",\
+CONFIGFILE="$CONFIGFILE",DBNAME="$databasename",TESTDIR="$TESTDIR", "$TESTDIR"/dea_testscripts/datacube-stats.sh
 
   set +x  # echo is off
 

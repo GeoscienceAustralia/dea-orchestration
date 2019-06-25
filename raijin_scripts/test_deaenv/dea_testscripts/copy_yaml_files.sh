@@ -67,7 +67,7 @@ do
   yaml_filename=$(basename "$FC_CONF_DIR")
   
   wget -q "$FC_CONF_DIR"
-  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/fc/ls8_fc_albers/fc/001",' "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/fc/001",' "$yaml_filename"
 done
 
 # Replace WOfS product output location in the ingestion yaml config file
@@ -78,7 +78,7 @@ do
   yaml_filename=$(basename "$WOfS_CONF_DIR")
   
   wget -q "$WOfS_CONF_DIR"
-  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/wofs/wofs_albers/wofs/001",' "$yaml_filename"
+  sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/wofs/001",' "$yaml_filename"
 done
 
 # Replace stats product output location in the ingestion yaml config file

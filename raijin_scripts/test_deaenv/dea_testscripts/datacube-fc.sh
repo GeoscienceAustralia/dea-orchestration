@@ -6,10 +6,11 @@
 #PBS -q normal
 
 ## The total memory limit across all nodes for the job
-#PBS -l mem=32GB
+#PBS -l mem=62GB
 
 ## The requested job scratch space.
 #PBS -l jobfs=1GB
+#PBS -lother=gdata1:gdata2
 
 ## The number of cpus required for the job to run
 #PBS -l ncpus=16
@@ -78,9 +79,9 @@ datacube-fc list
 datacube-fc ensure-products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv --dry-run
 datacube-fc ensure-products --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -C "$CONFIGFILE" -vvv
 
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --no-qsub
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
-datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q express -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --no-qsub
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
+datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
 
 sleep 5s  
 
