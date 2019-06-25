@@ -24,7 +24,6 @@ dependencies:
 - colour
 - conda
 - conda-env
-- anaconda::cudatoolkit
 - curl
 - cvxopt
 - cvxpy
@@ -117,6 +116,7 @@ dependencies:
 - pcre
 - pep8
 - perf
+- pip
 - pixman
 - plotly
 - poppler
@@ -139,7 +139,7 @@ dependencies:
 - pytest-cov
 - python >= 3.6.2  # jjhelmus::tensorflow requires python 3.6
 - python-dateutil
-- pytorch::pytorch >= 1.1.0
+- pytorch::pytorch-cpu >= 1.1.0
 - pyyaml
 - qgis
 - rasterio >= 1.0.20
@@ -170,7 +170,7 @@ dependencies:
 - jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tmux
-- pytorch::torchvision
+- pytorch::torchvision-cpu
 - tqdm
 - tuiview
 - vega_datasets
@@ -195,6 +195,7 @@ dependencies:
   - gpytorch  # GPyTorch will not run on PyTorch 0.4.1 or earlier versions
   - hdmedians
   - jupyterlab-git
+  - libtmux
   - meinheld
   - ptpython
   - pyDEM
