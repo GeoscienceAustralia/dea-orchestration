@@ -127,7 +127,6 @@ dependencies:
 - psycopg2
 - pthread-stubs
 - pudb
-#- py6s
 - pyephem
 - pydash
 - pylint
@@ -198,5 +197,7 @@ dependencies:
   - libtmux
   - meinheld
   - ptpython
+  - Py6S
   - pyDEM
+  - python-intervals
   - requests-aws4auth
