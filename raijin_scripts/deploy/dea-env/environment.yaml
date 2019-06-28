@@ -53,7 +53,6 @@ dependencies:
 - glib
 - glue-geospatial
 - glueviz
-- graphviz
 - gunicorn
 - h5py
 - hdbscan
@@ -192,6 +191,7 @@ dependencies:
   - DAWG
   - ffmpeg-python
   - gpytorch  # GPyTorch will not run on PyTorch 0.4.1 or earlier versions
+  - graphviz
   - hdmedians
   - jupyterlab-git
   - libtmux
