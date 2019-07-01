@@ -194,6 +194,7 @@ dependencies:
   - graphviz
   - hdmedians
   - jupyterlab-git
+  - jupyter-server-proxy  # port forwards, useful for dask dashboards
   - libtmux
   - meinheld
   - ptpython
