@@ -10,13 +10,11 @@
 
 ## The requested job scratch space.
 #PBS -l jobfs=1GB
+#PBS -lother=gdata1:gdata2
 
 ## The number of cpus required for the job to run
 #PBS -l ncpus=16
 #PBS -l walltime=10:00:00
-
-#PBS -M santosh.mohan@ga.gov.au
-#PBS -m ae
 
 #PBS -N dc-stats
 

@@ -48,7 +48,7 @@ declare -a stats_yaml_array=("item_10"
                              "fc_ls8_2018_percentile_no_prov"
                              "fc_ls8_2018_percentile_no_prov_shapefile")
 
-# Replace NBAR/NBART/PQ product output location in the yaml file
+# Replace NBAR/NBART/PQ product output location in the ingestion yaml config file
 cd "$WORKDIR"/ingest_configfiles || exit 0
 for i in "${dc_yaml_array[@]}"
 do
@@ -59,7 +59,7 @@ do
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/ingest/001",' "$yaml_filename"
 done
 
-# Replace fractional cover product output location in the yaml file
+# Replace fractional cover product output location in the ingestion yaml config file
 cd "$WORKDIR"/fc_configfiles || exit 0
 for i in "${fc_yaml_array[@]}"
 do
@@ -70,7 +70,7 @@ do
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/fc/001",' "$yaml_filename"
 done
 
-# Replace WOfS product output location in the yaml file
+# Replace WOfS product output location in the ingestion yaml config file
 cd "$WORKDIR"/wofs_configfiles || exit 0
 for i in "${wofs_yaml_array[@]}"
 do
@@ -81,7 +81,7 @@ do
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/wofs/001",' "$yaml_filename"
 done
 
-# Replace stats product output location in the yaml file
+# Replace stats product output location in the ingestion yaml config file
 cd "$WORKDIR"/stats_configfiles || exit 0
 for i in "${stats_yaml_array[@]}"
 do

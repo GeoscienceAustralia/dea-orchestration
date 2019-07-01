@@ -3,7 +3,7 @@ variables:
   module_description: DEA Environment Module
   modules_dir: "/g/data/v10/public/modules"
   conda_path: "/g/data/v10/private/miniconda3-new/bin/conda"
-  python_version: 3.6
+  python_version: 3.7
 
 # These templated variables are filled and included in the available variables used
 # in template files and configuration sections below
@@ -15,16 +15,9 @@ install_conda_packages: environment.yaml
 
 dea_env_miniconda3: reinstall_miniconda.sh
 
-install_pip_packages:
-  requirements: pip_install_packages.txt
-  prefix: "{module_path}"
-  pip_cmd: "{module_path}/bin/pip "
-
 copy_files:
 - src: environment.yaml
   dest: "{modules_dir}/{module_name}/{module_version}/environment.yaml"
-- src: pip_install_packages.txt
-  dest: "{module_path}/pip_install_packages.txt"
 
 template_files:
 - src: modulefile.template
@@ -32,9 +25,16 @@ template_files:
   chmod: 0o444
 
 finalise_commands:
-- jupyter labextension install jupyterlab_bokeh
-- jupyter labextension install @jupyterlab/geojson-extension
-- jupyter labextension install @jupyterlab/github
-- jupyter labextension install @jupyterlab/toc
-- jupyter labextension install @jupyter-widgets/jupyterlab-manager
+- jupyter labextension install --no-build jupyterlab_bokeh
+- jupyter labextension install --no-build @jupyterlab/geojson-extension
+- jupyter labextension install --no-build @jupyterlab/github
+- jupyter labextension install --no-build @jupyterlab/git
+- jupyter labextension install --no-build @jupyterlab/toc
+- jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
+- jupyter labextension install --no-build jupyter-leaflet
+- jupyter labextension install --no-build nbdime-jupyterlab
+- jupyter labextension install --no-build dask-labextension
 - jupyter lab build
+- jupyter serverextension enable --py jupyterlab_git --sys-prefix
+- jupyter serverextension enable --py nbdime --sys-prefix
+- jupyter serverextension enable --py dask_labextension --sys-prefix

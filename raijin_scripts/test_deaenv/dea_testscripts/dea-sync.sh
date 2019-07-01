@@ -10,6 +10,7 @@
 
 ## The requested job scratch space.
 #PBS -l jobfs=1GB
+#PBS -lother=gdata1:gdata2
 
 ## The number of cpus required for the job to run
 #PBS -l ncpus=16
