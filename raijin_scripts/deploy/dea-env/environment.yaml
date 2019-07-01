@@ -3,7 +3,6 @@ channels:
 - conda-forge
 dependencies:
 - affine
-- apscheduler
 - attrs
 - awscli
 - basemap
@@ -22,17 +21,18 @@ dependencies:
 - cligj
 - cmocean
 - compliance-checker
+- colour
 - conda
 - conda-env
 - curl
 - cvxopt
 - cvxpy
 - cython
-- dask == 0.19.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
-- distributed == 1.23.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
+- dask
+- distributed
 - docutils
-- ephem
 - expat
+- eventlet
 - brittainhard::fancyimpute
 - flask
 - flask-caching
@@ -48,11 +48,11 @@ dependencies:
 - geos
 - geotiff
 - gettext
+- anaconda::gevent
 - giflib
 - glib
 - glue-geospatial
 - glueviz
-- graphviz
 - gunicorn
 - h5py
 - hdbscan
@@ -79,6 +79,7 @@ dependencies:
 - kealib
 - keras
 - krb5
+- lark-parser
 - libgdal
 - libgfortran
 - libgfortran-ng
@@ -93,10 +94,12 @@ dependencies:
 - mkl_random
 - mock
 - modernize
+- moto
 - mpi4py
 - munch
 - mypy
 - nb_conda_kernels
+- nbdime
 - netcdf4
 - nodejs
 - notebook
@@ -107,36 +110,42 @@ dependencies:
 - openmpi
 - pandas
 - parallel
+- anaconda::paramiko
 - parse
 - pcre
 - pep8
 - perf
+- pip
 - pixman
 - plotly
 - poppler
 - poppler-data
 - proj4
+- prometheus_client
 - psutil
 - psycopg2
 - pthread-stubs
 - pudb
-- py6s
+- pyephem
 - pydash
 - pylint
 - pyparsing
 - pypeg2
+- pysolar >= 0.8
 - pytables
 - pytest
 - pytest-cov
-- python >= 3.6.6
+- python >= 3.6.2  # jjhelmus::tensorflow requires python 3.6
 - python-dateutil
+- pytorch::pytorch-cpu >= 1.1.0
 - pyyaml
 - qgis
 - rasterio >= 1.0.20
 - rasterstats
 - recommonmark
 - redis
-- redis-py == 2.10.6  # FC, wofs, and datacube-stats app has an issue (digitalearthau issue #205), with later revisions
+- redis-py
+- anaconda::requests
 - rios
 - rsgislib
 - rtree
@@ -158,10 +167,13 @@ dependencies:
 - structlog
 - jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
+- tmux
+- pytorch::torchvision-cpu
 - tqdm
 - tuiview
 - vega_datasets
 - voluptuous
+- watchdog
 - widgetsnbextension
 - xarray
 - xerces-c
@@ -171,11 +183,21 @@ dependencies:
 - yappi
 - yarn
 - pip:
+  - apscheduler
   - celery
   - checksumdir
   - click-datetime
+  - dask_labextension
   - DAWG
   - ffmpeg-python
+  - gpytorch  # GPyTorch will not run on PyTorch 0.4.1 or earlier versions
+  - graphviz
   - hdmedians
+  - jupyterlab-git
+  - libtmux
   - meinheld
+  - ptpython
+  - Py6S
   - pyDEM
+  - python-intervals
+  - requests-aws4auth
