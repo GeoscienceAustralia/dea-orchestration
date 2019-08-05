@@ -22,6 +22,10 @@ install:
 
 script:
   - npm install -g serverless
+  # Configure serverless AWS custom profile settings.
+  # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
+  # configured in travis project web settings
+  - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
   - ./scripts/check-code.sh
 
 after_success:
@@ -29,10 +33,6 @@ after_success:
 
 before_deploy:
   - npm --version
-  # Configure serverless AWS custom profile settings.
-  # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
-  # configured in travis project web settings
-  - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
 
 deploy:
  # Serverless deploy to production environment after merging to production branch
