@@ -38,6 +38,7 @@ do
     # Install serverless requirements and run tests
     npm install && npm test
 
+    serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
 
     # Attempt to package the lambda
     echo "writing temporary serverless artifacts to ${_TMP}"
