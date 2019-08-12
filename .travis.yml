@@ -25,7 +25,8 @@ script:
   # Configure serverless AWS custom profile settings.
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
   # configured in travis project web settings
-  - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
+  - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile prodProfile --overwrite
+  - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile dea-prod --overwrite
   - ./scripts/check-code.sh
 
 after_success:
