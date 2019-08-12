@@ -283,6 +283,7 @@ def install_pip_packages(pip_conf, variables):
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
     LOG.info('Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
+
     # Do not warn when installing scripts outside PATH
     run_command(f'{pip} install -v --no-warn-script-location --no-deps {arg} --compile --requirement {requirements}')
 
@@ -380,12 +381,6 @@ def main(config_path):
     LOG.info('Run final commands on module')
     if 'finalise_commands' in config and config['finalise_commands']:
         run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
-
-    if 'install_dea_proto_libraries' in config and config['install_dea_proto_libraries']:
-        pip = config['install_pip_packages']['pip_cmd']
-
-        for command in config['install_dea_proto_libraries']:
-            run_command(f"{pip} install '{command}'")
 
     fix_module_permissions(variables['module_path'])
 

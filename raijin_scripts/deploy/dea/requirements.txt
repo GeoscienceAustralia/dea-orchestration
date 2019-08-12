@@ -6,3 +6,11 @@ digitalearthau
 datacube-stats
 fc
 wofs
+odc-ui
+odc-index
+odc-aws
+odc-geom
+odc-io
+odc-ppt
+odc-dscache
+odc-dtools

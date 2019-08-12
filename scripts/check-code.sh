@@ -33,7 +33,7 @@ do
     _TMP="$(mktemp -d)"
 
     # For now, lets be lazy and install requirements globally
-    if [[ -f requirements.txt ]]; then pip install -r requirements.txt; fi
+    if [[ -f requirements.txt ]]; then pip3 install -r requirements.txt; fi
 
     # Install serverless requirements and run tests
     npm install && npm test

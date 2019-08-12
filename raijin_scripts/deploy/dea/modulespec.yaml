@@ -34,14 +34,3 @@ template_files:
 
 env_test:
   test_script: "run"
-
-install_dea_proto_libraries:
-# Install dea-proto libraries
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_ui&subdirectory=libs/ui'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_index&subdirectory=libs/index'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_aws&subdirectory=libs/aws'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_geom&subdirectory=libs/geom'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_io&subdirectory=libs/io'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_ppt&subdirectory=libs/ppt'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_dscache&subdirectory=libs/dscache'
-- 'git+https://github.com/opendatacube/dea-proto.git#egg=odc_dtools&subdirectory=libs/dtools'
