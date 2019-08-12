@@ -283,7 +283,9 @@ def install_pip_packages(pip_conf, variables):
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
     LOG.info('Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
-    run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
+
+    # Do not warn when installing scripts outside PATH
+    run_command(f'{pip} install -v --no-warn-script-location --no-deps {arg} --compile --requirement {requirements}')
 
 
 def find_default_version(module_name):

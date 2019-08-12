@@ -15,10 +15,12 @@ dependencies:
 - cachetools
 - cairo
 - cartopy
+- cffi
 - ciso8601
 - click
 - click-plugins
 - cligj
+- cmake
 - cmocean
 - compliance-checker
 - colour
@@ -60,6 +62,7 @@ dependencies:
 - hdf5
 - hypothesis
 - icu
+- importlib_resources
 - intel-openmp
 - ipdb
 - ipyleaflet
@@ -91,6 +94,7 @@ dependencies:
 - anaconda::mkl-service
 - intel::mkl
 - mkl_fft
+- anaconda::mkl-include
 - mkl_random
 - mock
 - modernize
@@ -105,7 +109,7 @@ dependencies:
 - notebook
 - numba
 - numexpr
-- numpy >= 1.16
+- numpy
 - openjpeg
 - openmpi
 - pandas
@@ -131,16 +135,16 @@ dependencies:
 - pylint
 - pyparsing
 - pypeg2
-- pysolar >= 0.8
+- pysolar
 - pytables
 - pytest
 - pytest-cov
-- python >= 3.6.2  # jjhelmus::tensorflow requires python 3.6
+- python
 - python-dateutil
-- pytorch::pytorch-cpu >= 1.1.0
 - pyyaml
 - qgis
-- rasterio >= 1.0.20
+- bashtage::randomgen
+- rasterio
 - rasterstats
 - recommonmark
 - redis
@@ -154,9 +158,11 @@ dependencies:
 - scikit-learn
 - scipy
 - seaborn
+- setuptools
 - shapely
 - simplejson
 - singledispatch
+- skyfield
 - snuggs
 - spectral
 - sphinx
@@ -168,9 +174,9 @@ dependencies:
 - jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
 - tmux
-- pytorch::torchvision-cpu
 - tqdm
 - tuiview
+- typing
 - vega_datasets
 - voluptuous
 - watchdog
@@ -190,7 +196,6 @@ dependencies:
   - dask_labextension
   - DAWG
   - ffmpeg-python
-  - gpytorch  # GPyTorch will not run on PyTorch 0.4.1 or earlier versions
   - graphviz
   - hdmedians
   - jupyterlab-git
