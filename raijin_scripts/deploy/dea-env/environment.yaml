@@ -188,6 +188,7 @@ dependencies:
 - yamllint
 - yappi
 - yarn
+- zarr
 - pip:
   - apscheduler
   - celery
