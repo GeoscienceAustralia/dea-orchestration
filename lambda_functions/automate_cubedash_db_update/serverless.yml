@@ -14,7 +14,7 @@ custom:
     prod: "cubedash-db-update-prod"
     dev: "cubedash-db-update-dev"
   bitbucketbranch:
-    prod: "prod"
+    prod: "eks-prod"
     dev: "test-db-update"
 
 package:
@@ -56,7 +56,7 @@ provider:
   # Service wide environment variables declaration
   environment:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    CUBEDASH_CONFIG: "services/cubedash.yaml"
+    CUBEDASH_CONFIG: "services/prod_eks_nciexplorer.yaml"
     BITBUCKET_BRANCH: ${self:custom.bitbucketbranch.${self:custom.Stage}}
     SNS_TOPIC: ${self:custom.snstopic.${self:custom.Stage}}
 
