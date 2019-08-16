@@ -1,0 +1,18 @@
+{
+  "name": "update-cubedash-dbconfig",
+  "version": "1.0.0",
+  "description": "Automate cubedash db update",
+  "main": "handler.py",
+  "scripts": {
+    "test":  "python -m pytest --cov"
+  },
+  "author": "Geoscience Australia",
+  "license": "Apache 2",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless": "^1.44.1",
+    "serverless-pseudo-parameters": "^2.4.0",
+    "serverless-python-requirements": "^4.3.0"
+  },
+  "keywords": []
+}
