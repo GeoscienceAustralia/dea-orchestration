@@ -362,7 +362,8 @@ def main(config_path):
         scriptname = config['dea_env_miniconda3']
         run_command(f'./{scriptname}')
 
-    config['variables']['module_version'] = date()
+    if 'module_version' not in config['variables']:
+        config['variables']['module_version'] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
 
