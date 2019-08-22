@@ -73,7 +73,7 @@ Only run these scripts from Raijin. We've seen filesystem sync issues when
 run from VDI.
 
     module load python3/3.6.2
-    pip3 install --user yaml jinja2
+    pip3 install --user pyyaml jinja2
 
 ## Building a new _Environment Module_
 

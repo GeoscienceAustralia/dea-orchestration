@@ -19,8 +19,8 @@ modulefile_path="${prefix}/modulefiles/${full_name}"
 echo "${module_path}"
 echo "${modulefile_path}"
 
-[ -e "${module_path}" ] || ( echo "No module found ${full_name}"; exit 1)
-[ -e "${modulefile_path}" ] || ( echo "No modulefile found called ${full_name}"; exit 1)
+[[ -e "${module_path}" ]] || ( echo "No module found ${full_name}"; exit 1)
+[[ -e "${modulefile_path}" ]] || ( echo "No modulefile found called ${full_name}"; exit 1)
 
 # Create tar with module and modulefile
 tar_path="${module_path}.tar"

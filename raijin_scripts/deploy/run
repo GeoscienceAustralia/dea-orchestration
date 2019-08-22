@@ -1,8 +1,0 @@
-#!/bin/bash
-
-args=( "$@" )
-
-echo "Deploying ${args[0]}"
-module load python3/3.6.2
-source venv/bin/activate
-python build_environment_module.py "${args[0]}"
