@@ -37,6 +37,7 @@ dependencies:
 - expat
 - eventlet
 - brittainhard::fancyimpute
+- flake8
 - flask
 - flask-caching
 - fiona
@@ -148,7 +149,7 @@ dependencies:
 - rasterio
 - rasterstats
 - recommonmark
-- redis
+- anaconda::redis
 - redis-py
 - anaconda::requests
 - rios
@@ -207,5 +208,6 @@ dependencies:
   - ptpython
   - Py6S
   - pyDEM
+  - pyproj
   - python-intervals
   - requests-aws4auth
