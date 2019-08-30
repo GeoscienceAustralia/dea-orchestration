@@ -9,20 +9,21 @@ It is configured by a YAML file, which specifies:
  - (opt) Conda environment to create
  - (opt) Pip style requirements.txt to install to a directory
 
-It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
+It requires python 3.7+ and pyyaml.
+Use a qsub interactive copyq job on raijin with sufficient memory to run the following commands at the NCI:
 New DEA-Env Module
   $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.7.2
 
   $ # Building a new Environment Module:
-  $ ./build_environment_module.py dea-env/modulespec.yaml
+  $ python3 build_environment_module.py dea-env/modulespec.yaml
 
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
   $ module load python3/3.7.2
 
   $ # Building a new DEA Module
-  $ ./build_environment_module.py dea/modulespec.yaml
+  $ python3 build_environment_module.py dea/modulespec.yaml
 
 It used to be able to perform a miniconda installation, but that turned out to
 be flaky, so we now maintain a central miniconda install, and create environments
