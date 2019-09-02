@@ -4,6 +4,7 @@ channels:
 dependencies:
 - affine
 - attrs
+- autopep8
 - awscli
 - basemap
 - black
@@ -80,7 +81,7 @@ dependencies:
 - jupyter
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
-- jupyterlab
+- conda-forge/label/broken::jupyterlab
 - kealib
 - keras
 - krb5
@@ -188,6 +189,7 @@ dependencies:
 - xgboost
 - yaml
 - yamllint
+- yapf
 - yappi
 - yarn
 - zarr
@@ -201,8 +203,10 @@ dependencies:
   - ffmpeg-python
   - graphviz
   - hdmedians
+  - isort
   - jupyterlab-git
   - jupyter-server-proxy  # port forwards, useful for dask dashboards
+  - jupyterlab_code_formatter
   - libtmux
   - meinheld
   - ptpython
