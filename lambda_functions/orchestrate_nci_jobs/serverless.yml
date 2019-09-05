@@ -1,0 +1,177 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+#    Sequence of steps to run before and after sls deploy:
+#      1) npm install --save-dev serverless-step-functions
+#      2) sls plugin install -n serverless-python-requirements
+#      3) sls plugin install -n serverless-pseudo-parameters
+#      4) sls deploy --aws-profile <Profile Name> -v --stage <Deploy Environment Name (dev or prod)>
+#      5) sls invoke --aws-profile <Profile Name> -s <Deploy Environment Name (dev or prod)> stepf --name Execute_Jobs
+#
+#  An example of the Amazon States Language that runs an AWS Batch job and monitors the job until it completes
+
+service: execute-jobs
+
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+  - serverless-step-functions
+
+custom:
+  Stage: ${opt:stage, self:provider.stage}
+  profile:
+    dev: devProfile
+    prod: prodProfile
+  deploymentBucket:
+    prod: "dea-lambda"
+    dev: "dea-lambdas-dev"
+  dynamodb:
+    prod: "OrchestrationJobStatus"
+    dev: "PbsJobInfo-dev"
+  pythonRequirements:
+    dockerizePip: non-linux
+  arns:
+    create_dynamodb_table_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-create_dynamodb_table"
+    submit_job_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-submit_pbs_job"
+    fetch_jobid_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fetch_job_ids"
+    check_job_status_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-check_job_status"
+    state_failed_arn: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-state_failed"
+  cmds:
+    SYNC: 'execute_sync --dea-module ${self:provider.environment.DEA_MODULE}
+              --queue ${self:provider.environment.QUEUE}
+              --project ${self:provider.environment.PROJECT}
+              --year %(time_range)s
+              --path %(path)s
+              --suffixpath %(suffixpath)s
+              --product %(product)s
+              --trasharchived %(trasharchived)s'
+    INGEST: 'execute_ingest --dea-module ${self:provider.environment.DEA_MODULE}
+                --queue ${self:provider.environment.QUEUE}
+                --project ${self:provider.environment.PROJECT}
+                --stage ${self:custom.Stage}
+                --year %(year)s
+                --product %(product)s'
+    FC: 'execute_fractional_cover --dea-module ${self:provider.environment.DEA_MODULE}
+            --queue ${self:provider.environment.QUEUE}
+            --project ${self:provider.environment.PROJECT}
+            --stage ${self:custom.Stage}
+            --year %(year)s
+            --product %(product)s
+            --tag %(tag)s'
+    WOFS: 'execute_wofs --dea-module ${self:provider.environment.DEA_MODULE}
+                --queue ${self:provider.environment.QUEUE}
+                --project ${self:provider.environment.PROJECT}
+                --stage ${self:custom.Stage}
+                --year %(year)s
+                --product %(product)s
+                --tag %(tag)s'
+    COG: 'execute_cog_conversion --dea-module ${self:provider.environment.DEA_MODULE}
+             --s3-output %(s3_output)s
+             --cog-product %(product)s
+             --time-range %(time_range)s'
+    DAM_SCRIPT: 'execute_dam_scripts --dea-module ${self:provider.environment.DEA_MODULE}
+                   --dam-script-path %(dam_script_path)s'
+  products:
+    SYNC: 'ls8_nbar_scene,ls7_nbar_scene,ls8_nbart_scene,ls7_nbart_scene,ls8_pq_scene,ls7_pq_scene,ls8_pq_legacy_scene,ls7_pq_legacy_scene'
+    INGEST: 'ls8_nbar_albers,ls7_nbar_albers,ls8_nbart_albers,ls7_nbart_albers,ls8_pq_albers,ls7_pq_albers'
+    FC: 'ls8_fc_albers,ls7_fc_albers'
+    WOFS: 'wofs_albers'
+    COG: 'wofs_albers,ls8_fc_albers,ls7_fc_albers'
+
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
+provider:
+  name: aws
+  runtime: python3.6
+  timeout: 600  # 10 minutes. Default is 6 seconds
+  memorySize: 256  # in MB, default is 1024
+  region: ap-southeast-2
+  deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
+
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'ssm:GetParameters'
+        - 'ssm:DescribeParameters'
+      Resource:
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+        - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/pipeline.*"
+    - Effect: 'Allow'
+      Action: 'kms:Decrypt'
+      Resource:
+        - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+    - Effect: 'Allow'
+      Action: 'cloudwatch:PutMetricData'
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:provider.environment.DYNAMODB_TABLENAME}"
+    - Effect: "Allow"
+      Action:
+        - "states:*"
+      Resource:
+        - "*"
+
+  # Service wide environment variables declaration
+  environment:
+    SSM_USER_PATH: 'orchestrator.raijin.users.default'
+    DEA_MODULE: dea/20190902
+    PROJECT: v10
+    QUEUE: normal
+    DYNAMODB_TABLENAME: ${self:custom.dynamodb.${self:custom.Stage}}
+    TASK_TIMEOUT: 900  # 15 minutes
+    TASK_HEARTBEAT: 60  # Ensure task sends heartbeat notifications in intervals of 60 seconds
+    EXECUTE_JOB_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:Execute_Jobs-${self:custom.Stage}"
+    YEAR: 2019
+    SYNC_CMD: ${self:custom.cmds.SYNC}
+    SYNC_PRODUCTS: ${self:custom.products.SYNC}
+    INGEST_CMD: ${self:custom.cmds.INGEST}
+    INGEST_PRODUCTS: ${self:custom.products.INGEST}
+    FC_CMD: ${self:custom.cmds.FC}
+    FC_PRODUCTS: ${self:custom.products.FC}
+    WOFS_CMD: ${self:custom.cmds.WOFS}
+    WOFS_PRODUCTS: ${self:custom.products.WOFS}
+    COG_CMD: ${self:custom.cmds.COG}
+    COG_PRODUCTS: ${self:custom.products.COG}
+    DAM_SCRIPT_CMD: ${self:custom.cmds.DAM_SCRIPT}
+    DAM_SCRIPT_PRODUCTS: "wofs_dam_script"
+
+functions:
+  create_dynamodb_table:
+    handler: handler.create_dynamodb_table
+    description: Create a new dynamodb table if it does not exists
+  submit_pbs_job:
+    handler: handler.submit_pbs_job
+    description: Submit Sync/Ingest/FC/WOfS job for LS7/LS8 data and store the qsub job id in aws dynamodb database
+  fetch_job_ids:
+    handler: handler.fetch_job_ids
+    description: Fetch the qsub job ids from the submission log file and update the same in aws dynamodb database
+  check_job_status:
+    handler: handler.check_job_status
+    description: Monitor and update qsub job status in aws dynamodb database
+  state_failed:
+    handler: handler.state_failed
+    description: Update the job status in aws dynamodb database and exit the state machine execution
+
+stepFunctions:
+  stateMachines:
+    Execute_Jobs: ${file(./step_functions.yml)}

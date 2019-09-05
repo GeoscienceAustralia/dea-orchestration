@@ -47,6 +47,7 @@ dbhostname='agdcdev-db.nci.org.au'
 dbport='6432'
 dbname='datacube'
 
+mkdir -p "$OUTPUT_DIR"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
 module use /g/data/v10/public/modules/modulefiles
@@ -106,3 +107,11 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 datacube-fc submit -v -v --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --tag ${TAG}
 EOF
+
+# Log the following values to the terminal, to be processed by the orchestration lambda function
+echo fc_log="${SUBMISSION_LOG}"
+echo fc_pbs_job_name="${JOB_NAME}"
+echo fc_project="${PROJECT}"
+echo fc_job_queue="${QUEUE}"
+echo fc_work_dir="${OUTPUT_DIR}"
+echo fc_product="${PRODUCT}"
