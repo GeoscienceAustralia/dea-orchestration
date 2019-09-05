@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --job-id )              shift
+                                JOB_ID="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+function print_output
+{
+  [[ -z "$1" ]] && echo 'NA' || echo "$1"
+  return 0
+}
+
+QSTAT_VAL=$(qstat -fx "${JOB_ID}")
+
+print_output "$QSTAT_VAL"
