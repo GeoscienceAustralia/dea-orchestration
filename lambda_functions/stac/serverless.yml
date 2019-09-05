@@ -37,7 +37,7 @@ custom:
   snsTopic:
     prod: arn:aws:sns:ap-southeast-2:538673716275:DEANewData
     dev: arn:aws:sns:ap-southeast-2:451924316694:DEANewDataDev
-pythonRequirements:
+  pythonRequirements:
     dockerizePip: non-linux
     slim: true
     fileName: requirements.txt

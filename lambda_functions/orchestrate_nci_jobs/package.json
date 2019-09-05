@@ -4,11 +4,11 @@
   "description": "Orchestrate PBS Jobs using AWS Step Functions",
   "main": "handler.py",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "python -m pytest --cov"
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",
-  "dependencies": {},
+  "repository": "https://github.com/GeoscienceAustralia/dea-orchestration/",
   "devDependencies": {
     "serverless": "^1.41.1",
     "serverless-pseudo-parameters": "^2.4.0",
