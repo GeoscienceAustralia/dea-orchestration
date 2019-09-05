@@ -1,63 +1,73 @@
 name: dea-env
 channels:
 - conda-forge
-- brittainhard
 dependencies:
 - affine
 - attrs
+- awscli
 - basemap
 - black
-- bottleneck
+- boltons
 - boto3
-- bqplot
 - botocore
+- bottleneck
+- bqplot
 - cachetools
 - cairo
 - cartopy
+- cffi
+- ciso8601
 - click
 - click-plugins
 - cligj
+- cmake
 - cmocean
 - compliance-checker
+- colour
 - conda
 - conda-env
 - curl
 - cvxopt
 - cvxpy
 - cython
-- dask == 0.19.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
-- distributed == 1.23.3  # Datacube ingest app has an issue (datacube-core issue #658), with version later than this
+- dask
+- distributed
 - docutils
-- ephem
 - expat
-- fancyimpute
+- eventlet
+- brittainhard::fancyimpute
+- flask
+- flask-caching
 - fiona
 - folium
 - fontconfig
-- future
 - freetype
 - freexl
+- future
 - gdal
 - geopandas
 - geopy
 - geos
 - geotiff
 - gettext
+- anaconda::gevent
 - giflib
 - glib
-- glueviz
 - glue-geospatial
-- graphviz  # This is only graphviz itself, not the python bindings. The latter are in the pip section.
+- glueviz
+- gunicorn
+- h5py
 - hdbscan
 - hdf4
 - hdf5
-- h5py
 - hypothesis
 - icu
+- importlib_resources
 - intel-openmp
 - ipdb
 - ipyleaflet
 - ipympl
+- ipython-sql
 - ipywidgets
 - jmespath
 - joblib
@@ -69,9 +79,10 @@ dependencies:
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
 - jupyterlab
-- keras
 - kealib
+- keras
 - krb5
+- lark-parser
 - libgdal
 - libgfortran
 - libgfortran-ng
@@ -80,57 +91,78 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-# - mkl-service
-- mkl
+- anaconda::mkl-service
+- intel::mkl
 - mkl_fft
+- anaconda::mkl-include
 - mkl_random
 - mock
+- modernize
+- moto
 - mpi4py
 - munch
+- mypy
 - nb_conda_kernels
+- nbdime
 - netcdf4
 - nodejs
 - notebook
 - numba
 - numexpr
-- numpy >= 1.16
+- numpy
 - openjpeg
+- openmpi
 - pandas
 - parallel
+- anaconda::paramiko
+- parse
 - pcre
 - pep8
+- perf
+- pip
 - pixman
 - plotly
 - poppler
 - poppler-data
 - proj4
+- prometheus_client
 - psutil
-- pthread-stubs
 - psycopg2
-- py6s
+- pthread-stubs
+- pudb
+- pyephem
+- pydash
 - pylint
 - pyparsing
+- pypeg2
+- pysolar
 - pytables
 - pytest
 - pytest-cov
-- python >= 3.6.6
+- python
 - python-dateutil
 - pyyaml
-- rasterio >= 1.0.15
+- qgis
+- bashtage::randomgen
+- rasterio
 - rasterstats
 - recommonmark
 - redis
-- redis-py == 2.10.6  # FC, wofs, and datacube-stats app has an issue (digitalearthau issue #205), with later revisions
+- redis-py
+- anaconda::requests
 - rios
+- rsgislib
 - rtree
 - s3transfer
 - scikit-image
 - scikit-learn
 - scipy
 - seaborn
+- setuptools
 - shapely
 - simplejson
 - singledispatch
+- skyfield
 - snuggs
 - spectral
 - sphinx
@@ -138,44 +170,41 @@ dependencies:
 - spyder
 - sqlalchemy
 - sqlite
-- tensorflow == 1.9.0  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
+- structlog
+- jjhelmus::tensorflow  # Import issue workaround, https://github.com/conda-forge/tensorflow-feedstock/issues/11
 - tornado
+- tmux
 - tqdm
 - tuiview
+- typing
 - vega_datasets
 - voluptuous
+- watchdog
 - widgetsnbextension
 - xarray
 - xerces-c
 - xgboost
 - yaml
+- yamllint
+- yappi
 - yarn
+- zarr
 - pip:
-  - autopep8
-  - awscli
-  - boltons
+  - apscheduler
   - celery
   - checksumdir
-  - ciso8601
   - click-datetime
+  - dask_labextension
   - DAWG
   - ffmpeg-python
-  - flask
-  - Flask-Caching
   - graphviz
-  - gunicorn
   - hdmedians
-  - ipython-sql
+  - jupyterlab-git
+  - jupyter-server-proxy  # port forwards, useful for dask dashboards
+  - libtmux
   - meinheld
-  - modernize
-  - mypy
-  - opencv-python
-  - parse
-  - perf
-  - pudb
-  - pydash
+  - ptpython
+  - Py6S
   - pyDEM
-  - pypeg2
-  - structlog[dev]
-  - yamllint
-  - yappi
+  - python-intervals
+  - requests-aws4auth

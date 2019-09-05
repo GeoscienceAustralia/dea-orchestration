@@ -3,13 +3,14 @@
 #PBS -P u46
 
 ## Queue type
-#PBS -q express
+#PBS -q normal
 
 ## The total memory limit across all nodes for the job
-#PBS -l mem=32GB
+#PBS -l mem=62GB
 
 ## The requested job scratch space.
-#PBS -l jobfs=1GB
+#PBS -l jobfs=2GB
+#PBS -lother=gdata1:gdata2
 
 ## The number of cpus required for the job to run
 #PBS -l ncpus=16
@@ -51,15 +52,12 @@ NBFILE="$WORKDIR"/work/nbconvert/requirements_met.ipynb
 # the latest dea module in the notebook file
 cp "$TESTDIR"/dea_testscripts/requirements_met.ipynb "$NBFILE"
 
-# Update the module under test
-sed -i -e 's,DEA_MUT,'"$MUT"',' "$NBFILE"
-
 OUTPUTDIR="$WORKDIR"/work/nbconvert/requirements_met-"$(date '+%Y-%m-%d')".html
 cd "$WORKDIR" || exit 0
 
 # Load DEA module
-# shellcheck source=/dev/null
-source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$DATACUBE_CONFIG_PATH"
+module use /g/data/v10/public/modules/modulefiles/
+module load "$MUT"
 
 ## Convert a notebook to an python script and print the stdout
 ## To remove code cells from the output, use templateExporter
@@ -69,12 +67,8 @@ jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_mark
 ## Cell execution timeout = 5000s, --ExecutePreprocessor.timeout=5000
 ## --allow-errors shall allow conversion will continue and the output from 
 ## any exception be included in the cell output
-jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors
-[ -f "$TESTDIR"/dea_testscripts/requirements_met.nbconvert.ipynb ] && mv -f "$TESTDIR"/dea_testscripts/requirements_met.nbconvert.ipynb "$WORKDIR"/work/nbconvert/requirements_met.nbconvert.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors \
+--clear-output --debug
 
 ## Finally convert using notebook to html file
 jupyter nbconvert --to html "$NBFILE" --stdout > "$OUTPUTDIR"
-
-## Remove temp file
-[ -f "$TESTDIR"/dea_testscripts/mydask.png ] && rm -f "$TESTDIR"/dea_testscripts/mydask.png
-[ -f "$WORKDIR"/work/nbconvert/mydask.png ] && rm -f "$WORKDIR"/work/nbconvert/mydask.png

@@ -12,18 +12,14 @@ It is configured by a YAML file, which specifies:
 It requires python 3.6+ and pyyaml. To run it on raijin at the NCI:
 New DEA-Env Module
   $ module use /g/data/v10/public/modules/modulefiles/
-  $ module load python3/3.6.2
+  $ module load python3/3.7.2
 
   $ # Building a new Environment Module:
   $ ./build_environment_module.py dea-env/modulespec.yaml
 
-# https://github.com/conda-forge/tensorflow-feedstock/issues/11
-Once dea-env module is built, install tensorflow as follows:
-  $ <new dea env module path>/bin/conda install -y -c jjhelmus tensorflow
-
 New DEA Module
   $ module use /g/data/v10/public/modules/modulefiles/
-  $ module load python3/3.6.2
+  $ module load python3/3.7.2
 
   $ # Building a new DEA Module
   $ ./build_environment_module.py dea/modulespec.yaml
@@ -106,6 +102,13 @@ def date(date_format="%Y%m%d") -> str:
     return datetime.datetime.now().strftime(date_format)
 
 
+def _log_output(line):
+    try:
+        LOG.info(line.encode('ascii').decode('utf-8'))
+    except UnicodeEncodeError:
+        LOG.warning("UnicodeEncodeError: %s", line.encode('ascii', 'replace'))
+
+
 def run_command(cmd):
     """
     Run subprocess command and print the output on the terminal and the log file
@@ -123,18 +126,10 @@ def run_command(cmd):
                                      errors='replace')
 
         for line in proc_output.stdout.split(os.linesep):
-            try:
-                log_value = line.encode('ascii').decode('utf-8')
-                LOG.info(log_value)
-            except UnicodeEncodeError:
-                LOG.warning('UnicodeEncodeError: %s ', line.encode('ascii', 'replace'))
+            _log_output(line)
     except subprocess.CalledProcessError as suberror:
         for line in suberror.stdout.split(os.linesep):
-            try:
-                log_value = line.encode('ascii').decode('utf-8')
-                LOG.error(log_value)
-            except UnicodeEncodeError:
-                LOG.warning("UnicodeEncodeError : %s", line.encode('ascii', 'replace'))
+            _log_output(line)
 
 
 def install_conda_packages(env_file, variables):
@@ -262,7 +257,7 @@ def fix_module_permissions(module_path):
     :return: None
     """
     LOG.info('Setting module "%s" permission as world readable', module_path)
-    run_command(f'chmod -R u+rwx,go+rx,go-w "{module_path}"')
+    run_command(f'chmod -R u+rx,go+rx,go-w "{module_path}"')
 
 
 def install_pip_packages(pip_conf, variables):
@@ -288,7 +283,9 @@ def install_pip_packages(pip_conf, variables):
         raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
 
     LOG.info('Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
-    run_command(f'{pip} install -v --no-deps {arg} --compile --requirement {requirements}')
+
+    # Do not warn when installing scripts outside PATH
+    run_command(f'{pip} install -v --no-warn-script-location --no-deps {arg} --compile --requirement {requirements}')
 
 
 def find_default_version(module_name):

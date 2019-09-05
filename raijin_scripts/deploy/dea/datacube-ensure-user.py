@@ -8,18 +8,18 @@
 from __future__ import print_function
 
 import os
-import pwd
 import random
 import string
 import sys
-from textwrap import dedent
 from collections import namedtuple
-from pathlib import Path
+from textwrap import dedent
 
 import click
 import psycopg2
+import pwd
 import pytest
 from boltons.fileutils import atomic_save
+from pathlib import Path
 
 OLD_DB_HOST = '130.56.244.105'
 PASSWORD_LENGTH = 32
@@ -75,19 +75,19 @@ def find_credentials(pgpass, host, dbcreds):
     if not pgpass.exists() or os.path.getsize(pgpass) == 0:
         # New user, add new credentials to connect to any database
         raise CredentialsNotFound("New user: Add new credentials to .pgpass file")
-    else:
-        with pgpass.open() as src:
-            for line in src:
-                # Ignore comments and empty lines
-                if not line.strip().startswith('#') and line.strip():
-                    creds = DBCreds(*line.strip().split(':'))
-                    if creds.host == host and creds.username == dbcreds.username:
-                        # Production database credentials exists
-                        new_creds = creds._replace(host="*", port="*")
-                    elif creds.host == "*" and creds.username == dbcreds.username:
-                        # Already migrated to new database format, do noting
-                        new_creds = None
-        return new_creds
+
+    with pgpass.open() as src:
+        for line in src:
+            # Ignore comments and empty lines
+            if not line.strip().startswith('#') and line.strip():
+                creds = DBCreds(*line.strip().split(':'))
+                if creds.host == host and creds.username == dbcreds.username:
+                    # Production database credentials exists
+                    new_creds = creds._replace(host="*", port="*")
+                elif creds.host == "*" and creds.username == dbcreds.username:
+                    # Already migrated to new database format, do noting
+                    new_creds = None
+    return new_creds
 
 
 def append_credentials(pgpass, dbcreds):

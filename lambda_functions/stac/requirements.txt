@@ -1,6 +1,10 @@
-boto3==1.6.23
-pyproj==1.9.5.1
+ruamel.yaml
+boto3==1.9.118
+pyproj==2.1.1
 parse==1.9.0
-python_dateutil==2.7.5
-PyYAML==3.13
+python_dateutil==2.8.0
 pycrs==1.0.0
+
+# Only used for the parent update script, which is not currently run as a Lambda function
+--extra-index-url https://packages.dea.gadevs.ga/
+odc-apps-cloud

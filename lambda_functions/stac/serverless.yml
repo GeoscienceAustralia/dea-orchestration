@@ -15,32 +15,40 @@ package:
     - package.json
     - package-lock.json
     - requirements.txt
-    - stac_deploy.tf
     - terraform.*
     - notify_to_stac_queue.py
-    - stac_check.py
+    - test_stac.py
     - stac_parent_update.py
     - stac_utils.py
-    - update_product_suite_catalogs.py
 
 custom:
-  Stage: dev
-  profiles:
-    dev: devProfile
-    prod: prodProfile
-  CustEnv:
-    s3Bucket:
-      prod: "dea-lambda"
-      dev: "dea-lambdas-dev"
-  pythonRequirements:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
+  Stage: ${opt:stage, self:provider.stage}
+  profile:
+    dev: dea-dev
+    prod: dea-prod
+  deploymentBucket:
+    prod: "dea-lambda"
+    dev: "dea-lambdas-dev"
+  dataBucket:
+    prod: dea-public-data
+    dev: dea-public-data-dev
+  snsTopic:
+    prod: arn:aws:sns:ap-southeast-2:538673716275:DEANewData
+    dev: arn:aws:sns:ap-southeast-2:451924316694:DEANewDataDev
+pythonRequirements:
     dockerizePip: non-linux
+    slim: true
     fileName: requirements.txt
+    useDownloadCache: true
 
 provider:
   name: aws
-  runtime: python3.6
-  profile: ${self:custom.profiles.${self:custom.Stage}}
-  deploymentBucket: ${self:custom.CustEnv.s3Bucket.${self:custom.Stage}}
+  stage: dev
+  runtime: python3.7
+  profile: ${self:custom.profile.${self:custom.Stage}}
+  deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   region: ap-southeast-2
 
   iamRoleStatements:
@@ -48,19 +56,74 @@ provider:
       Action:
        - "s3:GetObject"
        - "s3:PutObject"
-      Resource: "arn:aws:s3:::dea-public-data-dev/*"
+      Resource: "arn:aws:s3:::${self:custom.dataBucket.${self:custom.Stage}}/*"
     - Effect: "Allow"
       Action:
         - "sqs:ReceiveMessage"
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
-      Resource: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
+      Resource: !GetAtt staticStacQueue.Arn
 
 functions:
   stac:
     handler: stac.stac_handler
+    memorySize: 128
+    timeout: 5
     events:
       - sqs:
-        arn: "arn:aws:sqs:ap-southeast-2:451924316694:static-stac-queue"
-        batchSize: 10
+          arn: !GetAtt staticStacQueue.Arn
+          batchSize: 10
 
+# Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
+resources:
+  Resources:
+    ### PART ONE: SQS Queues
+    staticStacQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: static-stac-queue
+        VisibilityTimeout: 600
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt staticStacDeadLetterQueue.Arn
+          maxReceiveCount: 5
+    staticStacDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: static-stac-dead-letter-queue
+        VisibilityTimeout: 600
+
+    ### PART TWO: Create SQS Queue Policies
+    # Create our queue policy for the 'firstQueue'
+    snsToFirstQueueSqsPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: "allow-sns-messages"
+              Effect: Allow
+              Principal: "*"
+              Resource: !GetAtt staticStacQueue.Arn
+              Action: "SQS:SendMessage"
+              Condition:
+                ArnEquals:
+                  "aws:SourceArn": ${self:custom.snsTopic.${self:custom.Stage}}
+        Queues:
+          - Ref: staticStacQueue
+
+    ### PART THREE: Subscribe our SQS Queues to our SNS Topic
+    # Create the subscription to the 'firstQueue'
+    staticStacQueueSubscription:
+      Type: 'AWS::SNS::Subscription'
+      Properties:
+        TopicArn: ${self:custom.snsTopic.${self:custom.Stage}}
+        Endpoint: !GetAtt staticStacQueue.Arn
+        Protocol: sqs
+        RawMessageDelivery: 'true'
+  Outputs:
+    QueueURL:
+      Description: "URL of newly created SQS Queue"
+      Value: !Ref staticStacQueue
+    QueueARN:
+      Description: "ARN of newly created SQS Queue"
+      Value: !GetAtt staticStacQueue.Arn

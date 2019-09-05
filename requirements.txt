@@ -1,7 +1,11 @@
 # Required modules for Linting and Testing on Travis-CI
 pytest
+pytest-cov
 pycodestyle
 pylint
+moto
+yamllint
+codecov
 
 # Modules required by the NCI Environment Modules. Checked by pylint
 boto3

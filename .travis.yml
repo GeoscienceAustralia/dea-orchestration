@@ -1,16 +1,10 @@
-dist: trusty
-# tests primarily focused on lambda component
+dist: xenial
 language: python
 
 python:
-  - "3.6"
+  - "3.7"
 
 sudo: false
-
-addons:
-  apt:
-    packages:
-      - shellcheck
 
 env:
   global:
@@ -18,7 +12,6 @@ env:
 
 git:
   depth: 99999
-
 
 cache:
   directories:
@@ -29,22 +22,23 @@ install:
 
 script:
   - npm install -g serverless
-  - pushd lambda_functions/execute_ssh_command_js && serverless plugin install --name serverless-pseudo-parameters && popd
-  - ./scripts/check-code.sh
-
-before_deploy:
-  - cd lambda_functions/execute_ssh_command_js/ && npm install
-  - npm --version
   # Configure serverless AWS custom profile settings.
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
   # configured in travis project web settings
-  - serverless config credentials --provider aws --key $aws_access_key_id --secret $aws_secret_access_key --profile prodProfile --overwrite
+  - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile prodProfile --overwrite
+  - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile dea-prod --overwrite
+  - ./scripts/check-code.sh
+
+after_success:
+  - codecov
+
+before_deploy:
+  - npm --version
 
 deploy:
+ # Serverless deploy to production environment after merging to production branch
  - provider: script
-   script:
-          # Serverless deploy to production environment after merging to production branch
-          - sls deploy -v -s prod
+   script: sls deploy -v -s prod
    skip_cleanup: true  # Don't re-run the tests
    on:
       branch: production
