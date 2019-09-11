@@ -52,7 +52,7 @@ This will load the latest version of `dea/<build_date>` module.
 It will also load `dea-env/<build_date>` which contains all of the software
 dependencies for using DEA.
 
-### Notes
+## Notes
 
 Loading these module might conflict with other python modules you have loaded.
 
@@ -103,6 +103,13 @@ Once a module has been tested and approved, it can be made the default.
 Edit the `.version` file in the modulefiles directory.
 
 Eg. For `dea` this is: `/g/data/v10/public/modules/modulefiles/dea/.version`
+
+
+## Re-Building _dea-unstable_
+
+    module load python3/3.6.2
+    rm -rf /g/data/v10/public/modules/dea/unstable
+    python3 build_environment_module.py dea_unstable/modulespec.yaml
 
 
 ## Archiving an old module
