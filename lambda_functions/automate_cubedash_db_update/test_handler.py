@@ -25,12 +25,12 @@ class TestLambdaFunction(unittest.TestCase):
 
     @patch('handler.boto3.client')
     @patch('handler._update_cubedash_db_config')
-    def test_lambda_handler(self, mock_client, mock_update_cubedash_call):
+    def test_nci_db_update(self, mock_client, mock_update_cubedash_call):
         event = {
             "Records": [
                 {
                     "Sns": {
-                        "Message": "Test message\n",
+                        "Message": "nci_20190101\n",
                         "Timestamp": "Timestamp",
                         "MessageId": "Message_1234"
                     },
@@ -39,3 +39,39 @@ class TestLambdaFunction(unittest.TestCase):
         }
         handler(event, None)
         mock_update_cubedash_call.assert_called
+
+    @patch('handler.boto3.client')
+    @patch('handler._update_cubedash_db_config')
+    def test_ows_db_update(self, mock_client, mock_update_cubedash_call):
+        event = {
+            "Records": [
+                {
+                    "Sns": {
+                        "Message": "ows_20190101\n",
+                        "Timestamp": "Timestamp",
+                        "MessageId": "Message_1234"
+                    },
+                },
+            ]
+        }
+        handler(event, None)
+        mock_update_cubedash_call.assert_called
+
+    @patch('handler.boto3.client')
+    @patch('handler._update_cubedash_db_config')
+    def test_db_name_error(self, mock_client, mock_update_cubedash_call):
+        event = {
+            "Records": [
+                {
+                    "Sns": {
+                        "Message": "20190101\n",
+                        "Timestamp": "Timestamp",
+                        "MessageId": "Message_1234"
+                    },
+                },
+            ]
+        }
+        try:
+            handler(event, None)
+        except SystemExit:
+            mock_update_cubedash_call.assert_called
