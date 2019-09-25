@@ -25,6 +25,15 @@ def handler(event, context):
     LOG.info("Message ID from Sns: " + event['Records'][0]['Sns']['MessageId'])
     LOG.info("Message timestamp from Sns: " + event['Records'][0]['Sns']['Timestamp'])
 
-    _update_cubedash_db_config(os.environ.get('CUBEDASH_CONFIG'),
-                               message.split('\n')[0],
+    db_name = message.split('\n')[0]
+    if 'nci_' in db_name:
+        update_file = os.environ.get('NCI_EXPLORER_FILE')
+    elif 'ows_' in db_name:
+        update_file = os.environ.get('OWS_EXPLORER_FILE')
+    else:
+        LOG.info("DB Name (" + db_name + ") Error. Config file not updated")
+        exit(1)
+
+    _update_cubedash_db_config(update_file,
+                               db_name,
                                os.environ.get('BITBUCKET_BRANCH'))
