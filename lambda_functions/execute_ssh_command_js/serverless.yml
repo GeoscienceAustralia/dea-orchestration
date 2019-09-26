@@ -17,7 +17,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   timeout: 600  # 10 minutes. Default is 6 seconds
   profile: ${self:custom.profiles.${self:custom.Stage}}
   environment:
@@ -25,7 +25,7 @@ provider:
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
-    DEA_MODULE: dea/20190805
+    DEA_MODULE: dea/20190902
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -57,7 +57,7 @@ functions:
     events:
       - schedule:
           rate: cron(00 10 ? * SUN *)  # Run every Sunday, at 08:00 pm Canberra time
-          enabled: true
+          enabled: false
   execute_sync:
     # trasharchived is set to 'yes' only for the albers products and not for the scenes
     handler: handler.execute_ssh_command
@@ -110,7 +110,7 @@ functions:
             suffixpath: '-04-'  # Process April month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -119,7 +119,7 @@ functions:
             suffixpath: '-05-'  # Process May month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -128,7 +128,7 @@ functions:
             suffixpath: '-06-'  # Process June month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -137,7 +137,7 @@ functions:
             suffixpath: '-07-'  # Process July month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -146,7 +146,7 @@ functions:
             suffixpath: '-08-'  # Process August month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -155,7 +155,7 @@ functions:
             suffixpath: '-09-'  # Process September month data
       - schedule:
           rate: cron(30 00 ? * MON *)  # Run every Monday, at 10:30 am Canberra time
-          enabled: true
+          enabled: false
           input:
             product: s2_ard_granule
             trasharchived: no
@@ -249,7 +249,7 @@ functions:
     events:
       - schedule:
           rate: cron(5 1 ? * TUE *)  # Run weekly at 11:05AM AEST
-          enabled: true
+          enabled: false
           input:
             task: level1
             start_date_offset: 7  # Process last 7 days up until 00:00 Tuesday
@@ -260,7 +260,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(10 1 1 * ? *)  # Run on the 1st of every month at 11:10 AM AEST
-          enabled: true
+          enabled: false
           input:
             task: level1
             start_date_offset: 31  # Process last 31 days up until 00:00 TODAY
@@ -271,7 +271,7 @@ functions:
             obs_year: previous
       - schedule:
           rate: cron(5 1 ? * SAT *)  # Run every Saturday at 11:05 AM, AEST
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 12  # Process from Monday 00:00 to Monday 00:00
@@ -282,7 +282,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(5 5 5 * ? *)  # Run monthly on the 5th, kick off find command at 3:05pm
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 35  # Kicks off re-processing for the past month for previous years on the 5th
