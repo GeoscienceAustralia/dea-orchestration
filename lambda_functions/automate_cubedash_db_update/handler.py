@@ -30,6 +30,10 @@ def handler(event, context):
         update_file = os.environ.get('NCI_EXPLORER_FILE')
     elif 'ows_' in db_name:
         update_file = os.environ.get('OWS_EXPLORER_FILE')
+    elif 'sandbox_' in db_name:
+        update_file = os.environ.get('SANDBOX_EXPLORER_FILE')
+    elif 'africa_' in db_name:
+        update_file = os.environ.get('AFRICA_EXPLORER_FILE')
     else:
         LOG.info("DB Name (" + db_name + ") Error. Config file not updated")
         exit(1)
