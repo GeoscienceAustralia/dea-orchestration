@@ -95,7 +95,7 @@ package:
 
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.7 # Travis requires 3.7, sls deploy requires 3.6
   timeout: 600  # 10 minutes. Default is 6 seconds
   memorySize: 256  # in MB, default is 1024
   region: ap-southeast-2
@@ -134,7 +134,7 @@ provider:
   # Service wide environment variables declaration
   environment:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    DEA_MODULE: dea/20190902
+    DEA_MODULE: dea/20190329
     PROJECT: v10
     QUEUE: normal
     DYNAMODB_TABLENAME: ${self:custom.dynamodb.${self:custom.Stage}}

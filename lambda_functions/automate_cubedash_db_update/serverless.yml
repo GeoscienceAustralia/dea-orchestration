@@ -14,7 +14,7 @@ custom:
     prod: "cubedash-db-update-prod"
     dev: "cubedash-db-update-dev"
   bitbucketbranch:
-    prod: "prod"
+    prod: "eks-prod"
     dev: "test-db-update"
 
 package:
@@ -40,6 +40,7 @@ provider:
   - Effect: 'Allow'
     Action:
       - 'ssm:GetParameters'
+      - 'ssm:GetParameter'
       - 'ssm:DescribeParameters'
     Resource:
       - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
@@ -56,7 +57,10 @@ provider:
   # Service wide environment variables declaration
   environment:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    CUBEDASH_CONFIG: "services/cubedash.yaml"
+    NCI_EXPLORER_FILE: "services/prod_eks_nciexplorer.yaml"
+    OWS_EXPLORER_FILE: "services/prod_eks_explorer.yaml"
+    SANDBOX_EXPLORER_FILE: "services/sandbox_explorer.yaml"
+    AFRICA_EXPLORER_FILE: "services/deafrica_explorer.yaml"
     BITBUCKET_BRANCH: ${self:custom.bitbucketbranch.${self:custom.Stage}}
     SNS_TOPIC: ${self:custom.snstopic.${self:custom.Stage}}
 

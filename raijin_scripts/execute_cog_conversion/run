@@ -59,7 +59,7 @@ nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
 set -x  # echo ON
 
 python3 "$COG_CONV_DIR"/cog_conv_app.py qsub-cog -p ${PRODUCT} --output-dir ${WORKDIR} \
---time-range ${TIME_RANGE_TO_PROCESS} --aws-profile default --s3-output-url ${S3_OUTPUT_URL}
+--time-range ${TIME_RANGE_TO_PROCESS} --aws-profile prodProfile --s3-output-url ${S3_OUTPUT_URL}
 
 set +x  # echo OFF
 

@@ -31,12 +31,20 @@ if [ ! -d "$DATAKUBE_APPS_DIR" ]; then
   ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git clone $DATAKUBE_APPS_REPO;"
 fi
 
+prefix_db=$(echo "$DB_NAME" | cut -d '_' -f1)
+
+if [[ "$prefix_db" == "sandbox" ]]; then
+  BRANCH="eks-sandbox"
+elif [[ "$prefix_db" == "africa" ]]; then
+  BRANCH="eks-deafrica"
+fi
+
 cd "$DATAKUBE_APPS_DIR" || exit 1  # Changes home folder to be in repo
 ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; git fetch && git checkout ${BRANCH}; git reset --hard origin/${BRANCH}; git pull"
 
-ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY; 
-   sed -i -E 's/nci_[0-9]*/${DB_NAME}/g' ${DATAKUBE_APPS_DIR}/${UPDATE_FILE}; 
+ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY;
+   sed -i -E 's/${prefix_db}_[0-9]*/${DB_NAME}/g' ${DATAKUBE_APPS_DIR}/${UPDATE_FILE};
    git add ${DATAKUBE_APPS_DIR}/${UPDATE_FILE}; 
-   git commit -m '[skip ci] Updating NCI CubeDash config with new Database name ${DB_NAME}'; 
+   git commit -m '[skip ci] Updating ${prefix_db} explorer config with new database name ${DB_NAME}';
    git push -u origin ${BRANCH}"
 
