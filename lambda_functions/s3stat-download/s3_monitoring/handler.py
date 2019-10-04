@@ -78,7 +78,7 @@ def read_json(filename):
         reader = json.loads(File.read())
         reader_files = reader['Files']
         results = []
-        for i,v in reader_files.items():
+        for i, v in reader_files.items():
             if str(i).endswith('.TIF') or str(i).endswith('.tif') or str(i).endswith('.tiff'):
                 results.append({"folder": str(i), "hits": int(v[0]), "bytes": int(v[1])})
         return results
@@ -110,7 +110,7 @@ def get_ssm_parameter(name, with_decryption=True):
 
 def handler(event, context):
     """Main Entry Point"""
-    today=datetime.date.today()
+    today = datetime.date.today()
     week = today.strftime("%Y%V")
     month = today.strftime("%Y%m")
 

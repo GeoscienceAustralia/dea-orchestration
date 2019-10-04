@@ -216,4 +216,3 @@ def handler(event, context):
 
         # Update the actual csv file
         s3_client.put_object(Bucket=S3_OUTPUT_BUCKET, Key=f's3-csv/data.csv', Body=newdata)
-
