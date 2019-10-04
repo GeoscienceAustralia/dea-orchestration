@@ -1,14 +1,5 @@
-# Monitor Digital Earth Australia processes running at the NCI
-#
-# Sequence of steps before and after sls deploy:
-#
-#  1) Create the SQS queue within your service (if sqs queue does not exist)
-#  2) Add permissions on the SQS queue to allow S3 to publish notifications
-#      https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html
-#      https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html
-#  3) Enable and attach event notifications for the desired S3 Bucket to SQS queue
-#  4) npm install
-#  5) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s prod
+#  1) npm install
+#  2) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s dev
 
 service: s3stat-download
 
@@ -40,16 +31,13 @@ provider:
   timeout: 60  # 60 seconds. Default is 6 seconds
   memorySize: 512  # in MB, default is 1024
   stage: dev
-  # Since SES is not supported in Sydney region, all emails are pushed to the
-  # S3 bucket in us-west-2 region. For s3 to trigger SQS and SQS trigger lambda function execution, all the aws
-  # resources need to be in the same region as S3 bucket.
   region: ap-southeast-2
   deploymentBucket: "s3stat-monitoring"
   profile: ${self:custom.profile.${opt:stage}}
   tags:
     repo: https://github.com/GeoscienceAustralia/dea-data
     author: nci.monitor@dea.ga.gov.au
-    purpose: s3-download-automation
+    purpose: s3stats-download-upload-automation
   iamRoleStatements:
   - Effect: 'Allow'
     Action:
@@ -66,6 +54,10 @@ provider:
     Action:
       - "*"
     Resource: "arn:aws:s3:::s3stat-monitoring/*"
+  - Effect: "Allow"
+    Action:
+      - "*"
+    Resource: "arn:aws:s3:::dea-public-data-dev/s3-csv/*"
 
   # Service wide environment variables declaration
   environment:
@@ -77,4 +69,10 @@ functions:
     description: Download data from s3stat page 
     events:
       - schedule: rate(23 hours)
-
+  s3stat-montly-upload:
+    handler: s3_monthly_update.handler.handler
+    description: Upload monthly s3 stats csv file
+    events:
+      - schedule:
+          rate: cron(0 10 3 * *)  # Run every 2nd month at 08:00 pm AEST
+          enabled: true
