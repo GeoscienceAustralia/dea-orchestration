@@ -19,9 +19,6 @@ if Path(CSV_FILE).is_file():
 
 
 def read_json(reader):
-    '''
-    Read the json input file
-    '''
     reader_files = reader['Files']
     today = date.today()
     results = []
@@ -43,7 +40,7 @@ def tile_index_from_path(path):
     result = {}
     for part in path.split('/'):
         result.update(go(part))
-    return ((result['x']), (result['y']))
+    return result['x'], result['y']
 
 
 def product_name(folder):
@@ -85,20 +82,6 @@ def spatial_id(folder):
         return '<none>'
 
 
-def coordsgeojson(spatialid):
-    with open('australian-mgrs-tiles.geojson') as fl:
-        input_gj = json.load(fl)
-    feats = input_gj['features']
-    for feat in feats:
-        if 'MGRS' in feat['properties']:
-            mgrs = feat['properties']['MGRS']
-            if spatial_id == mgrs:
-                polygon = Polygon(feat["geometry"]['coordinates'][0])
-                lat = round(polygon.centroid.y, 1)
-                lon = round(polygon.centroid.x, 1)
-                return lat
-
-
 def latcord(folder):
     parts = Path(folder).parts
 
@@ -134,10 +117,10 @@ def merge_pre(folder_name, dicts, file_date):
         'date': dt.strftime("%A, %d-%B-%Y"),
         'product': product_name(folder_name),
         'spatial_id': spatial_id(folder_name),
-        'Lat': latcord(folder_name, spatial_id(folder_name)),
-        'Lon': loncord(folder_name, spatial_id(folder_name)),
+        'Lat': latcord(folder_name),
+        'Lon': loncord(folder_name),
         'hits': max(int(d['hits']) for d in dicts),
-        'bytes/GB': round(sum(int(d['bytes']) for d in dicts) / 1000000000, 2),
+        'bytes/GB': f"{(sum(int(d['bytes']) for d in dicts) / 1000000000):.2f}",
         'folder': folder_name
     }
 
@@ -178,17 +161,10 @@ def stats(monthly_json, s3_client, features):
         for dict_item in products:
             if dict_item['spatial_id'] == label:
                 polygon = Polygon(feat["geometry"]['coordinates'][0])
-                dict_item['Lat'] = round(polygon.centroid.y, 1)
-                dict_item['Lon'] = round(polygon.centroid.x, 1)
+                dict_item['Lat'] = f"{polygon.centroid.y:.2f}"
+                dict_item['Lon'] = f"{polygon.centroid.x:.2f}"
 
-    with open(CSV_FILE, 'a+') as output_file:
-        dict_writer = csv.DictWriter(output_file, list(stage2[0]))
-        if Path(CSV_FILE).stat().st_size == 0:
-            dict_writer.writeheader()  # file doesn't exist yet, write a header
-        else:
-            dict_writer.writerows(products)
-
-    return products
+    return products, list(stage2[0])
 
 
 def handler(event, context):
@@ -206,13 +182,19 @@ def handler(event, context):
         albers_features = json.load(fl)['features']
 
     # Loop through files within s3stat-monitoring/stats/month bucket and process monthly
-    for monthly_json in jsons:
-        stats(monthly_json, s3_client, albers_features + mgrs_features)
+    first_file = False
+    with open(CSV_FILE, 'a+') as output_file:
+        for monthly_json in jsons:
+            products, header = stats(monthly_json, s3_client, albers_features + mgrs_features)
+            dict_writer = csv.DictWriter(output_file, header)
+            if not first_file:
+                dict_writer.writeheader()  # file doesn't exist yet, write a header
+                first_file = True
+                dict_writer.writerows(products)
+            else:
+                dict_writer.writerows(products)
 
-    with open(CSV_FILE, 'rb') as newdata:
-        # Upload a copy of the output csv file
-        s3_client.put_object(Bucket=S3_OUTPUT_BUCKET,
-                             Key=f's3-csv/data_{str(datetime.now().strftime("%Y%m%d_%H:%M:%S"))}.csv', Body=newdata)
+    newdata = open(CSV_FILE, 'rb')
 
-        # Update the actual csv file
-        s3_client.put_object(Bucket=S3_OUTPUT_BUCKET, Key=f's3-csv/data.csv', Body=newdata)
+    # Update the actual csv file
+    s3_client.put_object(Bucket=S3_OUTPUT_BUCKET, Key='s3-csv/data.csv', Body=newdata)
