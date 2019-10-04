@@ -10,8 +10,9 @@ custom:
   pythonRequirements:
     dockerizePip: non-linux
   Stage: ${opt:stage, self:provider.stage}
-  profile:
-    dev: dea-data-dev
+  profiles:
+    dev: devProfile
+    prod: prodProfile
 
 package:
   exclude:
@@ -73,4 +74,4 @@ functions:
     handler: s3_monthly_update.handler.handler
     description: Upload monthly s3 stats csv file
     events:
-      - schedule: cron(0 10 2 * *)  # Run every 2nd day of the month at 08:00 pm AEST
+      - schedule: cron(0 10 2 * * *)  # Run every 2nd day of the month at 08:00 pm AEST
