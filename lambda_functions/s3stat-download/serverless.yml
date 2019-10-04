@@ -66,7 +66,7 @@ provider:
 functions:
   s3stat-monitor:
     handler: s3_monitoring.handler.handler
-    description: Download data from s3stat page 
+    description: Download data from s3stat page
     events:
       - schedule: rate(23 hours)
   s3stat-montly-upload:
