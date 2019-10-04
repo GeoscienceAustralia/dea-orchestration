@@ -114,8 +114,8 @@ def handler(event, context):
     week = today.strftime("%Y%V")
     month = today.strftime("%Y%m")
 
-    file_monthurl = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/month" + month+".json"
-    file_url = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/week" + week+".json"
+    file_monthurl = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/month" + month + ".json"
+    file_url = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/week" + week + ".json"
     o_week_file = week + ".json"
     o_month_file = month + ".json"
 
