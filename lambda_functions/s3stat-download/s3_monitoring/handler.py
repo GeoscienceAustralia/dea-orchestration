@@ -1,37 +1,24 @@
+import boto3
+import datetime
+import json
 import logging
 import os
-import re
-from datetime import datetime
-
-import boto3
-
-from .log_cfg import setup_logging
-import logging 
-
-import datetime
+import os.path
 import requests
 
-from pathlib import Path
 from collections import defaultdict
-import os.path
-
-import json
-
+from datetime import datetime
 from matplotlib import cm
-from matplotlib.colors import to_hex
+from pathlib import Path
+
 
 colormap = cm.spring
 
-
-#today=datetime.date.today()
-#yesterday = (today - datetime.timedelta(days =2)).strftime("%Y%m%d"))
-
 bucket_name = "s3stat-monitoring"
 
-file_path  = "/serverless/s3stat-download/dev/"
+file_path = "/serverless/s3stat-download/dev/"
 
 
-setup_logging()
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SSM_USER_PATH = os.environ.get('SSM_USER_PATH')
@@ -49,7 +36,9 @@ def spatial_id(folder):
     print(parts)
     print(parts[-1])
 
-    if len(parts) > 2 and parts[0] == 'L2' and parts[1] == 'sentinel-2-nrt' and parts[-2] in ['NBAR', 'NBART', 'QA', 'SUPPLEMENTARY', 'LAMBERTIAN']:
+    if len(parts) > 2 and parts[0] == 'L2' and parts[1] == 'sentinel-2-nrt' and parts[-2] in ['NBAR', 'NBART', 'QA',
+                                                                                              'SUPPLEMENTARY',
+                                                                                              'LAMBERTIAN']:
         try:
             return parts[-3].split("_")[-2][1:]
         except IndexError:
@@ -95,11 +84,9 @@ def read_json(filename):
         return results
 
 
-
 def ssh_config_from_ssm_user_path(path=DEFAULT_SSM_USER_PATH):
     return {'userid': get_ssm_parameter(path + '.userid'),
             'password': get_ssm_parameter(path + '.password')}
-
 
 
 SSM = None
@@ -121,39 +108,22 @@ def get_ssm_parameter(name, with_decryption=True):
     raise AttributeError("Key '{}' not found in SSM".format(name))
 
 
-
 def handler(event, context):
     """Main Entry Point"""
-    
-
     today=datetime.date.today()
-    yesterday =(today - datetime.timedelta(days =2)).strftime("%Y%m%d")
     week = today.strftime("%Y%V")
     month = today.strftime("%Y%m")
 
-    #ssm_keys = ssh_config_from_ssm_user_path()
-    #site_url = 'https://www.s3stat.com/Login.aspx?returnPath=%2fCustomer%2fMyAccount.aspx'
-    #userid = ssm_keys['userid']
-    #password = ssm_keys['password']
+    file_monthurl = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/month" + month+".json"
+    file_url = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/week" + week+".json"
+    o_week_file = week + ".json"
+    o_month_file = month + ".json"
 
-    file_dayurl = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/day"+ yesterday+".json"
-    file_monthurl= "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/month"+ month+".json"
-    file_url = "https://s3.amazonaws.com/reports.s3stat.com/17448/dea-public-data/stats/week"+ week+".json"
-    o_file = yesterday+".json"
-    o_week_file = week+".json"
-    o_month_file = month +".json"
-
-# Create session
+    # Create session
     s = requests.Session()
 
-# GET request. This will generate cookie
-    #s.get(site_url)
-
-# Login to site
-    #s.post(site_url, data={'_username': userid, '_password': password})
-
-# Next thing will be to visit URL for file to download
-    #Download week file
+    # Next thing will be to visit URL for file to download
+    # Download week file
     r = s.get(file_url)
     if r.status_code == requests.codes.ok:
         LOG.info("File downloaded successfully")
@@ -167,7 +137,7 @@ def handler(event, context):
         s3.upload_file("/tmp/" + o_week_file, bucket_name, 'stats/week/' + o_week_file)
         r.history.clear()
 
-    #Download Month data
+    # Download Month data
     r = s.get(file_monthurl)
     if r.status_code == requests.codes.ok:
         LOG.info("Month File downloaded successfully")
@@ -179,5 +149,3 @@ def handler(event, context):
 
         s3.upload_file("/tmp/" + o_month_file, bucket_name, 'stats/month/' + o_month_file)
         r.history.clear()
-
-
