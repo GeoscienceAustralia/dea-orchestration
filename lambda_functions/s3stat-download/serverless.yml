@@ -73,6 +73,4 @@ functions:
     handler: s3_monthly_update.handler.handler
     description: Upload monthly s3 stats csv file
     events:
-      - schedule:
-          rate: cron(0 10 3 * *)  # Run every 2nd month at 08:00 pm AEST
-          enabled: true
+      - schedule: cron(0 10 2 * *)  # Run every 2nd day of the month at 08:00 pm AEST
