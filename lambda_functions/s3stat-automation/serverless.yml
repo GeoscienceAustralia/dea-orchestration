@@ -1,0 +1,77 @@
+#  1) npm install
+#  2) sls deploy --aws-profile <Existing AWS Profile Name> -vv -s dev
+
+service: s3stat-download
+
+plugins:
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+  Stage: ${opt:stage, self:provider.stage}
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+
+package:
+  exclude:
+    - node_modules/**
+    - .idea/**
+    - .requirements/**
+    - env/**
+    - README.md
+    - package.json
+    - package-lock.json
+    - requirements.txt
+
+
+provider:
+  name: aws
+  runtime: python3.7
+  timeout: 60  # 60 seconds. Default is 6 seconds
+  memorySize: 512  # in MB, default is 1024
+  stage: dev
+  region: ap-southeast-2
+  deploymentBucket: "s3stat-monitoring"
+  profile: ${self:custom.profile.${opt:stage}}
+  tags:
+    repo: https://github.com/GeoscienceAustralia/dea-data
+    author: nci.monitor@dea.ga.gov.au
+    purpose: s3stats-download-upload-automation
+  iamRoleStatements:
+  - Effect: 'Allow'
+    Action:
+      - 'ssm:GetParameter'
+      - 'ssm:GetParameters'
+      - 'ssm:DescribeParameters'
+    Resource:
+      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
+  - Effect: 'Allow'
+    Action: 'kms:Decrypt'
+    Resource:
+      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
+  - Effect: "Allow"
+    Action:
+      - "*"
+    Resource: "arn:aws:s3:::s3stat-monitoring/*"
+  - Effect: "Allow"
+    Action:
+      - "*"
+    Resource: "arn:aws:s3:::dea-public-data-dev/s3-csv/*"
+
+  # Service wide environment variables declaration
+  environment:
+    SSM_USER_PATH: 's3stat.monitoring'
+
+functions:
+  s3stat-monitor:
+    handler: s3_monitoring.handler.handler
+    description: Download data from s3stat page
+    events:
+      - schedule: rate(23 hours)
+  s3stat-montly-upload:
+    handler: s3_monthly_update.handler.handler
+    description: Upload monthly s3 stats csv file
+    events:
+      - schedule: cron(0 10 2 * * *)  # Run every 2nd day of the month at 08:00 pm AEST
