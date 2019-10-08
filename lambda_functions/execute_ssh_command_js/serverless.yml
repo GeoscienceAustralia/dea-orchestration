@@ -73,7 +73,7 @@ functions:
                          --trasharchived <%= trasharchived %>'
     events:
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -82,7 +82,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-01-'  # Process January month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -91,7 +91,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-02-'  # Process February month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -100,7 +100,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-03-'  # Process March month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -109,7 +109,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-04-'  # Process April month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -118,7 +118,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-05-'  # Process May month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -127,7 +127,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-06-'  # Process June month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -136,7 +136,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-07-'  # Process July month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -145,7 +145,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-08-'  # Process August month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -154,7 +154,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-09-'  # Process September month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -163,7 +163,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-10-'  # Process October month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -172,7 +172,7 @@ functions:
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-11-'  # Process November month data
       - schedule:
-          rate: cron(30 00 ? * TUE *)  # Run every Tuesday, at 10:30 am Canberra time
+          rate: cron(30 00 ? * WED *)  # Run every Wednesday, at 10:30 am Canberra time
           enabled: true
           input:
             product: s2_ard_granule
@@ -270,7 +270,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(5 1 ? * FRI *)  # Run every Saturday at 11:05 AM, AEST
+          rate: cron(5 1 ? * SUN *)  # Run every Sunday at 11:05 AM, AEST
           enabled: true
           input:
             task: level2
@@ -281,7 +281,7 @@ functions:
             level1_dir: /g/data/fj7/Copernicus/Sentinel-2/MSI/L1C
             obs_year: current
       - schedule:
-          rate: cron(5 8 8 * ? *)  # Run on the 8th of every month at 6:05 PM AEST
+          rate: cron(5 11 6 * ? *)  # Run on the 6th of every month at 9:05 PM AEST
           enabled: true
           input:
             task: level2
