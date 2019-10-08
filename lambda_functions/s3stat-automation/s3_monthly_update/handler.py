@@ -117,14 +117,14 @@ def loncord(folder):
 def merge_pre(folder_name, dicts, file_date):
     dt = datetime.strptime(file_date + '01', "%Y%m%d")
     return {
-        'date': dt.strftime("%A, %d-%B-%Y"),
+        'date': dt.strftime("%d-%B-%Y"),
         'product': product_name(folder_name),
         'spatial_id': spatial_id(folder_name),
         'Lat': latcord(folder_name),
         'Lon': loncord(folder_name),
-        'hits': max(int(d['hits']) for d in dicts),
+        'hits': str(max(int(d['hits']) for d in dicts)),
         'bytes/GB': f"{(sum(int(d['bytes']) for d in dicts) / 1000000000):.2f}",
-        'folder': folder_name
+        'folder': str(folder_name)
     }
 
 
