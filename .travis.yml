@@ -39,7 +39,7 @@ deploy:
  # Serverless deploy to production environment after merging to production branch
  - provider: script
    script:
-     - cd lambda_functions/execute_ssh_command_js/
+     - cd "$PWD"/lambda_functions/execute_ssh_command_js && npm install
      - sls deploy -v -s prod
    skip_cleanup: true  # Don't re-run the tests
    on:
