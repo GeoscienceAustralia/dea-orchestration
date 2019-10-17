@@ -25,11 +25,15 @@ def handler(event, context):
     LOG.info("Message ID from Sns: " + event['Records'][0]['Sns']['MessageId'])
     LOG.info("Message timestamp from Sns: " + event['Records'][0]['Sns']['Timestamp'])
 
-    db_name = message.split('\n')[0]
+    bit_bucket_branch = message.split(':')[0].strip()
+    db_name = message.split(':')[1].strip()
+
     if 'nci_' in db_name:
         update_file = os.environ.get('NCI_EXPLORER_FILE')
     elif 'ows_' in db_name:
-        update_file = os.environ.get('OWS_EXPLORER_FILE')
+        update_file = os.environ.get('OWS_EXPLORER_FILE') \
+            if bit_bucket_branch == 'eks-prod' else \
+            os.environ.get('OWS_DEV_EXPLORER_FILE')
     elif 'sandbox_' in db_name:
         update_file = os.environ.get('SANDBOX_EXPLORER_FILE')
     elif 'africa_' in db_name:
@@ -40,4 +44,4 @@ def handler(event, context):
 
     _update_cubedash_db_config(update_file,
                                db_name,
-                               os.environ.get('BITBUCKET_BRANCH'))
+                               bit_bucket_branch)

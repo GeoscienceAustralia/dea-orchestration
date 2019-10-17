@@ -44,7 +44,7 @@ class TestLambdaFunction(unittest.TestCase):
             "Records": [
                 {
                     "Sns": {
-                        "Message": "nci_20190101\n",
+                        "Message": "eks-prod:nci_20190101\n",
                         "Timestamp": "Timestamp",
                         "MessageId": "Message_1234"
                     },
@@ -61,7 +61,7 @@ class TestLambdaFunction(unittest.TestCase):
             "Records": [
                 {
                     "Sns": {
-                        "Message": "ows_20190101\n",
+                        "Message": "eks:ows_20190101\n",
                         "Timestamp": "Timestamp",
                         "MessageId": "Message_1234"
                     },
@@ -78,7 +78,7 @@ class TestLambdaFunction(unittest.TestCase):
             "Records": [
                 {
                     "Sns": {
-                        "Message": "20190101\n",
+                        "Message": "dev:20190101\n",
                         "Timestamp": "Timestamp",
                         "MessageId": "Message_1234"
                     },
