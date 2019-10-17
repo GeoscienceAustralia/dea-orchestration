@@ -59,6 +59,7 @@ provider:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
     NCI_EXPLORER_FILE: "services/prod_eks_nciexplorer.yaml"
     OWS_EXPLORER_FILE: "services/prod_eks_explorer.yaml"
+    OWS_DEV_EXPLORER_FILE: "services/dev_eks_explorer.yaml"
     SANDBOX_EXPLORER_FILE: "services/sandbox_explorer.yaml"
     AFRICA_EXPLORER_FILE: "services/deafrica_explorer.yaml"
     BITBUCKET_BRANCH: ${self:custom.bitbucketbranch.${self:custom.Stage}}
