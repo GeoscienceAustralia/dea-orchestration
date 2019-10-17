@@ -39,13 +39,26 @@ def process_directory(bucket, directory):
     response = s3client.list_objects_v2(Bucket=bucket, Prefix=f"{directory}/", Delimiter='/')
 
     files = [content['Key'] for content in response.get('Contents', [])]
-    folders = [prefix['Prefix'] for prefix in response.get('CommonPrefixes', [])]
 
     index_path = path.join(directory, 'index.html')
     LOG.info("Found '%s' in '%s'. Updating '%s'.", len(files), directory, index_path)
 
     index_contents = generate_index_html(files)
     s3client.put_object(Bucket=bucket, Key=index_path, Body=index_contents, ContentType="text/html",
+                        CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
+
+
+def regenerate_root_index(bucket):
+    LOG.info("Regenerating root index in s3://%s", bucket)
+    s3client = boto3.client('s3')
+    response = s3client.list_objects_v2(Bucket=bucket, Delimiter='/')
+
+    folders = [prefix['Prefix'][:-1] for prefix in response.get('CommonPrefixes', [])]
+    LOG.info("Found '%s' folders.", len(folders))
+
+    index_contents = generate_index_html(folders)
+    print(index_contents)
+    s3client.put_object(Bucket=bucket, Key='index.html', Body=index_contents, ContentType="text/html",
                         CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
 
 
@@ -69,14 +82,18 @@ def generate_index_html(objs):
 
 
 def main():
+    logging.basicConfig()
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("bucket")
-    parser.add_argument("directory")
+    parser.add_argument("directory", nargs="?", default=None)
     args = parser.parse_args()
 
-    process_directory(args.bucket, args.directory)
+    if args.directory is None:
+        regenerate_root_index(args.bucket)
+    else:
+        process_directory(args.bucket, args.directory)
 
 
 if __name__ == '__main__':

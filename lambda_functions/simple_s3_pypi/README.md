@@ -2,6 +2,9 @@
 
 This directory contains code for 2 x lambda functions:
 
+1. Generate Listing
+2. Make Public
+
 ## Generate Listing
 
 This Lambda is responsible for maintaining a simple python package
@@ -17,6 +20,12 @@ deployment tools.
 
 We can follow [PEP 503 - Simple Repository API](https://www.python.org/dev/peps/pep-0503/)
 and maybe eventually include extra niceties like checksum hashes.
+
+This tool can be run from the command line to manually update `index.html` files.
+
+To update the root of our package repository
+
+    python genindex.py datacube-core-deployment
 
 ## Make Public
 
