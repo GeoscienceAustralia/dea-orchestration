@@ -311,7 +311,7 @@ def create_dynamodb_table(event, context):
         else:
             LOG.error("Unexpected error: %r", err)
 
-    return ['SYNC', 'INGEST', 'WOFS', 'FC', 'DAM_SCRIPT', 'COG', 'DONE']
+    return ['SYNC', 'INGEST', 'WOFS', 'FC', 'COG', 'DAM_SCRIPT', 'DONE']
 
 
 def fetch_job_ids(event, context):
