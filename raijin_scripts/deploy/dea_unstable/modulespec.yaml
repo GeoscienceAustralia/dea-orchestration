@@ -32,4 +32,3 @@ copy_files:
 template_files:
 - src: ../dea/modulefile.template
   dest: "{modules_base}/modulefiles/{module_name}/{module_version}"
-
