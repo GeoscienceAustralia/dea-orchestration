@@ -1,9 +1,10 @@
---index-url https://packages.dea.gadevs.ga/
---no-binary fc
+--index-url https://packages.dea.ga.gov.au/
 datacube
 eodatasets
+eodatasets3
 digitalearthau
 datacube-stats
+datacube-alchemist
 fc
 wofs
 odc-ui
