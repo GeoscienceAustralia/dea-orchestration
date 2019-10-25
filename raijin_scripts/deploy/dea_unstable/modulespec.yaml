@@ -16,7 +16,7 @@ stable_module_deps:
 - dea-env
 
 install_pip_packages:
-  requirements: ../dea/requirements.txt
+  requirements: requirements.txt
   prefix: "{module_path}"
   pip_cmd: "module load {fixed_dea_env}; pip "
 
