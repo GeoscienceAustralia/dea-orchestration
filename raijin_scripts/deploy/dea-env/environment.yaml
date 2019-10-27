@@ -15,6 +15,7 @@ dependencies:
 - cachetools
 - cairo
 - cartopy
+- cattr
 - cffi
 - ciso8601
 - click
