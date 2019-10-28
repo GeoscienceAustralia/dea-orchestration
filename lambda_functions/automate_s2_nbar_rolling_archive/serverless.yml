@@ -58,7 +58,7 @@ provider:
                        '/g/data/v10/work/s2_ard/wagl/batchid-21e0db8763/level-1-done.txt',
                        '/g/data/v10/work/s2_ard/wagl/batchid-02c261496d/level-1-done.txt']
     AWS_PROFILE: ${self:custom.profiles.${self:custom.Stage}}
-    S3_BUCKET: ${self:custom.snstopic.${self:custom.Stage}}
+    S3_BUCKET: ${self:custom.s3Bucket.${self:custom.Stage}}
 
 functions:
   AutomateRollingS2NbarArchive:
