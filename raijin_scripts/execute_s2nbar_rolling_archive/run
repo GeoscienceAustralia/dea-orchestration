@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --s3client )            shift
+                                S3_CLIENT="$1"
+                                ;;
+        --s3bucket )            shift
+                                S3_BUCKET="$1"
+                                ;;
+        --filelist )            shift
+                                FILE_LIST="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+DATAKUBE_APPS_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive"
+
+cd "$DATAKUBE_APPS_DIR" || exit 1  # Changes home folder to be in repo
+python3 s3_sync.py "${S3_BUCKET}" "${S3_CLIENT}" "${FILE_LIST}"
