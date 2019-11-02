@@ -7,10 +7,10 @@ import dateutil.parser
 
 del os.environ['http_proxy']
 
-URLS = [
-    'http://gsky.nci.org.au/ows?service=WMS&version=1.3.0&request=GetCapabilities',
-    'https://ows.services.dea.ga.gov.au/?service=WMS&version=1.3.0&request=GetCapabilities'
-]
+URLS = {
+    'gsky' : "http://gsky.nci.org.au/ows?service=WMS&version=1.3.0&request=GetCapabilities",
+    'ows' : "https://ows.services.dea.ga.gov.au/?service=WMS&version=1.3.0&request=GetCapabilities"
+}
 
 NS = {'wms': 'http://www.opengis.net/wms'}
 
@@ -47,7 +47,7 @@ def get_ages_dea_nrt(url):
     for node in nrt_node.findall('wms:Layer', NS):
         layer_name_and_age(node, now)
 
-get_ages_dea_nrt(URLS[1])
+get_ages_dea_nrt(URLS['ows'])
 
 #for url in URLS:
 #    print(url)
