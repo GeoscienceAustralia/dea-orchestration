@@ -1,17 +1,12 @@
-import glob
 import logging
 import re
 import sys
-import uuid
-import yaml
 import zipfile
 
-from botocore.exceptions import ClientError
 from dateutil.parser import parse as date_parser
 from os.path import join as pjoin, basename
 from pathlib import Path
 from xml.etree import ElementTree
-from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
 from wagl.acquisition import acquisitions
 
 
@@ -22,54 +17,6 @@ ARD = 'ARD'
 DEFAULT_PKGDIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 METADATA_FILE = 'ARD-METADATA.yaml'
 S3_PREFIX_PATH = 'L2/sentinel-2-nbar/S2MSIARD_NBAR'
-
-
-def upload_to_s3(s3_client, file_name, bucket, key, ymd):
-    """
-       Upload a file to an S3 bucket
-    """
-    try:
-        path_list = Path(file_name).parts
-    except AttributeError:
-        LOG.error("Error processing ", file_name)
-        return True
-
-    logging.info('Sync ' + file_name + ' file to S3')
-    if 'ARD-METADATA' in file_name:
-        obj_name = "/".join([S3_PREFIX_PATH, ymd, key, METADATA_FILE])
-    else:
-        idx = path_list.index(key)
-        obj_name = "/".join((S3_PREFIX_PATH, ymd,) + path_list[idx:])
-
-    try:
-        # The upload_file method is handled by the S3 Transfer Manager,
-        # this means that it will automatically handle multipart uploads behind the scenes for you, if necessary.
-        s3_client.upload_file(file_name, bucket, obj_name)
-        return True
-    except ClientError as e:
-        logging.error(e)
-        return False
-
-
-def sync_granules(s3_client, bucket_name, dir_path, ymd):
-    """
-    Uploads the given file using a managed uploader, which will split up large
-    files automatically and upload parts in parallel
-    """
-    allfiles = [Path(f) for f in glob.glob(dir_path + "/*/*", recursive=True)
-                if "NBART" not in f] + \
-               [f for f in Path(dir_path).iterdir() if f.is_file()]
-
-    key = Path(dir_path).parts[-1]
-
-    for file_name in allfiles:
-        if "ARD-METADATA.yaml" in str(file_name):
-            update_metadatafile(s3_client, file_name, bucket_name, key, ymd)
-        else:
-            # Upload a file
-            response = upload_to_s3(s3_client, str(file_name), bucket_name, key, ymd)
-            if response:
-                LOG.info(f'{file_name} file uploaded')
 
 
 def extract_granule_names(pathname):
@@ -126,38 +73,11 @@ def extract_granule_names(pathname):
     return results
 
 
-def update_metadatafile(s3_client, yaml_file, bucket_name, key, ymd):
-    with open(yaml_file) as config_file:
-        temp_metadata = yaml.load(config_file, Loader=Loader)
+def process_granules(level1_done_filepath):
+    ret_list, l1_list = list(), list()
+    l1_list.append(level1_done_filepath.strip(','))
 
-    temp_metadata['image']['bands'].pop('nbart_blue', None)
-    temp_metadata['image']['bands'].pop('nbart_coastal_aerosol', None)
-    temp_metadata['image']['bands'].pop('nbart_contiguity', None)
-    temp_metadata['image']['bands'].pop('nbart_green', None)
-    temp_metadata['image']['bands'].pop('nbart_nir_1', None)
-    temp_metadata['image']['bands'].pop('nbart_nir_2', None)
-    temp_metadata['image']['bands'].pop('nbart_red', None)
-    temp_metadata['image']['bands'].pop('nbart_red_edge_1', None)
-    temp_metadata['image']['bands'].pop('nbart_red_edge_2', None)
-    temp_metadata['image']['bands'].pop('nbart_red_edge_3', None)
-    temp_metadata['image']['bands'].pop('nbart_swir_2', None)
-    temp_metadata['image']['bands'].pop('nbart_swir_3', None)
-    temp_metadata.pop('lineage', None)
-    temp_metadata['creation_dt'] = temp_metadata['extent']['center_dt']
-    temp_metadata['product_type'] = 'S2MSIARD_NBAR'
-    temp_metadata['id'] = str(uuid.uuid4())
-
-    with open(METADATA_FILE, mode='w') as tf:
-        yaml.dump(temp_metadata, tf, default_flow_style=False, Dumper=Dumper)
-
-    # Upload a file
-    response = upload_to_s3(s3_client, METADATA_FILE, bucket_name, key, ymd)
-    if response:
-        LOG.info(f'{METADATA_FILE} file uploaded')
-
-
-def process_main(s3_client, s3_bucket, level1_done_filepath):
-    for done_file in level1_done_filepath:
+    for done_file in l1_list:
         level1_files = set(open(done_file))
         for level1 in level1_files:
             LOG.info(f"Input: {level1.strip()}")
@@ -170,12 +90,14 @@ def process_main(s3_client, s3_bucket, level1_done_filepath):
             metadata_path = pjoin(DEFAULT_PKGDIR, ymd, s2_ard_granule)
             LOG.info(f"Processed: {metadata_path}")
             LOG.info('\n')
-            sync_granules(s3_client, s3_bucket, metadata_path, ymd)
+            ret_list.append(metadata_path)
 
         # Rename the file after processing, to avoid duplicate dataset generation during the work flow
         dest_path = str(Path(done_file).parent / Path(done_file).stem) + "_processed.txt"
         Path(done_file).rename(dest_path)
 
+    print(",".join(ret_list))
+
 
 if __name__ == '__main__':
-    process_main(sys.argv[0], sys.argv[1], sys.argv[2])
+    process_granules(sys.argv[1])

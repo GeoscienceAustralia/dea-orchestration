@@ -28,11 +28,15 @@ package:
 provider:
   name: aws
   runtime: python3.7
-  timeout: 60  # 60 seconds. Default is 6 seconds
+  timeout: 300  # 5 mins. Default is 6 seconds
   memorySize: 128  # in MB, default is 1024
   region: ap-southeast-2
   stage: dev
   profile: ${self:custom.profiles.${self:custom.Stage}}
+  tags:
+    repo: https://github.com/GeoscienceAustralia/dea-orchestration
+    author: nci.monitor@dea.ga.gov.au
+    purpose: s2-nbar-rolling-archive-automation
   iamRoleStatements:
   - Effect: 'Allow'
     Action:
@@ -50,19 +54,21 @@ provider:
     Resource: "*"
     Action:
       - "sns:*"
+  - Effect: "Allow"
+    Action:
+      - "s3:*"
+    Resource: "*"
 
   # Service wide environment variables declaration
   environment:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    LEVEL1_DONE_LIST: ['/g/data/v10/work/s2_ard/wagl/batchid-1bafe0dd96/level-1-done.txt',
-                       '/g/data/v10/work/s2_ard/wagl/batchid-21e0db8763/level-1-done.txt',
-                       '/g/data/v10/work/s2_ard/wagl/batchid-02c261496d/level-1-done.txt']
-    AWS_PROFILE: ${self:custom.profiles.${self:custom.Stage}}
+    LEVEL1_DONE_LIST: "/g/data/v10/work/s2_ard/wagl/batchid-ab64e286ad/level-1-failed.txt,"
+    AWS_PROFILE_NAME: ${self:custom.profiles.${self:custom.Stage}}
     S3_BUCKET: ${self:custom.s3Bucket.${self:custom.Stage}}
 
 functions:
-  AutomateRollingS2NbarArchive:
-    handler: handler.handler
-    description: Upload monthly s3 stats csv file
+  execute_s2nbar_rolling_archive:
+    handler: execute_s2nbar.handler.handler
+    description: Automate rolling archive for Sentinel 2 NBAR
     events:
-      - schedule: cron(30 23 ? * THU *)  # Run every Thursday, at 10:30 am Canberra time
+      - schedule: cron(55 12 ? * THU *)  # Run every Thursday, at 10:30 am Canberra time

@@ -5,11 +5,11 @@ set -eu
 while [[ "$#" -gt 0 ]]; do
     key="$1"
     case "${key}" in
-        --s3client )            shift
-                                S3_CLIENT="$1"
+        --profile )             shift
+                                PROFILE="$1"
                                 ;;
         --s3bucket )            shift
-                                S3_BUCKET="$1"
+                                BUCKET="$1"
                                 ;;
         --filelist )            shift
                                 FILE_LIST="$1"
@@ -22,7 +22,24 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-DATAKUBE_APPS_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive"
+SCRIPT_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive/execute_s2nbar"
+WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
+S3_BUCKET=s3://"${BUCKET}"/L2/sentinel-2-nbar/S2MSIARD_NBAR
+IFS=', ' read -r -a l1_files <<< "$FILE_LIST"
 
-cd "$DATAKUBE_APPS_DIR" || exit 1  # Changes home folder to be in repo
-python3 s3_sync.py "${S3_BUCKET}" "${S3_CLIENT}" "${FILE_LIST}"
+mkdir -p "${WORKDIR}"
+
+#  ##################################################################################################
+#  # Run s3 sync python script
+#  ##################################################################################################
+for file_name in "${l1_files[@]}"
+do
+    set -x
+
+    qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
+    -v profile="${PROFILE}",s3bucket="${S3_BUCKET}",file_name="${file_name}",root_dir="${SCRIPT_DIR}", \
+    "${SCRIPT_DIR}"/submit_s2_copyq_jobs.sh
+
+    set +x
+
+done
