@@ -20,15 +20,22 @@ else
     IFS=" " read -r -a parts <<< "$SSH_ORIGINAL_COMMAND"
 fi
 
+SCRIPT_NAME="$(basename "${parts[0]}")"
+
 cd "$PARENT_DIR" || exit 1  # Set the current working dir to this dir
 
-# Looks for a folder the same as the first arg; runs the `run` file in that folder
-if [[ -d "$SCRIPT_DIR/${parts[0]}" ]]; then
-     cd "$SCRIPT_DIR/${parts[0]}" || exit 1
+# Allow scripts to be either contained within a directory, or to be a single file
+# For scripts within a dir, `run` is the name of the script
+if [[ -d "${SCRIPT_DIR}/${SCRIPT_NAME}" ]]; then
+     cd "${SCRIPT_DIR}/${SCRIPT_NAME}" || exit 1
      ./run "${parts[@]:1}" # passes along all args
      exit $? # Exit with exit code of last run script
+elif [[ -x "$SCRIPT_DIR/${SCRIPT_NAME}" ]]; then
+    cd "${SCRIPT_DIR}" || exit 1
+    ./"${SCRIPT_NAME}" "${parts[@]:1}"
+     exit $? # Exit with exit code of last run script
 else
-     echo "Unable to find raijin script folder: '${parts[0]}'"
+     echo "Unable to find raijin script: '${SCRIPT_NAME}'"
      echo "Try running update_scripts for the latest changes"
      exit ${SCRIPT_NOT_FOUND_EXIT_CODE}
 fi
