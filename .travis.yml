@@ -19,9 +19,9 @@ cache:
 
 install:
   - pip install -r requirements.txt
+  - npm install -g serverless
 
 script:
-  - npm install -g serverless
   # Configure serverless AWS custom profile settings.
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
   # configured in travis project web settings
@@ -32,15 +32,11 @@ script:
 after_success:
   - codecov
 
-before_deploy:
-  - npm --version
-
 deploy:
- # Serverless deploy to production environment after merging to production branch
+ # Serverless deploy to Production environment every time from master
  - provider: script
-   script:
-     - cd "$PWD"/lambda_functions/execute_ssh_command_js && npm install
-     - sls deploy -v -s prod
+   script: ./scripts/deploy.sh
    skip_cleanup: true  # Don't re-run the tests
    on:
-      branch: production
+      branch: master
+      repo: GeoscienceAustralia/dea-orchestration
