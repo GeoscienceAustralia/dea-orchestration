@@ -11,6 +11,7 @@
   "dependencies": {},
   "devDependencies": {
     "serverless": "^1.44.1",
+    "serverless-apigw-binary": "^0.4.4",
     "serverless-pseudo-parameters": "^2.4.0",
     "serverless-python-requirements": "^4.3.0"
   },
