@@ -34,6 +34,7 @@ finalise_commands:
 - jupyter labextension install --no-build jupyter-leaflet
 - jupyter labextension install --no-build nbdime-jupyterlab
 - jupyter labextension install --no-build @ryantam626/jupyterlab_code_formatter
+- jupyter labextension install --no-build jupyterlab-dash@0.1.0-alpha.3
 # To Dask-labextension works well only with 'conda-forge/label/broken' conda version of jupyterlab
 - jupyter labextension install --no-build dask-labextension
 # To Dask-labextension works well only with 'conda-forge/label/cf201901' conda version of jupyterlab
@@ -44,3 +45,5 @@ finalise_commands:
 - jupyter serverextension enable --py dask_labextension --sys-prefix
 - jupyter serverextension enable --py jupyterlab_code_formatter --sys-prefix
 - jupyter serverextension enable --py jupyter_server_proxy --sys-prefix
+# New geomedian/hdstats package from s3
+- pip install -U -v --no-deps --compile --requirement requirements.txt
