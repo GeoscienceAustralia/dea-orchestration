@@ -81,7 +81,8 @@ dependencies:
 - jupyter
 - jupyter_contrib_nbextensions
 - jupyter_dashboards
-- conda-forge/label/broken::jupyterlab
+- jupyterlab
+- jupyterlab-dash
 - kealib
 - keras
 - krb5
@@ -114,6 +115,7 @@ dependencies:
 - numexpr
 - numpy
 - openjpeg
+- openmp
 - openmpi
 - pandas
 - parallel
@@ -127,7 +129,7 @@ dependencies:
 - plotly
 - poppler
 - poppler-data
-- proj4
+- proj
 - prometheus_client
 - psutil
 - psycopg2
