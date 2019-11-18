@@ -1,0 +1,6 @@
+{
+    "headers": {},
+    "path": "/plot/foo",
+    "queryStringParameters": {},
+    "httpMethod": "GET"
+}

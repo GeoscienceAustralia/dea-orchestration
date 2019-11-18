@@ -1,5 +1,7 @@
-requests_aws4auth
+# requests_aws4auth
 
 matplotlib
 numpy
 lambda_proxy
+pandas
+boto3

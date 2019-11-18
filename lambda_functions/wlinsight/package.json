@@ -1,17 +1,19 @@
 {
-  "name": "update-cubedash-dbconfig",
+  "name": "wlinsight-plotter",
   "version": "1.0.0",
-  "description": "Automate cubedash db update",
-  "main": "handler.py",
+  "description": "Generate plots for the DEA Wetland Insight Tool",
+  "main": "wlinsight_plot.py",
   "scripts": {
     "test": "python -m pytest --cov"
   },
   "author": "Geoscience Australia",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/GeoscienceAustralia/dea-orchestration/",
   "dependencies": {},
   "devDependencies": {
-    "serverless": "^1.44.1",
+    "serverless": "^1.57.0",
     "serverless-apigw-binary": "^0.4.4",
+    "serverless-offline": "^6.0.0-alpha.43",
     "serverless-pseudo-parameters": "^2.4.0",
     "serverless-python-requirements": "^4.3.0"
   },

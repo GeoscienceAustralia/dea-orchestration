@@ -1,16 +1,13 @@
-service: wlinsight_plot
+service: wlinsight-plot
 
 plugins:
   - serverless-python-requirements
   - serverless-pseudo-parameters
-  - serverless-apigw-binary
+  - serverless-offline
 custom:
   pythonRequirements:
     dockerizePip: non-linux
   Stage: ${opt:stage, self:provider.stage}
-  apigwBinary:
-    types:
-      - '*/*'
 
 package:
   exclude:
@@ -30,7 +27,9 @@ provider:
   memorySize: 128  # in MB, default is 1024
   region: ap-southeast-2
   stage: dev
-  profile: dev
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
   iamRoleStatements:
   - Effect: "Allow"
     Resource: "*"
@@ -43,6 +42,6 @@ functions:
     handler: wlinsight_plot.APP
     events:
      - http:
-         path: plot/{proxy+}
-         method: get
-         cors: true
+        path: plot/{proxy+}
+        method: get
+        cors: true
