@@ -23,7 +23,7 @@ setenv PYTHONFAULTHANDLER 1
 # This allows users to install python packages with "pip install --user <package>",
 setenv PYTHONUSERBASE ~/.digitalearthau/${module_name}/${module_version}/local
 setenv GDAL_DATA ${module_path}/share/gdal
-setenv PROJ_LIB ${module_path}/lib/python2.7/site-packages/pyproj/data/share/proj
+setenv PROJ_LIB ${module_path}/lib/python3.6/site-packages/pyproj/data
 
 if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
         puts stderr "Warning: ${module_name}/${module_version} exists in the python env ($$env(PYTHONPATH))"
