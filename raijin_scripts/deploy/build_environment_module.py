@@ -13,7 +13,9 @@ It requires python 3.7+ and pyyaml.
 Use a qsub interactive copyq job on raijin with sufficient memory to run the following commands at the NCI:
 New DEA-Env Module
   $ module use /g/data/v10/public/modules/modulefiles/
-  $ module load python3/3.7.2
+  $ module load python3/3.7.4
+  # if pyyaml is not installed in gadi
+  $ pip install PyYAML --user
 
   $ # Building a new Environment Module:
   $ python3 build_environment_module.py dea-env/modulespec.yaml
@@ -105,7 +107,7 @@ def date(date_format="%Y%m%d") -> str:
 
 def _log_output(line):
     try:
-        LOG.info(line.encode('ascii').decode('utf-8'))
+        LOG.info(line)
     except UnicodeEncodeError:
         LOG.warning("UnicodeEncodeError: %s", line.encode('ascii', 'replace'))
 

@@ -1,2 +1,2 @@
 --index-url https://packages.dea.gadevs.ga/
---no-binary hdstats
+hdstats
