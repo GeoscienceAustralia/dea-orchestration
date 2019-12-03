@@ -29,12 +29,12 @@ package:
 provider:
   name: aws
   runtime: python3.7
-  timeout: 60  # 60 seconds. Default is 6 seconds
+  timeout: 120  # 120 seconds. Default is 6 seconds
   memorySize: 512  # in MB, default is 1024
   stage: dev
   region: ap-southeast-2
   deploymentBucket: "s3stat-monitoring"
-  profile: ${self:custom.profile.${opt:stage}}
+  profile: ${self:custom.profiles.${opt:stage}}
   tags:
     repo: https://github.com/GeoscienceAustralia/dea-data
     author: nci.monitor@dea.ga.gov.au
@@ -74,4 +74,6 @@ functions:
     handler: s3_monthly_update.handler.handler
     description: Upload monthly s3 stats csv file
     events:
-      - schedule: cron(0 10 2 * * *)  # Run every 2nd day of the month at 08:00 pm AEST
+      - schedule:
+        rate: cron(0 0 10 ? 1/1 MON#1 *)  # Run every First Monday of every month at 08:00 pm AEST
+        enabled: true
