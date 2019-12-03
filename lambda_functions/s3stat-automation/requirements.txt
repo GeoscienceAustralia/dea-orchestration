@@ -2,3 +2,4 @@ requests_aws4auth
 paramiko
 requests
 boto3
+shapely

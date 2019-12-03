@@ -7,18 +7,15 @@ import os.path
 from pathlib import Path
 import re
 from shapely.geometry import Polygon
+import tempfile
 
 
-CSV_FILE = 'data.csv'
 S3_INPUT_BUCKET = 's3stat-monitoring'
 S3_OUTPUT_BUCKET = 'dea-public-data-dev'
 ROOT_DIR = Path(__file__).absolute().parent
 MGRS_GEOJSON_FILE = ROOT_DIR / 'australian-mgrs-tiles.geojson'
 ALBERS_GEOJSON_FILE = ROOT_DIR / 'albers_grid.geojson'
-
-# Remove output file if it exists
-if Path(CSV_FILE).is_file():
-    Path(CSV_FILE).unlink()
+s3_client = boto3.client('s3')
 
 
 def read_json(reader):
@@ -172,8 +169,6 @@ def stats(monthly_json, s3_client, features):
 
 def handler(event, context):
     """Main Entry Point"""
-    session = boto3.Session(profile_name='devProfile')
-    s3_client = session.client('s3')
     jsons = get_monthly_jsons(s3_client)
 
     # Extract MGRS tiles features
@@ -186,7 +181,7 @@ def handler(event, context):
 
     # Loop through files within s3stat-monitoring/stats/month bucket and process monthly
     first_file = False
-    with open(CSV_FILE, 'a+') as output_file:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', encoding='utf-8', delete=False) as output_file:
         for monthly_json in jsons:
             products, header = stats(monthly_json, s3_client, albers_features + mgrs_features)
             dict_writer = csv.DictWriter(output_file, header)
@@ -197,7 +192,5 @@ def handler(event, context):
             else:
                 dict_writer.writerows(products)
 
-    newdata = open(CSV_FILE, 'rb')
-
-    # Update the actual csv file
-    s3_client.put_object(Bucket=S3_OUTPUT_BUCKET, Key='s3-csv/data.csv', Body=newdata)
+        # Update the actual csv file
+        s3_client.upload_file(output_file.name, S3_OUTPUT_BUCKET, 's3-csv/data.csv')
