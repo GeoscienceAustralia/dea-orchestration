@@ -4,7 +4,7 @@
   "description": "Automate cubedash db update",
   "main": "handler.py",
   "scripts": {
-    "test":  "python -m pytest --cov"
+    "test":  "python -m pytest --cov=."
   },
   "author": "Geoscience Australia",
   "license": "Apache 2",
