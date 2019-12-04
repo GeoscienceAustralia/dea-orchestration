@@ -1,0 +1,100 @@
+  name: Execute_Jobs-${self:custom.Stage}
+  id: Execute_Sync
+  events:
+    - schedule:
+      rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
+      enabled: false
+  definition:
+    Comment: "Orchestrate NCI jobs that can self manage job dependencies"
+    StartAt: Create_DynamoDb_Table
+    States:
+      Create_DynamoDb_Table:
+        Type: Task
+        Next: For_Loop
+        Resource: ${self:custom.arns.create_dynamodb_table_arn}
+        TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+        HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+        ResultPath: "$.ExecutionCommandList"
+        Catch:
+        - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+          Next: StateMachineFailed
+      For_Loop:
+        Type: Choice
+        Choices:
+          - Not:
+              Variable: "$.ExecutionCommandList[0]"
+              StringEquals: "DONE"
+            Next: Submit_Job
+        Default: Finished
+      Submit_Job:
+        Type: Task
+        Next: Wait_5_Minutes
+        Resource: ${self:custom.arns.submit_job_arn}
+        TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+        HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+        InputPath: "$.ExecutionCommandList[0]"
+        ResultPath: "$.event_olist"
+        OutputPath: "$"
+        Catch:
+        - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+          Next: StateMachineFailed
+      Wait_5_Minutes:  # Wait for 5 minutes
+        Type: Wait
+        Seconds: 300
+        Next: Get_Job_Ids
+      Get_Job_Ids:  # Fetch sync job id's and update the job status in aws dynamodb database
+        Type: Task
+        Resource: ${self:custom.arns.fetch_jobid_arn}
+        TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+        HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+        ResultPath: "$.event_olist"
+        OutputPath: "$"
+        Catch:
+          - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+            Next: StateMachineFailed
+        Next: Get_Job_Status
+      Get_Job_Status:  # qstat PBS job id and update the status in aws dynamodb database
+        Type: Task
+        Resource: ${self:custom.arns.check_job_status_arn}
+        TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+        HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+        ResultPath: "$.jobs_finished"
+        OutputPath: "$"
+        Catch:
+          - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+            Next: Task_Failed
+            ResultPath: "$.error"  # Return both error and event input to Task_Failed state
+        Next: Job_Completed?
+      Job_Completed?:  # Check if the sync job is completed
+        Type: Choice
+        Choices:
+        - Variable: "$.jobs_finished"
+          BooleanEquals: true
+          Next: Start_New_Command_Exec
+        - Variable: "$.jobs_finished"
+          BooleanEquals: false
+          Next: Wait_30_Minutes
+        Default: Task_Failed
+      Wait_30_Minutes:  # Wait for 30 minutes before reading the job status
+        Type: Wait
+        Seconds: 1800
+        Next: Get_Job_Ids
+      Start_New_Command_Exec:  # Start a new Command execution
+        Type: Pass
+        Parameters:
+          ExecutionCommandList.$: "$.ExecutionCommandList[1:]"
+        Next: For_Loop
+      Task_Failed:
+        Type: Task
+        Resource: ${self:custom.arns.state_failed_arn}
+        TimeoutSeconds: ${self:provider.environment.TASK_TIMEOUT}
+        HeartbeatSeconds: ${self:provider.environment.TASK_HEARTBEAT}
+        Catch:
+          - ErrorEquals: ["States.ALL"]  # Includes States.Timeout, States.TaskFailed, and States.Permissions
+            Next: StateMachineFailed
+        Next: StateMachineFailed
+      StateMachineFailed:
+        Type: Fail
+        Cause: "State Machine Failed"
+      Finished:
+        Type: Succeed

@@ -60,8 +60,8 @@ echo "Starting coherence process......"
 ##################################################################################################
 # Qsub dea-coherence process
 ##################################################################################################
-qsub -V -N dea-coherence -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=25GB,ncpus=1 -P ${PROJECT} \
--o ${WORKDIR} -e ${WORKDIR} -m abe -M nci.monitor@dea.ga.gov.au \
+qsub -V -N dea-coherence -q ${QUEUE} -W umask=33 -l wd,walltime=10:00:00,mem=3GB,ncpus=1 -P ${PROJECT} \
+-lother=gdata1:gdata2 -o ${WORKDIR} -e ${WORKDIR} -m abe -M nci.monitor@dea.ga.gov.au \
 -- dea-coherence --check-downstream --check-locationless --check-ancestors ${PRODUCT_QUERY} ${RANGE_EXP}
 
 EOF
