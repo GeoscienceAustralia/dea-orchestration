@@ -20,7 +20,7 @@ shellcheck -e SC1071,SC1090,SC1091 "${SHELL_SCRIPTS[@]}"
 
 # Run tests on raijin python scripts
 pushd raijin_scripts
-find . -name '*.py' -print0 | xargs -0 pytest -r sx --doctest-ignore-import-errors --cov --durations=5 "$@"
+find . -name '*.py' -print0 | xargs -0 pytest -r sx --doctest-ignore-import-errors --cov=. --durations=5 "$@"
 popd
 
 # Fix for problem with the moto python package, See https://stackoverflow.com/questions/38783140/importerror-no-module-named-google-compute-engine
