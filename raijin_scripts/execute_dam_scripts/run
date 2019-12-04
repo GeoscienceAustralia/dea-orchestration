@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -eu
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --dea-module )          shift
+                                MODULE="$1"
+                                ;;
+        --dam-script-path )     shift
+                                DAM_SCRIPT_PATH="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+# Override echo command to prepend timestamp before echo message
+echo() {
+    command echo "$(date '+%F_%T.%N')" "$@"
+}
+
+WORKDIR=/g/data/v10/work/dam_update/$(date '+%FT%H%M')
+SUBMISSION_LOG="${WORKDIR}"/dam_update-$(date '+%F-%T').log
+S3_SYNC_SCRIPT_PATH=/g/data/r78/vmn547/Dams/Dams_scripts/sync_s3_timeseries.sh
+
+mkdir -p "${WORKDIR}"
+echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+
+cd "${WORKDIR}" || exit 1
+APPEND_JOB=$(qsub "${DAM_SCRIPT_PATH}")
+
+nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+echo "Logging into: ${SUBMISSION_LOG}"
+echo ""
+echo Loading module ${MODULE}
+echo ""
+
+echo "Appending the water body CSV's"
+##################################################################################################
+# Appending the water body CSV's
+##################################################################################################
+set -x  # echo ON
+
+cd "${WORKDIR}" || exit 1
+
+qsub -W depend=afterok:${APPEND_JOB}: "${S3_SYNC_SCRIPT_PATH}"
+
+set +x  # echo OFF
+EOF
+
+# Log the following values to the terminal, to be processed by the orchestration lambda function
+echo dam_update_log="${SUBMISSION_LOG}"
+echo dam_update_work_dir="${WORKDIR}"
