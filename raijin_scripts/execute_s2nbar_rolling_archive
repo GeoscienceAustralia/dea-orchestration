@@ -22,7 +22,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-SCRIPT_DIR="$HOME/dea-orchestration/raijin_scripts/s2_rolling_archive"
+SCRIPT_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive/run_s3_update_sync"
 WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
 S3_BUCKET=s3://"${BUCKET}"/L2/sentinel-2-nbar/S2MSIARD_NBAR
 IFS=', ' read -r -a l1_files <<< "$FILE_LIST"
@@ -38,7 +38,7 @@ do
 
     qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
     -v profile="${PROFILE}",s3bucket="${S3_BUCKET}",file_name="${file_name}",root_dir="${SCRIPT_DIR}", \
-    "${SCRIPT_DIR}"/submit_s2_copyq_jobs.sh
+    "$HOME/dea-orchestration/raijin_scripts/execute_submit_s2_copyq_jobs"
 
     set +x
 

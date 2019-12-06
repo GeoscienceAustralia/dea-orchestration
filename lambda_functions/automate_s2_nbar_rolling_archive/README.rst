@@ -33,16 +33,16 @@ Lambda Function
 
 - Lambda function is scheduled to run weekly. Once the list is completely processed, the lambda function will rename
   the file so that it won't be processed again.
-- To access *NCI* */g/data* for *serverless* orchestration, the lambda function (*handler.py*) will run *raijin_scripts/execute_s2nbar_rolling_archive/run* *raijin* script *raijin_scripts* folder.
+- To access *NCI* */g/data* for *serverless* orchestration, the lambda function (*execute_s2nbar/handler.py*) will run *raijin_scripts/execute_s2nbar_rolling_archive* *raijin* script *raijin_scripts* folder.
 
 Raijin Script
 ==============
-Raijin script *raijin_scripts/execute_s2nbar_rolling_archive/run* *raijin* from Raijin scripts folder has necessary permission to run under one of DEA's NCI accounts. Commands in this folder are locked down to ensure that the user isn't able to
+Raijin script *raijin_scripts/execute_s2nbar_rolling_archive* *raijin* from Raijin scripts folder has necessary permission to run under one of DEA's NCI accounts. Commands in this folder are locked down to ensure that the user isn't able to
 execute arbitrary code in our environment.
 
-1. *raijin_scripts/execute_s2nbar_rolling_archive/run* script simply submits a PBS job which executes *submit_s2_copyq_jobs.sh*
+1. *raijin_scripts/execute_s2nbar_rolling_archive* script simply submits a PBS job which executes *execute_submit_s2_copyq_jobs*
 
-2. *submit_s2_copyq_jobs.sh* PBS script:
+2. *execute_submit_s2_copyq_jobs* PBS script:
     - Runs on a *_copyq_* node to access S3
     - Reads from the list of *level1* datasets that have been successfully processed
     - Turns each level 1 file name into the path to an ARD dataset
