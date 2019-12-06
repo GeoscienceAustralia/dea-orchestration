@@ -47,4 +47,3 @@ ssh-agent bash -c "ssh-add $PATH_TO_BITBUCKET_SSH_KEY;
    git add ${DATAKUBE_APPS_DIR}/${UPDATE_FILE}; 
    git commit -m '[skip ci] Updating ${prefix_db} explorer config with new database name ${DB_NAME}';
    git push -u origin ${BRANCH}"
-
