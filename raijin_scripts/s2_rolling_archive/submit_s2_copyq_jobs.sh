@@ -68,9 +68,9 @@ do
     aws s3 rm "$s3bucket/$dt"
 
     # Archive from database
-    datacube dataset search product=ga_s2a_ard_nbar_granule time=${dt} | grep "^id: " | cut -d ":" -f2 | \
+    datacube dataset search product=ga_s2a_ard_nbar_granule time="${dt}" | grep "^id: " | cut -d ":" -f2 | \
     xargs datacube dataset archive
-    datacube dataset search product=ga_s2b_ard_nbar_granule time=${dt} | grep "^id: " | cut -d ":" -f2 | xargs \
+    datacube dataset search product=ga_s2b_ard_nbar_granule time="${dt}" | grep "^id: " | cut -d ":" -f2 | xargs \
     xargs datacube dataset archive
 
     set +x
