@@ -1,4 +1,3 @@
-import sys
 import tempfile
 import yaml
 from yaml import CSafeLoader as Loader

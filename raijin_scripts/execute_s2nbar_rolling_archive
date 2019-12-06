@@ -22,7 +22,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-SCRIPT_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive/execute_s2nbar"
+SCRIPT_DIR="$HOME/dea-orchestration/raijin_scripts/s2_rolling_archive"
 WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
 S3_BUCKET=s3://"${BUCKET}"/L2/sentinel-2-nbar/S2MSIARD_NBAR
 IFS=', ' read -r -a l1_files <<< "$FILE_LIST"
