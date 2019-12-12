@@ -163,6 +163,7 @@ dependencies:
 - rios
 - rsgislib
 - rtree
+- ralexx::ruptures
 - s3transfer
 - scikit-image
 - scikit-learn
