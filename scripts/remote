@@ -30,7 +30,7 @@ if [[ -d "${SCRIPT_DIR}/${SCRIPT_NAME}" ]]; then
      cd "${SCRIPT_DIR}/${SCRIPT_NAME}" || exit 1
      ./run "${parts[@]:1}" # passes along all args
      exit $? # Exit with exit code of last run script
-elif [[ -x "$SCRIPT_DIR/${SCRIPT_NAME}" ]]; then
+elif [[ -f "$SCRIPT_DIR/${SCRIPT_NAME}" ]]; then
     cd "${SCRIPT_DIR}" || exit 1
     ./"${SCRIPT_NAME}" "${parts[@]:1}"
      exit $? # Exit with exit code of last run script
