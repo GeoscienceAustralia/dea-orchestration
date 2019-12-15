@@ -44,6 +44,21 @@ prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local/lib/python3.6/s
 
 
 #############################################################
+# For users new to gadi, but that did have access on raijin, attempt to
+# copy their backed up ~/.pgpass file.
+#------------------------------------------------------------
+if {[string match "gadi*" [info hostname]]} {
+    if {! [file exists [file join [pwd] .pgpass]]} {
+        set oldpgpass [lindex [glob -nocomplain ~/raijin_home*/*/.pgpass] 0]
+        if {[file exists $oldpgpass]} {
+            puts "Attempting to copy raijin .pgpass to ~/.pgpass for DEA Database Access"
+            file copy $oldpgpass [pwd]
+        }
+    }
+}
+
+
+#############################################################
 # When loading, ensure a database username has been created
 # and warn if a ~/.datacube.conf file exists
 #-------------------------------------------------------------
