@@ -47,10 +47,10 @@ prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local/lib/python3.6/s
 # For users new to gadi, but that did have access on raijin, attempt to
 # copy their backed up ~/.pgpass file.
 #------------------------------------------------------------
-if {[string match "gadi*" [info hostname]]} {
-    if {! [file exists [file join [pwd] .pgpass]]} {
+if [string match "gadi*" [info hostname]] {
+    if {! [file exists ~/.pgpass]} {
         set oldpgpass [lindex [glob -nocomplain ~/raijin_home*/*/.pgpass] 0]
-        if {[file exists $oldpgpass]} {
+        if [file exists $oldpgpass] {
             puts "Attempting to copy raijin .pgpass to ~/.pgpass for DEA Database Access"
             file copy $oldpgpass [pwd]
         }
@@ -63,13 +63,13 @@ if {[string match "gadi*" [info hostname]]} {
 # and warn if a ~/.datacube.conf file exists
 #
 
-if { [module-info mode load] } {
-    if { [catch {exec -ignorestderr ${module_path}/bin/datacube-ensure-user.py ${dbhost} ${dbport}} msg ] } {
+if [module-info mode load] {
+    if [catch {exec -ignorestderr ${module_path}/bin/datacube-ensure-user.py ${dbhost} ${dbport}} results options ] {
         puts stderr "Error: database connection check failed!"
         puts stderr "  see log above for more details"
     }
 
-    if { [file exists ~/.datacube.conf]==1 } {
+    if [file exists ~/.datacube.conf] {
         puts stderr "Warning: ~/.datacube.conf detected"
         puts stderr "  it might conflict with this module"
         puts stderr "  consider removing or renaming it"
