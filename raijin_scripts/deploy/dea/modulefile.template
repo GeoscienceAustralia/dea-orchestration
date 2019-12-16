@@ -24,8 +24,8 @@ setenv DATACUBE_CONFIG_PATH ${module_path}/datacube.conf
 setenv LC_ALL en_AU.utf8
 setenv LANG C.UTF-8
 
-if {[module-info mode load] && [is-loaded ${module_name}/${module_version}]} {
-        puts stderr "Warning: ${module_name}/${module_version} exists in the python env ($$env(PYTHONPATH))"
+if {[module-info mode load] && [is-loaded $name/$version]} {
+        puts stderr "Warning: $name/$version exists in the python env ($$env(PYTHONPATH))"
 }
 
 # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
@@ -61,9 +61,10 @@ if {[string match "gadi*" [info hostname]]} {
 #############################################################
 # When loading, ensure a database username has been created
 # and warn if a ~/.datacube.conf file exists
-#-------------------------------------------------------------
+#
+
 if { [module-info mode load] } {
-    if { [catch {exec -ignorestderr ${module_path}/bin/datacube-ensure-user.py ${dbhost} ${dbport}} results options] } {
+    if { [catch {exec -ignorestderr ${module_path}/bin/datacube-ensure-user.py ${dbhost} ${dbport}} msg ] } {
         puts stderr "Error: database connection check failed!"
         puts stderr "  see log above for more details"
     }
@@ -74,3 +75,11 @@ if { [module-info mode load] } {
         puts stderr "  consider removing or renaming it"
     }
 }
+
+################################################################
+# Log access to this module, so that we know when old versions can 
+# safely be removed
+
+set sqlstr "insert into dea_module_loaded (module, username, host) values ('$name/$version', '$env(USER)', '[info hostname]');"
+set ::env(PGPASSWORD) guest
+exec psql -X -h dea-db.nci.org.au -c $sqlstr guest guest
