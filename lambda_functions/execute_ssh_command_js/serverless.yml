@@ -25,7 +25,7 @@ provider:
     userkey: 'orchestrator.raijin.users.default.user'
     pkey: 'orchestrator.raijin.users.default.pkey'
     webhook: 'orchestrator.raijin.users.default.slack.webhookurl'
-    DEA_MODULE: dea/20190902
+    DEA_MODULE: dea/unstable
     PROJECT: v10
     QUEUE: normal
   region: ap-southeast-2
@@ -78,7 +78,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2019-2019'
+            year: '2020-2020'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-01-'  # Process January month data
       - schedule:
@@ -87,7 +87,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2019-2019'
+            year: '2020-2020'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-02-'  # Process February month data
       - schedule:
@@ -96,7 +96,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2019-2019'
+            year: '2020-2020'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-03-'  # Process March month data
       - schedule:
@@ -105,7 +105,7 @@ functions:
           input:
             product: s2_ard_granule
             trasharchived: no
-            year: '2019-2019'
+            year: '2020-2020'
             path: '/g/data/if87/datacube/002/S2_MSI_ARD/packaged/'
             suffixpath: '-04-'  # Process April month data
       - schedule:

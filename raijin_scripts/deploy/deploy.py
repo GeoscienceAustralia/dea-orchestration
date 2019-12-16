@@ -19,7 +19,7 @@ USER = os.environ['USER']
 
 SCRIPT_DIR = Path(__file__).parent.absolute()
 INSTALL_NUMPY_PATH = SCRIPT_DIR / 'venv'
-TEMP_DIR = Path(os.environ.get('TMPDIR', f'/short/v10/{USER}/tmp'))
+TEMP_DIR = Path(os.environ.get('TMPDIR', f'/scratch/v10/{USER}/tmp'))
 MODULE_DIR = Path('/g/data/v10/public/modules')
 
 SRC_NAME = 'module_template.j2'

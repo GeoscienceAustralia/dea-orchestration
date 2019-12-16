@@ -19,7 +19,7 @@ class _FakeDynamoTable:
 
 def test_extract_after_search_string():
     qstat_output = """
-    Job Id: 7161209.r-man2
+    Job Id: 7161209.gadi-pbs
     Job_Name = Test_Job
     job_state = F
     queue = Test_Queue
@@ -56,9 +56,9 @@ def test_add_records_to_dynamodb():
                    'execution_status': 'foo_execution_status',
                    'work_dir': 'foo_work_dir'}
 
-    qsub_job_ids = _add_records_to_dynamodb(fake_table, events_list, "1234567.r-man2,8901234.r-man2,\n")
+    qsub_job_ids = _add_records_to_dynamodb(fake_table, events_list, "1234567.gadi-pbs,8901234.gadi-pbs,\n")
 
-    assert qsub_job_ids == {"1234567.r-man2", "8901234.r-man2"}
+    assert qsub_job_ids == {"1234567.gadi-pbs", "8901234.gadi-pbs"}
     assert fake_table.update_expr == "SET pbs_job_name = :jname, "\
         "product = :prod, "\
         "job_project = :proj, "\
@@ -95,7 +95,7 @@ def test_execute_command():
         execs.append('foo execute command')
 
         return """
-            Job Id: 7161209.r-man2
+            Job Id: 7161209.gadi-pbs
             Job_Name = Test_Job
             job_state = F
             queue = Test_Queue
@@ -117,7 +117,7 @@ def test_execute_command():
             "sync_comment=Testing\n", \
             "", 0
 
-    output = _execute_qstat_command("1234567.r-man", mock_qstat_command)
+    output = _execute_qstat_command("1234567.gadi-pbs", mock_qstat_command)
 
     assert len(execs) == 1
     assert execs[0].startswith('foo execute')
@@ -152,7 +152,7 @@ def test_get_job_status():
     sync_comment=Testing_Comment
     """
     qsub_job_ids, jobs_failed, job_status, execution_status, comments = _get_job_status(qsub_job_ids,
-                                                                                        "1234567.r-man",
+                                                                                        "1234567.gadi-pbs",
                                                                                         False,
                                                                                         output)
 
@@ -169,7 +169,7 @@ def test_get_job_status():
     sync_exit_status=0
     """
     qsub_job_ids, jobs_failed, job_status, execution_status, comments = _get_job_status(qsub_job_ids,
-                                                                                        "1234567.r-man",
+                                                                                        "1234567.gadi-pbs",
                                                                                         False,
                                                                                         output)
 
@@ -186,7 +186,7 @@ def test_get_job_status():
     sync_exit_status=2
     """
     qsub_job_ids, jobs_failed, job_status, execution_status, comments = _get_job_status(qsub_job_ids,
-                                                                                        "1234567.r-man",
+                                                                                        "1234567.gadi-pbs",
                                                                                         False,
                                                                                         output)
 
@@ -203,13 +203,13 @@ def test_get_job_status():
     sync_exit_status=NA
     """
     qsub_job_ids, jobs_failed, job_status, execution_status, comments = _get_job_status(qsub_job_ids,
-                                                                                        "1234567.r-man",
+                                                                                        "1234567.gadi-pbs",
                                                                                         False,
                                                                                         output)
 
     assert job_status == 'RUNNING'
     assert execution_status == "IN_QUEUE"
-    assert qsub_job_ids == {"12345.foo_start_id", "1234567.r-man"}
+    assert qsub_job_ids == {"12345.foo_start_id", "1234567.gadi-pbs"}
     assert not jobs_failed
     assert comments == "NA"
 
@@ -247,7 +247,7 @@ def test_process_job():
             retval = job_finished
         else:
             # Return job ids when _execute_fetch_jobid_command function is called
-            retval = '1234567.r-man2'
+            retval = '1234567.gadi-pbs'
 
         return retval, "", 0
 
@@ -262,7 +262,7 @@ def test_process_job():
             "execution_status": "IN_QUEUE",
             "work_dir": "/g/data/foo",
             "qsub_job_ids": [
-                "8458453.r-man2"
+                "8458453.gadi-pbs"
             ]
         },
         {
@@ -275,7 +275,7 @@ def test_process_job():
             "execution_status": "IN_QUEUE",
             "work_dir": "/g/data/foo1",
             "qsub_job_ids": [
-                "8458454.r-man2"
+                "8458454.gadi-pbs"
             ]
         }
     ]
@@ -283,7 +283,7 @@ def test_process_job():
     fake_table = _FakeDynamoTable()
 
     pending_jobs, job_failed = _process_job(input_list, fake_table, mock_exec_command)
-    assert pending_jobs == {'1234567.r-man2', '8458453.r-man2'}  # "8458454.r-man2" job completed. Do not expect
+    assert pending_jobs == {'1234567.gadi-pbs', '8458453.gadi-pbs'}  # "8458454.gadi-pbs" job completed. Do not expect
     assert not job_failed
 
 
@@ -293,7 +293,7 @@ def test_fetch_and_update():
     def mock_exec_command(*args, **kwargs):
         execs.append('foo execute command')
 
-        return '1234567.r-man2', "", 0
+        return '1234567.gadi-pbs', "", 0
 
     input_list = [
         {
@@ -329,7 +329,7 @@ def test_fetch_and_update():
             "execution_status": "IN_QUEUE",
             "work_dir": "/g/data/foo",
             "qsub_job_ids": [
-                "1234567.r-man2"
+                "1234567.gadi-pbs"
             ]
         },
         {
@@ -342,7 +342,7 @@ def test_fetch_and_update():
             "execution_status": "IN_QUEUE",
             "work_dir": "/g/data/foo1",
             "qsub_job_ids": [
-                "1234567.r-man2"
+                "1234567.gadi-pbs"
             ]
         }
     ]
