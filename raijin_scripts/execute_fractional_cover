@@ -105,7 +105,7 @@ echo "Executing fractional cover for ${YEAR} ${PRODUCT} with tag ${TAG}"
 ##################################################################################################
 # Run datacube-fc submit two stage PBS job
 ##################################################################################################
-datacube-fc submit -v -v --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --tag ${TAG}
+datacube-fc submit -v -v --project ${PROJECT} --queue ${QUEUE} --year ${YEAR} --app-config ${APP_CONFIG} --tag ${TAG} --config ${DATACUBE_CONFIG_PATH}
 EOF
 
 # Log the following values to the terminal, to be processed by the orchestration lambda function
