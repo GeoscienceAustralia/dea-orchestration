@@ -1,5 +1,5 @@
 # serverless.yml
-service: es_cleanup
+service: es-cleanup
 
 provider:
   name: aws
