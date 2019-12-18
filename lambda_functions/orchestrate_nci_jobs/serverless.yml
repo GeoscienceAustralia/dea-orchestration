@@ -134,7 +134,7 @@ provider:
   # Service wide environment variables declaration
   environment:
     SSM_USER_PATH: 'orchestrator.raijin.users.default'
-    DEA_MODULE: dea/unstable
+    DEA_MODULE: dea/20190329
     PROJECT: v10
     QUEUE: normal
     DYNAMODB_TABLENAME: ${self:custom.dynamodb.${self:custom.Stage}}
