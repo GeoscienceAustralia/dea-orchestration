@@ -181,13 +181,18 @@ def _execute_fetch_jobid_command(log_path, execute_command=exec_command):
 def _get_job_status(qsub_job_ids, job_id, jobs_failed, output):
     job_status = JOB_STATUS.get(_extract_after_search_string("_job_state=(.*)", output),
                                 'UNKNOWN')
-    execution_status = EXIT_STATUS.get(_extract_after_search_string("_exit_status=(.*)", output),
-                                       'FAILED')
+    exit_status = _extract_after_search_string("_exit_status=(.*)", output)
+    LOG.info(f'PBS job exit status, {exit_status}')
+
+    execution_status = EXIT_STATUS.get(exit_status, 'SUCCESS')
     comments = _extract_after_search_string("_comment=(.*)", output)
 
     if job_status in 'FINISHED':
         # Update the status as JOB_DELETED when execution status from qstat is 'IN_QUEUE'
         execution_status = 'JOB_DELETED' if execution_status == 'IN_QUEUE' else execution_status
+
+        LOG.info(f'PBS Job {job_id} finished')
+        LOG.info(f'Execution status, {execution_status}')
 
         # Once a job has failed, report entire batch job execution as failed
         jobs_failed = True if execution_status != 'SUCCESS' else jobs_failed
@@ -195,6 +200,9 @@ def _get_job_status(qsub_job_ids, job_id, jobs_failed, output):
         qsub_job_ids -= {job_id}  # Job completed, remove from the list
     elif job_status in 'SUSPENDED':
         execution_status = 'JOB_SUSPENDED'
+
+        LOG.info(f'PBS Job {job_id} suspended')
+        LOG.info(f'Execution status, {execution_status}')
 
         qsub_job_ids -= {job_id}  # Job is deleted/suspended, remove from the list
     else:
