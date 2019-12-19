@@ -2,8 +2,8 @@
   id: Execute_Sync
   events:
     - schedule:
-      rate: cron(10 10 ? * THU *)  # Run every Thursday, at 08:10 pm Canberra time
-      enabled: false
+      rate: cron(10 10 ? * SAT *)  # Run every Saturday, at 08:10 pm Canberra time
+      enabled: true
   definition:
     Comment: "Orchestrate NCI jobs that can self manage job dependencies"
     StartAt: Create_DynamoDb_Table
