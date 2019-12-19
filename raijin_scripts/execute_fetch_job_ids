@@ -23,15 +23,15 @@ function print_output
 }
 
 case "$LOG_FILE" in
-    *"cog_conversion"* )  _job_ids=$(grep -E -rwoi '[0-9]{1,}.r-man2' "$LOG_FILE" | cut -f2 -d':' | uniq | tr '\n' ', ')
+    *"cog_conversion"* )  _job_ids=$(grep -E -rwoi '[0-9]{1,}.gadi-pbs' "$LOG_FILE" | cut -f2 -d':' | uniq | tr '\n' ', ')
                           ;;
     *"fc_albers"* )       LOG_DIR=$(grep 'Created work directory' "$LOG_FILE" | grep -o "[/].*")
-                          _job_ids=$(grep -E -rwoi '[0-9]{1,}.r-man2' "$LOG_DIR" | cut -f2 -d':' | uniq | tr '\n' ', ')
+                          _job_ids=$(grep -E -rwoi '[0-9]{1,}.gadi-pbs' "$LOG_DIR" | cut -f2 -d':' | uniq | tr '\n' ', ')
                           ;;
     *"wofs_albers"* )     LOG_DIR=$(grep 'Created work directory' "$LOG_FILE" | grep -o "[/].*")
-                          _job_ids=$(grep -E -rwoi '[0-9]{1,}.r-man2' "$LOG_DIR" | cut -f2 -d':' | uniq | tr '\n' ', ')
+                          _job_ids=$(grep -E -rwoi '[0-9]{1,}.gadi-pbs' "$LOG_DIR" | cut -f2 -d':' | uniq | tr '\n' ', ')
                           ;;
-    * )                   _job_ids=$(grep -E -rwoi '[0-9]{1,}.r-man2' "$LOG_FILE" | cut -f2 -d':' | uniq | tr '\n' ', ')
+    * )                   _job_ids=$(grep -E -rwoi '[0-9]{1,}.gadi-pbs' "$LOG_FILE" | cut -f2 -d':' | uniq | tr '\n' ', ')
                           ;;
 esac
 
