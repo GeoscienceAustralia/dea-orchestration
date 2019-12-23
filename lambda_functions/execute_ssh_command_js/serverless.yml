@@ -249,7 +249,7 @@ functions:
     events:
       - schedule:
           rate: cron(5 1 ? * FRI *)  # Run weekly at 11:05AM AEST
-          enabled: true
+          enabled: false
           input:
             task: level1
             start_date_offset: 7  # Process last 7 days up until 00:00 Tuesday
@@ -260,7 +260,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(10 8 4 * ? *)  # Run on the 4th of every month at 6:10 PM AEST
-          enabled: true
+          enabled: false
           input:
             task: level1
             start_date_offset: 200  # Kicks off re-processing for the past 200 days
@@ -271,7 +271,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(5 1 ? * SUN *)  # Run every Sunday at 11:05 AM, AEST
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 12  # Process from Monday 00:00 to Monday 00:00
@@ -282,7 +282,7 @@ functions:
             obs_year: current
       - schedule:
           rate: cron(5 11 6 * ? *)  # Run on the 6th of every month at 9:05 PM AEST
-          enabled: true
+          enabled: false
           input:
             task: level2
             start_date_offset: 31  # Kicks off re-processing for the past 31 days
