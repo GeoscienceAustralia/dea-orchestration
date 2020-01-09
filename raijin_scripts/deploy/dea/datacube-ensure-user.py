@@ -84,6 +84,7 @@ def main(hostname, port, dbusername):
                                                dbcreds.database,
                                                dbcreds.username))
 
+
 class CredentialsNotFound(Exception):
     """ Empty class for credentials not found exceptions """
 
@@ -151,8 +152,6 @@ def append_credentials(pgpass, dbcreds):
 
         fout.write(':'.join(dbcreds) + '\n')
         print('\nUpdated DEA Database Password in ~/.pgpass file.')
-
-
 
 
 def create_db_account(dbcreds):
