@@ -40,6 +40,50 @@ To fix this problem, please copy your ~/.pgpass file from the system you
 initially used to access the Data Cube, onto the current system.
 """
 
+_PWD = pwd.getpwuid(os.geteuid())
+CURRENT_USER = _PWD.pw_name
+CURRENT_REAL_NAME = _PWD.pw_gecos
+CURRENT_HOME_DIR = _PWD.pw_dir
+
+
+@click.command()
+@click.argument('hostname', required=False)
+@click.argument('port', type=click.INT, default=6432, required=False)
+@click.argument('dbusername', default=CURRENT_USER, required=False)
+def main(hostname, port, dbusername):
+    """
+    Ensure that a user account exists in the specified Data Cube Database
+
+    ~/.pgpass can have <hostname>:<port>:<database>:<username>:<password>
+          e.g., *:*:*:<dbusername>:<password>
+    """
+
+    if 'PBS_JOBID' in os.environ:
+        return
+
+    dbcreds = DBCreds(host=hostname, port=str(port), username=dbusername,
+                      database='datacube', password=None)
+    pgpass = Path(CURRENT_HOME_DIR) / '.pgpass'
+
+    try:
+        new_creds = find_credentials(pgpass, OLD_DB_HOST, dbcreds)
+    except CredentialsNotFound:
+        print('\nAttempting to create a database account for the db_user ({}).'.format(dbcreds.username))
+        new_creds = create_db_account(dbcreds)
+        print('Created new database account.')
+
+    # Append new credentials to ~/.pgpass file
+    if new_creds:
+        print('Migrating {} to the new database server.'.format(dbcreds.username))
+        # Add new credentials to ~/.pgpass file
+        append_credentials(pgpass, new_creds._replace(host="*", port="*"))
+
+    if not can_connect(dbcreds):
+        print_stderr(CANNOT_CONNECT_MSG.format(dbcreds.host,
+                                               dbcreds.port,
+                                               dbcreds.database,
+                                               dbcreds.username))
+
 
 class CredentialsNotFound(Exception):
     """ Empty class for credentials not found exceptions """
@@ -110,51 +154,6 @@ def append_credentials(pgpass, dbcreds):
         print('\nUpdated DEA Database Password in ~/.pgpass file.')
 
 
-_PWD = pwd.getpwuid(os.geteuid())
-CURRENT_USER = _PWD.pw_name
-CURRENT_REAL_NAME = _PWD.pw_gecos
-CURRENT_HOME_DIR = _PWD.pw_dir
-
-
-@click.command()
-@click.argument('hostname', required=False)
-@click.argument('port', type=click.INT, default=6432, required=False)
-@click.argument('dbusername', default=CURRENT_USER, required=False)
-def main(hostname, port, dbusername):
-    """
-    Ensure that a user account exists in the specified Data Cube Database
-
-    ~/.pgpass can have <hostname>:<port>:<database>:<username>:<password>
-          e.g., *:*:*:<dbusername>:<password>
-    """
-
-    if 'PBS_JOBID' in os.environ:
-        return
-
-    dbcreds = DBCreds(host=hostname, port=str(port), username=dbusername,
-                      database='datacube', password=None)
-    pgpass = Path(CURRENT_HOME_DIR) / '.pgpass'
-
-    try:
-        new_creds = find_credentials(pgpass, OLD_DB_HOST, dbcreds)
-    except CredentialsNotFound:
-        print('\nAttempting to create a database account for the db_user ({}).'.format(dbcreds.username))
-        new_creds = create_db_account(dbcreds)
-        print('Created new database account.')
-
-    # Append new credentials to ~/.pgpass file
-    if new_creds:
-        print('Migrating {} to the new database server.'.format(dbcreds.username))
-        # Add new credentials to ~/.pgpass file
-        append_credentials(pgpass, new_creds._replace(host="*", port="*"))
-
-    if not can_connect(dbcreds):
-        print_stderr(CANNOT_CONNECT_MSG.format(dbcreds.host,
-                                               dbcreds.port,
-                                               dbcreds.database,
-                                               dbcreds.username))
-
-
 def create_db_account(dbcreds):
     """ Create AGDC user account on the requested """
     real_name = CURRENT_REAL_NAME if dbcreds.username == CURRENT_USER else ''
@@ -187,18 +186,6 @@ def gen_password(length=20):
 
 
 if __name__ == '__main__':
-    if sys.version_info[0] == 2:
-        sys.stderr.write("""
-Warning: we may discontinue Python 2 support in the near future.
-
-Please consider moving to our Python 3 module: agdc-py3-prod
-
-  -> If you have a hard requirement on Python 2 that makes the change
-     difficult, please notify us at earth.observation@ga.gov.au
-  -> The python-modernize command is available to ease conversions,
-     see: https://python-modernize.readthedocs.io
-""")
-        sys.stderr.flush()
     main()
 
 
