@@ -26,8 +26,8 @@ custom:
   # commands. Or falls back to what we have set in the provider section.
   Stage: ${opt:stage, self:provider.stage}
   profile:
-    dev: dea-dev
-    prod: dea-prod
+    dev: devProfile
+    prod: prodProfile
   deploymentBucket:
     prod: "dea-lambda"
     dev: "dea-lambdas-dev"
