@@ -12,7 +12,7 @@ for d in lambda_functions/*; do
 
     echo
     echo #######################
-    echo Attempting to deploy $d
+    echo Attempting to deploy "$d"
     echo #######################
     echo
 
