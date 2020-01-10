@@ -21,8 +21,8 @@ custom:
     dockerizePip: non-linux
   Stage: ${opt:stage, self:provider.stage}
   profile:
-    dev: dea-dev
-    prod: dea-prod
+    dev: devProfile
+    prod: prodProfile
   esURL:
     dev:
       Fn::GetAtt: [ElasticSearchInstance, DomainEndpoint]
