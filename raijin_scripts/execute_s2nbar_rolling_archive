@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 while [[ "$#" -gt 0 ]]; do
     key="$1"
@@ -25,21 +25,30 @@ done
 SCRIPT_DIR="$HOME/dea-orchestration/lambda_functions/automate_s2_nbar_rolling_archive/run_s3_update_sync"
 WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
 S3_BUCKET=s3://"${BUCKET}"/L2/sentinel-2-nbar/S2MSIARD_NBAR
-IFS=', ' read -r -a l1_files <<< "$FILE_LIST"
+# IFS=', ' read -r -a l1_files <<< "$FILE_LIST"
 
 mkdir -p "${WORKDIR}"
 
 #  ##################################################################################################
 #  # Run s3 sync python script
 #  ##################################################################################################
-for file_name in "${l1_files[@]}"
-do
-    set -x
+# for file_name in "${l1_files[@]}"
+# do
+#     set -x
 
-    qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
-    -v profile="${PROFILE}",s3bucket="${S3_BUCKET}",file_name="${file_name}",root_dir="${SCRIPT_DIR}", \
-    "$HOME/dea-orchestration/raijin_scripts/execute_submit_s2_copyq_jobs"
+#     qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
+#     -v profile="${PROFILE}",s3bucket="${S3_BUCKET}",file_name="${file_name}",root_dir="${SCRIPT_DIR}", \
+#     "$HOME/dea-orchestration/raijin_scripts/execute_submit_s2_copyq_jobs"
 
-    set +x
+#     set +x
 
-done
+# done
+
+# alex: just doing a single job, with a start date
+set -x
+
+# alex: start_date is the date from which to start syncing data
+#       this should check for already synced data and be of the form yyyymmdd
+qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
+-v profile="${PROFILE}",s3_bucket="${S3_BUCKET}",start_date="${start_date}",root_dir="${SCRIPT_DIR}", \
+"$HOME/dea-orchestration/raijin_scripts/execute_submit_s2_copyq_jobs"
