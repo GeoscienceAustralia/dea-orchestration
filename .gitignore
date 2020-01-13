@@ -16,3 +16,5 @@ jspm_packages
 
 # Serverless directories
 .serverless
+
+.vscode

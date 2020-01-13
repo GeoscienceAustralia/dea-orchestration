@@ -18,13 +18,10 @@ METADATA_FILE = 'ARD-METADATA.yaml'
 S3_PATH = 'L2/sentinel-2-nbar/S2MSIARD_NBAR'
 
 
-def find_granules(start_date, root_path=NCI_DIR):
-    sync_date = datetime.datetime.strptime(start_date, "%Y%m%d")
+def find_granules(num_days, root_path=NCI_DIR):
     today = datetime.datetime.today()
-    days = (today - sync_date).days
-    # Find the dates between the input date and today, inclusive
-    dates = [(today - datetime.timedelta(days=x)).strftime("%Y-%m-%d") for x in range(days + 1)]
-    print(dates)
+    # Find the dates between the input date and today, inclusive, formatted like the directories
+    dates = [(today - datetime.timedelta(days=x)).strftime("%Y-%m-%d") for x in range(num_days + 1)]
 
     # The list of folders will be returned and will contain all the granules available for
     # the date range specified above. Format is yyyy-mm-dd/granule
@@ -103,18 +100,15 @@ def replace_metadata(granule, s3_bucket, s3_metadata_path):
     )
 
 
-def sync_dates(start_date, s3_bucket):
-    '''
-    start_date should be yyyymmdd
-    '''
+def sync_dates(num_days, s3_bucket):
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
 
-    LOG.info("Syncing from {}".format(start_date))
+    LOG.info("Syncing from the last {} days".format(num_days))
 
     # Get list of granules
-    list_of_granules = find_granules(start_date, root_path="/tmp/fake_nci")
+    list_of_granules = find_granules(num_days, root_path="/tmp/fake_nci")
 
     LOG.info("Found {} files to process".format(len(list_of_granules)))
 
@@ -133,6 +127,7 @@ def sync_dates(start_date, s3_bucket):
             if not already_processed:
                 sync_success = sync_granule(granule, s3_bucket)
                 if sync_success:
+                    # Replace the metadata with a deterministic ID
                     replace_metadata(granule, s3_bucket)
                 else:
                     LOG.error("Failed to sync data... skipping")
@@ -141,12 +136,10 @@ def sync_dates(start_date, s3_bucket):
     else:
         LOG.warning("Didn't find any granules to process...")
 
-    # Replace the metadata with a deterministic ID
-
     # Return success indicator?
 
 
 if __name__ == '__main__':
     LOG.info("Starting sync")
-    # Arg 1 is date, 2 is bucket
+    # Arg 1 is numdays, 2 is bucket
     sync_dates(sys.argv[1], sys.argv[2])
