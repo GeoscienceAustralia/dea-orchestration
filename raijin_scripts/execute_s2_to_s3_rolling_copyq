@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# echo on and abort on fail
+# echo on and exit on fail
 set -ex
 
 # alex: not sure what we're sourcing this for
 source "$HOME"/.bashrc
+
 # alex: not sure if this is needed
 module use /g/data/v10/public/modules/modulefiles
 
