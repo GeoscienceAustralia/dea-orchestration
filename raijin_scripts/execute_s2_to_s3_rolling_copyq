@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# echo on and abort on fail
+set -ex
+
+# alex: not sure what we're sourcing this for
+source "$HOME"/.bashrc
+# alex: not sure if this is needed
+module use /g/data/v10/public/modules/modulefiles
+
+# alex: do we need this?
+# Module wagl/5.4.0 requires dea-env/20190329
+module load dea/20190329
+
+export AWS_PROFILE="${awsprofile}"
+
+$(module use /g/data/v10/private/modules/modulefiles/; module load wagl/5.4.0;
+python3 "${root_dir}"/s3_sync_dates.py "${num_days}" "${s3_bucket}")

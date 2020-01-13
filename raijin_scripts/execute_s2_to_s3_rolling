@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -eux
+
+while [[ "$#" -gt 0 ]]; do
+    key="$1"
+    case "${key}" in
+        --profile )             shift
+                                AWS_PROFILE="$1"
+                                ;;
+        --s3bucket )            shift
+                                BUCKET="$1"
+                                ;;
+        --numdays )            shift
+                                NUM_DAYS="$1"
+                                ;;
+        * )
+          echo "Input key, '$key', did not match the expected input argument key"
+          exit 1
+          ;;
+    esac
+    shift
+done
+
+SCRIPT_DIR="$HOME/dea-orchestration/raijin_scripts/execute_s2_to_s3_rolling_utils/"
+# alex: not sure if we need this?
+# WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
+S3_BUCKET=s3://"${BUCKET}"/L2/sentinel-2-nbar/S2MSIARD_NBAR
+
+mkdir -p "${WORKDIR}"
+
+# alex: num_days is the number of days prior to today to check for syncing
+qsub -N s2nbar-rolling-archive -o "${SCRIPT_DIR}" -e "${SCRIPT_DIR}" \
+-v aws_profile="${AWS_PROFILE}",s3_bucket="${S3_BUCKET}",num_days="${NUM_DAYS}",root_dir="${SCRIPT_DIR}", \
+"$HOME/dea-orchestration/raijin_scripts/execute_s2_to_s3_rolling_copyq"
