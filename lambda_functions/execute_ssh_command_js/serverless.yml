@@ -298,7 +298,8 @@ functions:
       cmd: 'execute_s2_to_s3_rolling
                           --profile <%= profile %>
                           --s3bucket <%= s3bucket %>
-                          --numdays <%= numdays %>'
+                          --numdays <%= numdays %>
+                          --endate <%= enddate %>'
     events:
       - schedule:
           rate: cron(5 12 ? * SUN *)  # Run weekly on a Sunday 10 PM AEST
@@ -307,3 +308,4 @@ functions:
             profile: default
             s3bucket: dea-public-data
             numdays: 14  # two weeks of data
+            enddate: today  # must be 'today' or yyyy-mm-dd
