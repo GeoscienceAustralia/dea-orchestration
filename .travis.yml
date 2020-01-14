@@ -1,32 +1,19 @@
-dist: xenial
+dist: bionic
 language: python
 
 python:
   - "3.7"
 
-sudo: false
-
-env:
-  global:
-    - DEA_ENVIRONMENT='test'
-
-git:
-  depth: 99999
-
-cache:
-  directories:
-    - $HOME/.cache/pip
-
-install:
+before_install:
   - pip install -r requirements.txt
   - npm install -g serverless
 
 script:
-  # Configure serverless AWS custom profile settings.
+  # Configure custom AWS profiles using serverless
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
-  # configured in travis project web settings
+  # configured in travis project web settings.
   - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile prodProfile --overwrite
-  - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile dea-prod --overwrite
+  - aws sts get-caller-identity
   - ./scripts/check-code.sh
 
 after_success:
