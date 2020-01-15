@@ -29,10 +29,12 @@ jobs:
   include:
     - stage: global code linting and checks
       env: LAMBDA=all
-      script: ./scripts/check-code.sh
+      script:
+       - ./scripts/check-code.sh
 
     - stage: check and deploy lambdas
-      script: ./scripts/check_lambda.sh $LAMBDA
+      script:
+       - ./scripts/check_lambda.sh $LAMBDA
       deploy:
         # Serverless deploy to Production environment every time from master
         - provider: script
