@@ -35,11 +35,12 @@ jobs:
     - stage: global code linting and checks
       env: [] # Overwrite with empty
       script:
-       - ./scripts/check-code.sh
+        - ./scripts/check-code.sh
 
     - stage: test
       script:
-       - ./scripts/check_lambda.sh $LAMBDA
+        - echo $LAMBDA
+        - bash ./scripts/check_lambda.sh $LAMBDA
 
       deploy:
         # Serverless deploy to Production environment every time from master
