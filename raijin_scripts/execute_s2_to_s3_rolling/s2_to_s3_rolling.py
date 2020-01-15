@@ -148,6 +148,11 @@ def sync_dates(num_days, s3_bucket, end_date):
 
 
 if __name__ == '__main__':
-    LOG.info("Starting sync")
     # Arg 1 is numdays, 2 is bucket, 3 is enddate
-    sync_dates(sys.argv[1], sys.argv[2], sys.argv[3])
+    num_days = int(sys.argv[1])
+    s3_bucket = sys.argv[2]
+    end_date = sys.argv[3]
+    LOG.info("Starting sync with days {} going back from {} and a bucket of {}".format(
+        num_days, end_date, s3_bucket
+    ))
+    sync_dates(num_days, s3_bucket, end_date)
