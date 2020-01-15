@@ -1,0 +1,16 @@
+handler: handler.execute_ssh_command
+description: Detect CSV file containing discrepencies in database, upload CSV to S3 and notify (Slack and Email)
+environment:
+  cmd: 'execute_notify_on_error_ds --dea-module ${self:provider.environment.DEA_MODULE}
+                                       --webhook  ${self:provider.environment.webhook}
+                                       --awsprofile <%= awsprofile %>
+                                       --recemail <%= recemail %>'
+
+
+events:
+  - schedule:
+      rate: cron(00 12 ? * * *)  # Run every day, at 10:00 pm Canberra time
+      enabled: false
+      input:
+        awsprofile: default
+        recemail: nci.monitor@dea.ga.gov.au  # Recepient's email address
