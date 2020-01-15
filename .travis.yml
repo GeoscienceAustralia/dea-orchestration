@@ -4,26 +4,52 @@ language: python
 python:
   - "3.7"
 
-before_install:
+install:
   - pip install -r requirements.txt
   - npm install -g serverless
 
-script:
   # Configure custom AWS profiles using serverless
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
   # configured in travis project web settings.
   - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile prodProfile --overwrite
   - aws sts get-caller-identity
-  - ./scripts/check-code.sh
+
+# Split on checking and deploying Serverless Lambdas
+env:
+  - LAMBDA=automate_cubedash_db_update
+  - LAMBDA=es_cleanup
+  - LAMBDA=execute_ssh_command_js
+  - LAMBDA=nci_monitoring
+  - LAMBDA=orchestrate_nci_jobs
+  - LAMBDA=s3stat-automation
+  - LAMBDA=simple_s3_pypi
+  - LAMBDA=stac
+
+jobs:
+  include:
+    - stage: global code linting and checks
+      env: LAMBDA=all
+      script: ./scripts/check-code.sh
+
+    - stage: check and deploy lambdas
+      script: ./scripts/check_lambda.sh $LAMBDA
+      deploy:
+        # Serverless deploy to Production environment every time from master
+        - provider: script
+          script: ./scripts/deploy.sh $LAMBDA
+          skip_cleanup: true  # Don't cleanup repo, we've already installed npm packages
+          on:
+            branch: master
+            repo: GeoscienceAustralia/dea-orchestration
+
+    - stage: update NCI
+      env: LAMBDA=all
+      script: |
+        cd lambda_functions/execute_ssh_command_js/
+
+        npm install
+        serverless invoke --log --stage prod --function git_pull_prod
+
 
 after_success:
   - codecov
-
-deploy:
- # Serverless deploy to Production environment every time from master
- - provider: script
-   script: ./scripts/deploy.sh
-   skip_cleanup: true  # Don't re-run the tests
-   on:
-      branch: master
-      repo: GeoscienceAustralia/dea-orchestration
