@@ -26,13 +26,13 @@ jobs:
 
     - stage: check and deploy lambdas
       env: LAMBDA=automate_cubedash_db_update
-    - { env: LAMBDA=es_cleanup }
-    - { env: LAMBDA=execute_ssh_command_js }
-    - { env: LAMBDA=nci_monitoring }
-    - { env: LAMBDA=orchestrate_nci_jobs }
-    - { env: LAMBDA=s3stat-automation }
-    - { env: LAMBDA=simple_s3_pypi }
-    - { env: LAMBDA=stac }
+    - {env: LAMBDA=es_cleanup}
+    - {env: LAMBDA=execute_ssh_command_js}
+    - {env: LAMBDA=nci_monitoring}
+    - {env: LAMBDA=orchestrate_nci_jobs}
+    - {env: LAMBDA=s3stat-automation}
+    - {env: LAMBDA=simple_s3_pypi}
+    - {env: LAMBDA=stac}
 
     - stage: update NCI
       script: |
