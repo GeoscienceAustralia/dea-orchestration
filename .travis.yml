@@ -32,7 +32,7 @@ stages:
 jobs:
   include:
     - stage: global code linting and checks
-      env: LAMBDA=all
+      env: # Overwrite with empty
       install:
         - pip install -r requirements.txt
       script:
@@ -53,7 +53,7 @@ jobs:
             repo: GeoscienceAustralia/dea-orchestration
 
     - stage: update NCI
-      env: LAMBDA=all
+      env: # Overwrite with empty
       script: |
         cd lambda_functions/execute_ssh_command_js/
 
