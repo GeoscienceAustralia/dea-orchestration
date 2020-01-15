@@ -26,7 +26,7 @@ env:
 
 stages:
   - global code linting and checks
-  - check and deploy lambdas
+  - test
   - update NCI
 
 jobs:
@@ -38,8 +38,7 @@ jobs:
       script:
        - ./scripts/check-code.sh
 
-    - stage: check and deploy lambdas
-      before_install:
+    - before_install:
         - pip install -r requirements.txt
       script:
        - ./scripts/check_lambda.sh $LAMBDA
