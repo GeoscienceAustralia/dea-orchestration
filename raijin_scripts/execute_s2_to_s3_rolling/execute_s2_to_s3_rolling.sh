@@ -25,4 +25,4 @@ source "$HOME"/.bashrc
 module use /g/data/v10/public/modules/modulefiles
 module load dea
 
-python3 s2_to_s3_rolling.py "${num_days}" "${s3_bucket}" "${end_date}"
+python3 s2_to_s3_rolling.py "${num_days}" "${s3_bucket}" "${end_date}" "${update}"
