@@ -14,50 +14,44 @@ install:
   - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY --profile prodProfile --overwrite
   - aws sts get-caller-identity
 
-# Split on checking and deploying Serverless Lambdas
-env:
-  - LAMBDA=automate_cubedash_db_update
-  - LAMBDA=es_cleanup
-  - LAMBDA=execute_ssh_command_js
-  - LAMBDA=nci_monitoring
-  - LAMBDA=orchestrate_nci_jobs
-  - LAMBDA=s3stat-automation
-  - LAMBDA=simple_s3_pypi
-  - LAMBDA=stac
-
 stages:
   - global code linting and checks
   - check and deploy lambdas
   - update NCI
 
-#script:
-#  - echo "Does this need to exist?"
-
 jobs:
   include:
     - stage: global code linting and checks
-      env: [] # Overwrite with empty
       script: ./scripts/check-code.sh
 
     - stage: check and deploy lambdas
-      script: ./scripts/check_lambda.sh $LAMBDA
-      deploy:
-        # Serverless deploy to Production environment every time from master
-        - provider: script
-          script: ./scripts/deploy.sh $LAMBDA
-          skip_cleanup: true  # Don't cleanup repo, we've already installed npm packages
-          on:
-            branch: master
-            repo: GeoscienceAustralia/dea-orchestration
+      env: LAMBDA=automate_cubedash_db_update
+    - { env: LAMBDA=es_cleanup }
+    - { env: LAMBDA=execute_ssh_command_js }
+    - { env: LAMBDA=nci_monitoring }
+    - { env: LAMBDA=orchestrate_nci_jobs }
+    - { env: LAMBDA=s3stat-automation }
+    - { env: LAMBDA=simple_s3_pypi }
+    - { env: LAMBDA=stac }
 
     - stage: update NCI
-      env: [] # Overwrite with empty
       script: |
         cd lambda_functions/execute_ssh_command_js/
 
         npm install
         serverless invoke --log --stage prod --function git_pull_prod
 
+script: ./scripts/check_lambda.sh $LAMBDA
+
+deploy:
+  # Serverless deploy to Production environment every time from master
+  - provider: script
+    script: ./scripts/deploy.sh $LAMBDA
+    skip_cleanup: true  # Don't cleanup repo, we've already installed npm packages
+    on:
+      branch: master
+      repo: GeoscienceAustralia/dea-orchestration
+      condition: "-v LAMBDA"
 
 after_success:
   - codecov
