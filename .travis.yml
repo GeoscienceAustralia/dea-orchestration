@@ -38,7 +38,8 @@ jobs:
       script:
        - ./scripts/check-code.sh
 
-    - before_install:
+    - stage: test
+      before_install:
         - pip install -r requirements.txt
       script:
        - ./scripts/check_lambda.sh $LAMBDA
