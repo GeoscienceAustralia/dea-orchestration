@@ -57,7 +57,8 @@ def sync_granule(granule, s3_bucket):
         granule=granule
     )
 
-    command = "aws s3 sync {local_path} {s3_path} --exclude NBART/* --exclude ARD-METADATA.yaml".format(
+    # Remove any data that shouldn't be there and exclude the metadatta and NBART
+    command = "aws s3 sync {local_path} {s3_path} --delete --exclude NBART/* --exclude ARD-METADATA.yaml".format(
         local_path=local_path,
         s3_path=s3_path
     )
@@ -104,7 +105,7 @@ def replace_metadata(granule, s3_bucket, s3_metadata_path):
     )
 
 
-def sync_dates(num_days, s3_bucket, end_date):
+def sync_dates(num_days, s3_bucket, end_date, update=False):
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
@@ -134,7 +135,7 @@ def sync_dates(num_days, s3_bucket, end_date):
             already_processed = check_granule_exists(s3_bucket, s3_metadata_path)
 
             # Maybe todo: include a flag to force replace
-            if not already_processed:
+            if not already_processed or update:
                 sync_success = sync_granule(granule, s3_bucket)
                 if sync_success:
                     # Replace the metadata with a deterministic ID
