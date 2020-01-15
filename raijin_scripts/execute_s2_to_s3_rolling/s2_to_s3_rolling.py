@@ -10,8 +10,10 @@ import botocore
 import yaml
 from odc.index import odc_uuid
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+handler = logging.StreamHandler()
 LOG = logging.getLogger("s3_to_s3_rolling")
+LOG.setLevel(logging.DEBUG)
+LOG.addHandler(handler)
 
 NCI_DIR = '/g/data/if87/datacube/002/S2_MSI_ARD/packaged'
 S3_PATH = 'L2/sentinel-2-nbar/S2MSIARD_NBAR'
