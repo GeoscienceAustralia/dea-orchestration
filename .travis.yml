@@ -5,7 +5,6 @@ python:
   - "3.7"
 
 install:
-  - pip install -r requirements.txt
   - npm install -g serverless
 
   # Configure custom AWS profiles using serverless
@@ -25,14 +24,23 @@ env:
   - LAMBDA=simple_s3_pypi
   - LAMBDA=stac
 
+stages:
+  - global code linting and checks
+  - check and deploy lambdas
+  - update NCI
+
 jobs:
   include:
     - stage: global code linting and checks
       env: LAMBDA=all
+      install:
+        - pip install -r requirements.txt
       script:
        - ./scripts/check-code.sh
 
     - stage: check and deploy lambdas
+      before_install:
+        - pip install -r requirements.txt
       script:
        - ./scripts/check_lambda.sh $LAMBDA
       deploy:
