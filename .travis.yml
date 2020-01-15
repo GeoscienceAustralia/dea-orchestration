@@ -30,6 +30,9 @@ stages:
   - test
   - update NCI
 
+script:
+  - echo "Does this need to exist?"
+
 jobs:
   include:
     - stage: global code linting and checks
