@@ -27,11 +27,11 @@ env:
 
 stages:
   - global code linting and checks
-  - test
+  - check and deploy lambdas
   - update NCI
 
-script:
-  - echo "Does this need to exist?"
+#script:
+#  - echo "Does this need to exist?"
 
 jobs:
   include:
@@ -39,7 +39,7 @@ jobs:
       env: [] # Overwrite with empty
       script: ./scripts/check-code.sh
 
-    - stage: test
+    - stage: check and deploy lambdas
       script: ./scripts/check_lambda.sh $LAMBDA
       deploy:
         # Serverless deploy to Production environment every time from master
