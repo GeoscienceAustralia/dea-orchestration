@@ -140,14 +140,15 @@ def sync_dates(num_days, s3_bucket, end_date, update=False):
                 if sync_success:
                     # Replace the metadata with a deterministic ID
                     replace_metadata(granule, s3_bucket, s3_metadata_path)
+                    LOG.info("Finished processing and uploaded metadata to {}".format(
+                        s3_metadata_path
+                    ))
                 else:
                     LOG.error("Failed to sync data... skipping")
             else:
                 LOG.warning("Metadata exists, not syncing {}".format(granule))
     else:
         LOG.warning("Didn't find any granules to process...")
-
-    # Return success indicator?
 
 
 if __name__ == '__main__':

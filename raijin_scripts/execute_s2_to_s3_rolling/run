@@ -27,7 +27,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # This is a logging directory
-WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')
+WORKDIR=/g/data/v10/work/s2_nbar_rolling_archive/$(date '+%FT%H%M')_$enddate_$numdays
 mkdir -p "${WORKDIR}"
 
 # alex: num_days is the number of days prior to today to check for syncing
