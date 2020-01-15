@@ -6,6 +6,7 @@ python:
 
 install:
   - npm install -g serverless
+  - pip install -r requirements.txt
 
   # Configure custom AWS profiles using serverless
   # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION are expected to be
@@ -32,17 +33,14 @@ stages:
 jobs:
   include:
     - stage: global code linting and checks
-      env: # Overwrite with empty
-      install:
-        - pip install -r requirements.txt
+      env: [] # Overwrite with empty
       script:
        - ./scripts/check-code.sh
 
     - stage: test
-      before_install:
-        - pip install -r requirements.txt
       script:
        - ./scripts/check_lambda.sh $LAMBDA
+
       deploy:
         # Serverless deploy to Production environment every time from master
         - provider: script
@@ -53,7 +51,7 @@ jobs:
             repo: GeoscienceAustralia/dea-orchestration
 
     - stage: update NCI
-      env: # Overwrite with empty
+      env: [] # Overwrite with empty
       script: |
         cd lambda_functions/execute_ssh_command_js/
 
