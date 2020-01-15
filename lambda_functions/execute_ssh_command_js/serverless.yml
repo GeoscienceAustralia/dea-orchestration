@@ -309,3 +309,4 @@ functions:
             s3bucket: dea-public-data
             numdays: 14  # two weeks of data
             enddate: today  # must be 'today' or yyyy-mm-dd
+            update: no  # can be 'no' or 'yes'

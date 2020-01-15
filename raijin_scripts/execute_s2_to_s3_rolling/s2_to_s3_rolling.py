@@ -156,7 +156,14 @@ if __name__ == '__main__':
     num_days = int(sys.argv[1])
     s3_bucket = sys.argv[2]
     end_date = sys.argv[3]
-    LOG.info("Starting sync with days {} going back from {} and a bucket of {}".format(
-        num_days, end_date, s3_bucket
+    try:
+        update = sys.argv[4]
+    except IndexError:
+        update = 'no'
+
+    update = update == 'yes'
+
+    LOG.info("Syncing {} days back from {} into the {} bucket and update is {}".format(
+        num_days, end_date, s3_bucket, update
     ))
-    sync_dates(num_days, s3_bucket, end_date)
+    sync_dates(num_days, s3_bucket, end_date, update)

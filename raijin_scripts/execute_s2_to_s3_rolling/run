@@ -18,6 +18,9 @@ while [[ "$#" -gt 0 ]]; do
         --enddate )            shift
                                 END_DATE="$1"
                                 ;;
+        --update )            shift
+                                UPDATE="$1"
+                                ;;
         * )
           echo "Input key, '$key', did not match the expected input argument key"
           exit 1
@@ -32,5 +35,6 @@ mkdir -p "${WORKDIR}"
 
 # alex: num_days is the number of days prior to today to check for syncing
 qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}"  \
--v AWS_PROFILE="${AWS_PROFILE}",s3_bucket="${BUCKET}",num_days="${NUM_DAYS}",end_date="${END_DATE}", \
+-v AWS_PROFILE="${AWS_PROFILE}",s3_bucket="${BUCKET}",num_days="${NUM_DAYS}", \
+end_date="${END_DATE}",update="${UPDATE}" \
 ./execute_s2_to_s3_rolling.sh
