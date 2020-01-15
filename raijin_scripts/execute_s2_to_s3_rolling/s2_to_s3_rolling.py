@@ -115,7 +115,7 @@ def sync_dates(num_days, s3_bucket, end_date):
         datetime_end = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
     # Get list of granules
-    list_of_granules = find_granules(num_days, end_date)
+    list_of_granules = find_granules(num_days, datetime_end)
 
     LOG.info("Found {} files to process".format(len(list_of_granules)))
 
