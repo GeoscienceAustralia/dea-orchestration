@@ -95,7 +95,7 @@ package:
 
 provider:
   name: aws
-  runtime: python3.7 # Travis expects python3.7, sls deploy requires python3.6
+  runtime: python3.7  # Travis expects python3.7, sls deploy requires python3.6
   timeout: 600  # 10 minutes. Default is 6 seconds
   memorySize: 256  # in MB, default is 1024
   region: ap-southeast-2
