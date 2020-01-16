@@ -109,9 +109,6 @@ def sync_dates(num_days, s3_bucket, end_date, update=False):
     # Since all file paths are of the form:
     # /g/data/if87/datacube/002/S2_MSI_ARD/packaged/YYYY-mm-dd/<granule>
     # we can simply list all the granules per date and sync them
-
-    LOG.info("Syncing from the last {} days until {}".format(num_days, end_date))
-
     if end_date == 'today':
         datetime_end = datetime.datetime.today()
     else:
