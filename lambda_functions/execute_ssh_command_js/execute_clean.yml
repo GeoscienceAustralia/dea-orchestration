@@ -1,0 +1,18 @@
+# Note: Keep `--search-paths` argument as the last argument in the environment.cmd
+handler: handler.execute_ssh_command
+description: Execute dea-clean tool to list things to be cleaned, not go and automatically delete files
+environment:
+  cmd: 'execute_clean --dea-module ${self:provider.environment.DEA_MODULE}
+                          --queue ${self:provider.environment.QUEUE}
+                          --project ${self:provider.environment.PROJECT}
+                          --min-trash-age <%= min_trash_age %>
+                          --search-paths <%= search_paths %>'
+events:
+  - schedule:
+      rate: cron(00 13 ? * TUE *)  # Run every Tuesday, at 11:00 pm Canberra time
+      enabled: false
+      input:
+        min_trash_age: 72  # 72 hours
+        search_paths: /g/data/rs0/datacube/002/
+          /g/data/fk4/datacube/002/FC/
+          /g/data/fk4/datacube/002/WOfS/WOfS_25_2_1/netcdf/

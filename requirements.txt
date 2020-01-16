@@ -6,6 +6,7 @@ pylint
 moto
 yamllint
 codecov
+awscli
 
 # Modules required by the NCI Environment Modules. Checked by pylint
 boto3

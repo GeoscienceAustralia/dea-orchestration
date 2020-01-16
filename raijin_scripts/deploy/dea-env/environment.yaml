@@ -129,7 +129,6 @@ dependencies:
 - plotly
 - poppler
 - poppler-data
-#- proj
 - proj4
 - pyproj
 - prometheus_client
