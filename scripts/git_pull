@@ -18,7 +18,7 @@ COG_CONV_DIR="$HOME/COG-Conversion"
 
 if [[ ! -d "$COG_CONV_DIR" ]]; then
   cd "$HOME" || exit 1  # Changes home folder to be in repo
-  git clone $COG_REPO
+  git clone "$COG_REPO"
 fi
 
 cd "$COG_CONV_DIR" || exit 1  # Changes home folder to be in repo
