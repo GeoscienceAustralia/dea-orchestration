@@ -13,7 +13,7 @@
 
 ## The requested job scratch space.
 #PBS -l jobfs=1GB
-#PBS -lstorage=gdata/if87
+#PBS -l storage=gdata/if87+gdata/v10
 
 # echo on and exit on fail
 set -ex
