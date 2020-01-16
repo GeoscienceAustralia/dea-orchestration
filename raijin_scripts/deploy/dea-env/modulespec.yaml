@@ -40,7 +40,7 @@ finalise_commands:
 # To Dask-labextension works well only with 'conda-forge/label/broken' conda version of jupyterlab
 - jupyter labextension install --no-build dask-labextension
 # To Dask-labextension works well only with 'conda-forge/label/cf201901' conda version of jupyterlab
-#- jupyter labextension install --no-build jupyterlab-flake8
+# - jupyter labextension install --no-build jupyterlab-flake8
 - jupyter lab build
 - jupyter serverextension enable --py jupyterlab_git --sys-prefix
 - jupyter serverextension enable --py nbdime --sys-prefix

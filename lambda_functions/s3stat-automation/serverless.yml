@@ -10,6 +10,9 @@ custom:
   pythonRequirements:
     dockerizePip: non-linux
   Stage: ${opt:stage, self:provider.stage}
+  deploymentBucket:
+    prod: "dea-lambda"
+    dev: "dea-lambdas-dev"
   profiles:
     dev: devProfile
     prod: prodProfile
@@ -33,24 +36,13 @@ provider:
   memorySize: 512  # in MB, default is 1024
   stage: dev
   region: ap-southeast-2
-  deploymentBucket: "s3stat-monitoring"
+  deploymentBucket: ${self:custom.deploymentBucket.${self:custom.Stage}}
   profile: ${self:custom.profiles.${opt:stage}}
   tags:
     repo: https://github.com/GeoscienceAustralia/dea-data
     author: nci.monitor@dea.ga.gov.au
     purpose: s3stats-download-upload-automation
   iamRoleStatements:
-  - Effect: 'Allow'
-    Action:
-      - 'ssm:GetParameter'
-      - 'ssm:GetParameters'
-      - 'ssm:DescribeParameters'
-    Resource:
-      - "arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/orchestrator.*"
-  - Effect: 'Allow'
-    Action: 'kms:Decrypt'
-    Resource:
-      - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
   - Effect: "Allow"
     Action:
       - "*"
@@ -60,9 +52,6 @@ provider:
       - "*"
     Resource: "arn:aws:s3:::dea-public-data-dev/s3-csv/*"
 
-  # Service wide environment variables declaration
-  environment:
-    SSM_USER_PATH: 's3stat.monitoring'
 
 functions:
   s3stat-monitor:
