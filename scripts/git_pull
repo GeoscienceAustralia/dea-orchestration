@@ -1,18 +1,27 @@
 #!/bin/bash
 
-PATH_TO_SSH_KEY="$HOME/.ssh/id_rsa"
+##########################################
+# Update the dea-orchestration Checkout
+##########################################
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-GIT_REPO="https://github.com/GeoscienceAustralia/COG-Conversion.git"
+cd "$SCRIPT_DIR" || exit 1  # Change to the dir *this* script is in
+
+git checkout master
+git reset --hard origin/master
+git pull
+
+##########################################
+# Update the dea-orchestration Checkout
+##########################################
+COG_REPO="https://github.com/GeoscienceAustralia/COG-Conversion.git"
 COG_CONV_DIR="$HOME/COG-Conversion"
-
-cd "$SCRIPT_DIR" || exit 1  # Changes home folder to be in repo
-
-ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git checkout production; git reset --hard origin/production; git pull"
 
 if [[ ! -d "$COG_CONV_DIR" ]]; then
   cd "$HOME" || exit 1  # Changes home folder to be in repo
-  ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git clone $GIT_REPO;"
+  git clone $COG_REPO
 fi
 
 cd "$COG_CONV_DIR" || exit 1  # Changes home folder to be in repo
-ssh-agent bash -c "ssh-add $PATH_TO_SSH_KEY; git checkout master; git reset --hard origin/master; git pull"
+git checkout master
+git reset --hard origin/master
+git pull
