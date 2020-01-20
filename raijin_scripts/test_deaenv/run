@@ -11,7 +11,7 @@
 #
 #    TODO: Need resolve datacube-fc/wofs/stats dependencies on ingest jobs.
 #          Instead of assuming normal jobs will take longer time to schedule
-#          and by then ingest jobs have completed, we need to make fc/wofs 
+#          and by then ingest jobs have completed, we need to make fc/wofs
 #          hold job till dea-submit-ingest jobs has completed.
 #####################################################################################
 

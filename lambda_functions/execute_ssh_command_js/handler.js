@@ -1,20 +1,18 @@
 #!/usr/bin/env node
-'use strict';
-const SSH = require('simple-ssh');
+'use strict'
+const SSH = require('simple-ssh')
 
-var _ = require('lodash');
-var sleep = require("deasync").sleep;
+var _ = require('lodash')
 
 // Configure the SDK for Node.js
-const AWS = require("aws-sdk");
-AWS.config.update({region: 'ap-southeast-2'});
+const AWS = require('aws-sdk')
+AWS.config.update({ region: 'ap-southeast-2' })
 
-const ssm = new AWS.SSM();
+const ssm = new AWS.SSM()
 
-const hostkey = process.env.hostkey;
-const userkey = process.env.userkey;
-const pkey = process.env.pkey;
-var CMDList = [];
+const hostkey = process.env.hostkey
+const userkey = process.env.userkey
+const pkey = process.env.pkey
 
 /**
  * Turn an event into an ssh execution string.
@@ -32,70 +30,61 @@ var CMDList = [];
  *   Will result in a string of:
  *      'mycommand --arg1 myarg'
  */
-function create_execution_string(event) {
-    var compiled = _.template(process.env.cmd);
-    return compiled(event);
+function create_execution_string (event) {
+  var compiled = _.template(process.env.cmd)
+  return compiled(event)
 }
 
 exports.execute_ssh_command = (event, context, callback) => {
-        let req = {
-                   Names: [hostkey, userkey, pkey],
-                   WithDecryption: true
-        };
-        let keys = ssm.getParameters(req).promise();
-        CMDList = [];  // Empty command variable before starting command execution
+  let req = {
+    Names: [hostkey, userkey, pkey],
+    WithDecryption: true
+  }
+  let keys = ssm.getParameters(req).promise()
 
-        keys.catch(function(err) {
-            console.log(err);
-            callback(`Error loading SSM keys: ${err}`);
-        });
+  keys.catch(function (err) {
+    console.log(err)
+    callback(`Error loading SSM keys: ${err}`)
+  })
 
-        keys.then((data) => {
-            let params = {};
-            for (let p of data.Parameters) {
-                 params[p.Name] = p.Value;
-            }
+  keys.then((data) => {
+    let params = {}
+    for (let p of data.Parameters) {
+      params[p.Name] = p.Value
+    }
 
-            var ssh = new SSH({
-                               host: params[hostkey],
-                               user: params[userkey],
-                               key: params[pkey],
-                               });
+    console.log(`Host: ${params[hostkey]}`)
+    console.log(`User: ${params[userkey]}`)
+    let cmd = create_execution_string(event)
 
-            console.log(`Host key: ${params[hostkey]}`);
-            console.log(`User key: ${params[userkey]}`);
+    console.log('Executing command: ', cmd)
 
-            let cmd = create_execution_string(event);
-            CMDList.push(cmd)
+    let ssh = new SSH({
+      host: params[hostkey],
+      user: params[userkey],
+      key: params[pkey],
+    })
 
-            _.each(CMDList, function(this_command, i){
-               ssh.exec(this_command, {
-                  exit: (code, stdout, stderr) => {
-                       var response = { statusCode: code, body: 'SSH command executed.' };
+    // Queue up our command and handlers
+    ssh.exec(cmd, {
+      out: (stdout) => console.log(`STDOUT: ${stdout}`),
+      err: (stderr) => console.log(`STDERR: ${stderr}`),
+      exit: (code, stdout, stderr) => {
+        let response = { statusCode: code, body: 'SSH command executed.' }
 
-                       if (code == 0) {
-                                        console.log("Executing command", i+1, "/", CMDList.length)
-                                        console.log("$ " + this_command);
-
-                                        // Return success with information back to the caller
-                                        callback(null, response);
-
-                                        console.log(response);
-                                        sleep(500); // Sleep for 0.5 second
-                       } else {
-                               console.log(`STDERR: ${stderr}`);
-                               response = { statusCode: code,
-                                            body: `Failed to execute, ${this_command}, command` };
-
-                               //  Return error with error information back to the caller
-                               callback(`Failed to execute, ${this_command}, command`);
-                       }
-                  }
-               });
-            });
-            ssh.start({
-                       success: () => console.log(`Successfully connected to ${params[hostkey]}`),
-                       fail: (err) => console.log(`Failed to connect to ${params[hostkey]}: ${err}`)
-            });
-        });
-};
+        console.log(response)
+        if (code === 0) {
+          // Command completed successfully
+          callback(null, response)
+        } else {
+          // I'm not sure we want to return an error from the lambda in this case.
+          // AWS will attempt to re-run.
+          callback(Error(`Failed to execute "${cmd}. Return code: ${code}`))
+        }
+      }
+    }).start({
+      success: () => console.log(`Connected to ${params[hostkey]}`),
+      fail: (err) => callback(Error(`Failed to connect to ${params[hostkey]}: ${err}`))
+    })
+  })
+}

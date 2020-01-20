@@ -48,7 +48,7 @@ echo "" >> "$SUBMISSION_LOG"
 # Run a Notebook convert on the requirements met notebook with the module under test
 NBFILE="$WORKDIR"/work/nbconvert/requirements_met.ipynb
 
-# Copy requirements_met notebook file to work directory so that we can update 
+# Copy requirements_met notebook file to work directory so that we can update
 # the latest dea module in the notebook file
 cp "$TESTDIR"/dea_testscripts/requirements_met.ipynb "$NBFILE"
 
@@ -65,7 +65,7 @@ jupyter nbconvert --to python "$NBFILE" --stdout --TemplateExporter.exclude_mark
 
 ## Execute the notebook
 ## Cell execution timeout = 5000s, --ExecutePreprocessor.timeout=5000
-## --allow-errors shall allow conversion will continue and the output from 
+## --allow-errors shall allow conversion will continue and the output from
 ## any exception be included in the cell output
 jupyter nbconvert --ExecutePreprocessor.timeout=5000 --to notebook --execute "$NBFILE" --allow-errors \
 --clear-output --debug

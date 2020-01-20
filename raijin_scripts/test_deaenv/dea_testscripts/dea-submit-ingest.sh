@@ -47,9 +47,9 @@ source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$DATACUBE_CONFI
 dc_version=$(datacube --version)
 
 echo "********************************************************************"
-echo "  Datacube Config Path (ingest):  $DATACUBE_CONFIG_PATH" 
+echo "  Datacube Config Path (ingest):  $DATACUBE_CONFIG_PATH"
 echo "  Datacube version under test:  $dc_version"
-echo "  PATH (ingest):  $PATH" 
+echo "  PATH (ingest):  $PATH"
 echo "********************************************************************"
 echo ""
 

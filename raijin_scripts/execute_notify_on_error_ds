@@ -46,7 +46,7 @@ datetime="$(date '+%F-%T')"
 if [[ -s ~/.aws/credentials ]]; then
     exists=
     profilename="$AWS_PROFILE"
-    while read -ra line; 
+    while read -ra line;
     do
         for word in "${line[@]}";
         do

@@ -26,7 +26,7 @@ WAGL_LOGDIR='/g/data/v10/work/s2_ard/wagl'
 WAGL_WORKDIR='/g/data/if87/workdir'
 
 # Defines PBS resources required to run the find command
-FIND_RESOURCES='walltime=48:00:00,mem=4GB,ncpus=1'
+FIND_RESOURCES='walltime=48:00:00,mem=4GB,ncpus=1,storage=gdata/v10+gdata/if87+gdata/fj7'
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -111,7 +111,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
         "level1"    )
                     cd "$RUNDIR/level1"
                     echo "Submitting PBS job to create level 1 yaml files: ${OUTPUT_DIR}"
-                    qsub -V -N "S2-L1-YAML" \
+                    qsub -V -N "S2-L1-YAML-$_year" \
                         -W umask=33 \
                         -q normal \
                         -l "$FIND_RESOURCES" \
@@ -126,7 +126,7 @@ for (( _year="${_OBS_YEAR_START}"; _year<="$_OBS_YEAR_END"; _year++ )); do
         "level2"    )
                     cd "$RUNDIR/level2"
                     echo "Submitting PBS job to process to level 2: ${OUTPUT_DIR}"
-                    qsub -V -N "S2-L2-ARD" \
+                    qsub -V -N "S2-L2-ARD-$_year" \
                         -W umask=33 \
                         -q normal \
                         -l "$FIND_RESOURCES" \

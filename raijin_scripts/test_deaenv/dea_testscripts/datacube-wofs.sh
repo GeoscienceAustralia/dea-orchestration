@@ -45,9 +45,9 @@ source "$TESTDIR"/dea_testscripts/setup_deamodule_env.sh "$MUT" "$DATACUBE_CONFI
 wofs_version=$(datacube-wofs --version)
 
 echo "********************************************************************"
-echo "  Datacube Config Path (WOfS):  $DATACUBE_CONFIG_PATH" 
+echo "  Datacube Config Path (WOfS):  $DATACUBE_CONFIG_PATH"
 echo "  Datacube WOfS version under test:  $wofs_version"
-echo "  PATH (WOfS):  $PATH" 
+echo "  PATH (WOfS):  $PATH"
 echo "********************************************************************"
 echo ""
 
@@ -83,6 +83,6 @@ datacube-wofs submit --app-config "$WORKDIR"/wofs_configfiles/wofs_albers.yaml -
 datacube-wofs submit --app-config "$WORKDIR"/wofs_configfiles/wofs_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
 datacube-wofs submit --app-config "$WORKDIR"/wofs_configfiles/wofs_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
 
-sleep 5s  
+sleep 5s
 
 } > "$SUBMISSION_LOG"

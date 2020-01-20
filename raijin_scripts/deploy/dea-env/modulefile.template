@@ -46,4 +46,3 @@ prepend-path PATH ${module_path}/bin
 # Remove duplicate entries for HOME dir and prepend again
 remove-path PATH ~/.digitalearthau/${module_name}/${module_version}/local/bin
 prepend-path PATH ~/.digitalearthau/${module_name}/${module_version}/local/bin
-
