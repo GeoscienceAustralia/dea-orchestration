@@ -77,7 +77,7 @@ if [module-info mode load] {
 }
 
 ################################################################
-# Log access to this module, so that we know when old versions can 
+# Log access to this module, so that we know when old versions can
 # safely be removed
 
 set sqlstr "insert into dea_module_loaded (module, username, host) values ('$name/$version', '$env(USER)', '[info hostname]');"

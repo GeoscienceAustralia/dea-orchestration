@@ -48,7 +48,7 @@ stats_version=$(datacube-stats --version)
 echo "********************************************************************"
 echo "  Datacube Config Path (stats):  $DATACUBE_CONFIG_PATH"
 echo "  Datacube stats version under test:  $stats_version"
-echo "  PATH (stats):  $PATH" 
+echo "  PATH (stats):  $PATH"
 echo "********************************************************************"
 echo ""
 
