@@ -19,10 +19,11 @@
 set -ex
 
 # Set up our environment
+# shellcheck source=/dev/null
 source "$HOME"/.bashrc
 
 # Load the latest stable DEA module
 module use /g/data/v10/public/modules/modulefiles
 module load dea
 
-python3 s2_to_s3_rolling.py "${num_days}" "${s3_bucket}" "${end_date}" "${update}"
+python3 s2_to_s3_rolling.py "${NUM_DAYS}" "${S3_BUCKET}" "${END_DATE}" "${UPDATE}"
