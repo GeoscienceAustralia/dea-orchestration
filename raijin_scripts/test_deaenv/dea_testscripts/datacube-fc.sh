@@ -47,7 +47,7 @@ fc_version=$(datacube-fc --version)
 echo "********************************************************************"
 echo "  Datacube Config Path (fc):  $DATACUBE_CONFIG_PATH"
 echo "  Datacube fc version under test:  $fc_version"
-echo "  PATH (fc):  $PATH" 
+echo "  PATH (fc):  $PATH"
 echo "********************************************************************"
 echo ""
 
@@ -83,6 +83,6 @@ datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M 
 datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR" --dry-run
 datacube-fc submit --app-config "$WORKDIR"/fc_configfiles/ls8_fc_albers.yaml -M santosh.mohan@ga.gov.au -m ae -P u46 -q normal -C "$CONFIGFILE" -vvv --year "$YEAR" --tag "$YEAR"
 
-sleep 5s  
+sleep 5s
 
 } > "$SUBMISSION_LOG"

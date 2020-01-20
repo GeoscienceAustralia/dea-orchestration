@@ -121,7 +121,7 @@ then
     nds_not_trashed=$(get_sync_data '"name":"archived_dataset_on_disk"' "$LOG_DIR")
     _nds_index_fail=$(( nds_not_trashed + index_fail_path ))
 elif  [[ $(find "$LOG_DIR") =~ .*\.(log) && "$JOB_NAME" =~ .\.*-generate-* ]]
-then 
+then
     # Fetch WOfS/FC generate task service units consumed
     _service_units=$(get_service_units_1 'Service Units:.*' "$WOFS_FC_GEN_OFILE")
 elif  [[ $(find "$LOG_DIR") =~ .*\.(log) && "$JOB_NAME" =~ .\.*-run-* ]]
