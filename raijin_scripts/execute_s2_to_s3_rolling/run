@@ -7,19 +7,19 @@ while [[ "$#" -gt 0 ]]; do
     key="$1"
     case "${key}" in
         --profile )             shift
-                                AWS_PROFILE="$1"
+                                export AWS_PROFILE="$1"
                                 ;;
         --s3bucket )            shift
-                                BUCKET="$1"
+                                export S3_BUCKET="$1"
                                 ;;
-        --numdays )            shift
-                                NUM_DAYS="$1"
+        --numdays )             shift
+                                export NUM_DAYS="$1"
                                 ;;
-        --enddate )            shift
-                                END_DATE="$1"
+        --enddate )             shift
+                                export END_DATE="$1"
                                 ;;
-        --update )            shift
-                                UPDATE="$1"
+        --update )              shift
+                                export UPDATE="$1"
                                 ;;
         * )
           echo "Input key, '$key', did not match the expected input argument key"
@@ -35,6 +35,5 @@ mkdir -p "${WORKDIR}"
 
 # alex: num_days is the number of days prior to today to check for syncing
 qsub -N s2nbar-rolling-archive -o "${WORKDIR}" -e "${WORKDIR}" \
--v AWS_PROFILE="${AWS_PROFILE}",s3_bucket="${BUCKET}",num_days="${NUM_DAYS}",\
-end_date="${END_DATE}",update="${UPDATE}" \
+-v AWS_PROFILE,S3_BUCKET,NUM_DAYS,END_DATE,UPDATE \
 ./execute_s2_to_s3_rolling.sh
