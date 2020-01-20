@@ -13,7 +13,7 @@ mkdir -p "$WORKDIR"/wofs_configfiles
 declare -a dc_yaml_array=("ls8_nbart_albers.yaml"
                           "ls8_nbar_albers.yaml"
                           "ls8_pq_albers.yaml")
-                          
+
 ## Declare fractiona cover array of yaml files to download
 declare -a fc_yaml_array=("ls8_fc_albers.yaml")
 
@@ -54,7 +54,7 @@ for i in "${dc_yaml_array[@]}"
 do
   INGEST_CONF_DIR="https://github.com/geoscienceAustralia/digitalearthau/raw/develop/digitalearthau/config/ingestion/$i"
   yaml_filename=$(basename "$INGEST_CONF_DIR")
-  
+
   wget -q "$INGEST_CONF_DIR"
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/ingest/001",' "$yaml_filename"
 done
@@ -65,7 +65,7 @@ for i in "${fc_yaml_array[@]}"
 do
   FC_CONF_DIR="https://github.com/GeoscienceAustralia/fc/raw/master/config/$i"
   yaml_filename=$(basename "$FC_CONF_DIR")
-  
+
   wget -q "$FC_CONF_DIR"
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/fc/001",' "$yaml_filename"
 done
@@ -76,7 +76,7 @@ for i in "${wofs_yaml_array[@]}"
 do
   WOfS_CONF_DIR="https://github.com/GeoscienceAustralia/wofs/raw/master/config/$i"
   yaml_filename=$(basename "$WOfS_CONF_DIR")
-  
+
   wget -q "$WOfS_CONF_DIR"
   sed -i -e 's,location: .*,location: "'"$WORKDIR"'/work/wofs/001",' "$yaml_filename"
 done

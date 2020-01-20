@@ -2,14 +2,14 @@
 
 Serverless deployment of es_cleanup lambdas
 
-Deploy using https://serverless.com/ 
+Deploy using https://serverless.com/
 `serverless deploy -v`
 
 
 ## es-cleanup
-- based on: https://github.com/cloudreach/aws-lambda-es-cleanup 
+- based on: https://github.com/cloudreach/aws-lambda-es-cleanup
 - licence: Apache 2.0
-- Authors: 
+- Authors:
 
 
 * **Giulio Calzolari** - *Initial work* - [giuliocalzo](https://github.com/giuliocalzolari)
@@ -18,7 +18,7 @@ Deploy using https://serverless.com/
 * **dcodix** - *Python 3 support* - [dcodix](https://github.com/dcodix)
 
 
-- About: 
+- About:
 
 
-Removes indices over 100 days old. 
+Removes indices over 100 days old.

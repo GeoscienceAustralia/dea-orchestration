@@ -15,12 +15,12 @@ dea-test-env teardown
 dea-test-env setup
 datacube -E datacube system check
 
-# Time range is picked from cubedash dashboard such that datasets for 
-# input_region tile [10, -40] is processed during this period in the production 
+# Time range is picked from cubedash dashboard such that datasets for
+# input_region tile [10, -40] is processed during this period in the production
 # database. This input_region tile is used in test configuration files as query
 # argument.
 echo "Migrate ls8_nbart_scene product from production database to test database"
-dea-test-env migrate -S production --product ls8_nbart_scene '2018-08-06 < time < 2018-08-08'  
+dea-test-env migrate -S production --product ls8_nbart_scene '2018-08-06 < time < 2018-08-08'
 
 echo "Migrate ls8_nbar_scene product from production database to test database"
 dea-test-env migrate -S production --product ls8_nbar_scene '2018-08-06 < time < 2018-08-08'
@@ -49,7 +49,7 @@ module load "$MUT"
 
 set +x  # Turn off Echo
 
-# Update dsm1sv10 product definition in the test database with the one we want as per the production database 
+# Update dsm1sv10 product definition in the test database with the one we want as per the production database
 datacube -C "$CONFIGFILE" -E NCI-test product update "$TEMP_DIR/dsm.yaml" --allow-unsafe
 datacube -C "$CONFIGFILE" -E NCI-test dataset add \
 /g/data/v10/eoancillarydata/elevation/dsm1sv1_0_Clean_tiff/agdc-metadata.yaml --confirm-ignore-lineage -p dsm1sv10
