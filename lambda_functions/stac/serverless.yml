@@ -62,7 +62,7 @@ provider:
         - "sqs:ReceiveMessage"
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
-      Resource: !GetAtt staticStacQueue.Arn
+      Resource: "!GetAtt staticStacQueue.Arn"
 
 functions:
   stac:
@@ -71,7 +71,7 @@ functions:
     timeout: 5
     events:
       - sqs:
-          arn: !GetAtt staticStacQueue.Arn
+          arn: "!GetAtt staticStacQueue.Arn"
           batchSize: 10
 
 # Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
@@ -84,7 +84,7 @@ resources:
         QueueName: static-stac-queue
         VisibilityTimeout: 600
         RedrivePolicy:
-          deadLetterTargetArn: !GetAtt staticStacDeadLetterQueue.Arn
+          deadLetterTargetArn: "!GetAtt staticStacDeadLetterQueue.Arn"
           maxReceiveCount: 5
     staticStacDeadLetterQueue:
       Type: AWS::SQS::Queue
@@ -103,7 +103,7 @@ resources:
             - Sid: "allow-sns-messages"
               Effect: Allow
               Principal: "*"
-              Resource: !GetAtt staticStacQueue.Arn
+              Resource: "!GetAtt staticStacQueue.Arn"
               Action: "SQS:SendMessage"
               Condition:
                 ArnEquals:
@@ -117,13 +117,13 @@ resources:
       Type: 'AWS::SNS::Subscription'
       Properties:
         TopicArn: ${self:custom.snsTopic.${self:custom.Stage}}
-        Endpoint: !GetAtt staticStacQueue.Arn
+        Endpoint: "!GetAtt staticStacQueue.Arn"
         Protocol: sqs
         RawMessageDelivery: 'true'
   Outputs:
     QueueURL:
       Description: "URL of newly created SQS Queue"
-      Value: !Ref staticStacQueue
+      Value: "!Ref staticStacQueue"
     QueueARN:
       Description: "ARN of newly created SQS Queue"
-      Value: !GetAtt staticStacQueue.Arn
+      Value: "!GetAtt staticStacQueue.Arn"

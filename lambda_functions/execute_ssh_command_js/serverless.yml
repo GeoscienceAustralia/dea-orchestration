@@ -63,3 +63,4 @@ functions:
   execute_notify_on_error_ds: ${file(execute_notify_on_error_ds.yml)}
   execute_clean: ${file(execute_clean.yml)}
   execute_s2ard: ${file(execute_s2ard.yml)}
+  execute_s2_to_s3_rolling: ${file(execute_s2_to_s3_rolling.yml)}
