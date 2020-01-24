@@ -95,6 +95,7 @@ def replace_metadata(granule, s3_bucket, s3_metadata_path):
     del temp_metadata['lineage']
     temp_metadata['creation_dt'] = temp_metadata['extent']['center_dt']
     temp_metadata['product_type'] = 'S2MSIARD_NBAR'
+    temp_metadata['original_id'] = temp_metadata['id']
 
     # Create dataset ID based on Kirill's magic
     temp_metadata['id'] = str(odc_uuid("s2_to_s3_rolling", "1.0.0", [temp_metadata['id']]))
