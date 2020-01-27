@@ -50,6 +50,7 @@ provider:
 functions:
   git_pull_prod:
     handler: handler.execute_ssh_command
+    description: Update the scripts repo stored on the NCI server
     environment:
       hostkey: 'orchestrator.raijin.users.git_pull.host'
       userkey: 'orchestrator.raijin.users.git_pull.user'
