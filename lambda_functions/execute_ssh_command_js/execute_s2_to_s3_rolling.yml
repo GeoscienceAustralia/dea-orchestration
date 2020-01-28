@@ -5,7 +5,8 @@ environment:
                       --profile <%= profile %>
                       --s3bucket <%= s3bucket %>
                       --numdays <%= numdays %>
-                      --enddate <%= enddate %>'
+                      --enddate <%= enddate %>
+                      --update <%= update %>'
 events:
   - schedule:
       rate: cron(5 12 ? * SUN *)  # Run weekly on a Sunday 10 PM AEST
