@@ -1,10 +1,7 @@
 service: execute-on
 
 plugins:
-  # install serverless pseudo parameters using the following:
-  #   1) $ npm install serverless-pseudo-parameters --save-dev
   - serverless-pseudo-parameters
-
 custom:
   Stage: ${opt:stage, self:provider.stage}
   profiles:
