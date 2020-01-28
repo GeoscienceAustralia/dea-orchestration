@@ -14,6 +14,7 @@
 ## The requested job scratch space.
 #PBS -l jobfs=1GB
 #PBS -l storage=gdata/if87+gdata/v10
+#PBS -m abe -M nci.monitor@dea.ga.gov.au
 
 # echo on and exit on fail
 set -ex
