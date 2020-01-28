@@ -8,7 +8,7 @@
     "simple-ssh": "^1.0.0"
   },
   "devDependencies": {
-    "serverless-pseudo-parameters": "^1.6.0"
+    "serverless-pseudo-parameters": "^2.5.0"
   },
   "scripts": {
     "test": "echo \"No tests for execute-ssh-command yet.\""

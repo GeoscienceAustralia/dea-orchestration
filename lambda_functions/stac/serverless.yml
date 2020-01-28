@@ -4,7 +4,6 @@ frameworkVersion: ">=1.2.0 <2.0.0"
 plugins:
   - serverless-python-requirements
   - serverless-pseudo-parameters
-
 package:
   exclude:
     - node_modules/**
@@ -40,8 +39,9 @@ custom:
   pythonRequirements:
     dockerizePip: non-linux
     slim: true
-    fileName: requirements.txt
-    useDownloadCache: true
+    noDeploy:
+      - botocore
+      - boto3
 
 provider:
   name: aws
@@ -62,7 +62,7 @@ provider:
         - "sqs:ReceiveMessage"
         - "sqs:DeleteMessage"
         - "sqs:GetQueueAttributes"
-      Resource: "!GetAtt staticStacQueue.Arn"
+      Resource: "#{staticStacQueue.Arn}"
 
 functions:
   stac:
@@ -71,7 +71,7 @@ functions:
     timeout: 5
     events:
       - sqs:
-          arn: "!GetAtt staticStacQueue.Arn"
+          arn: "#{staticStacQueue.Arn}"
           batchSize: 10
 
 # Thanks https://www.jeremydaly.com/how-to-use-sns-and-sqs-to-distribute-and-throttle-events/
@@ -84,7 +84,7 @@ resources:
         QueueName: static-stac-queue
         VisibilityTimeout: 600
         RedrivePolicy:
-          deadLetterTargetArn: "!GetAtt staticStacDeadLetterQueue.Arn"
+          deadLetterTargetArn: "#{staticStacDeadLetterQueue.Arn}"
           maxReceiveCount: 5
     staticStacDeadLetterQueue:
       Type: AWS::SQS::Queue
@@ -103,7 +103,7 @@ resources:
             - Sid: "allow-sns-messages"
               Effect: Allow
               Principal: "*"
-              Resource: "!GetAtt staticStacQueue.Arn"
+              Resource: "#{staticStacQueue.Arn}"
               Action: "SQS:SendMessage"
               Condition:
                 ArnEquals:
@@ -117,13 +117,13 @@ resources:
       Type: 'AWS::SNS::Subscription'
       Properties:
         TopicArn: ${self:custom.snsTopic.${self:custom.Stage}}
-        Endpoint: "!GetAtt staticStacQueue.Arn"
+        Endpoint: "#{staticStacQueue.Arn}"
         Protocol: sqs
         RawMessageDelivery: 'true'
   Outputs:
     QueueURL:
       Description: "URL of newly created SQS Queue"
-      Value: "!Ref staticStacQueue"
+      Value: "#{staticStacQueue}"
     QueueARN:
       Description: "ARN of newly created SQS Queue"
-      Value: "!GetAtt staticStacQueue.Arn"
+      Value: "#{staticStacQueue.Arn}"
