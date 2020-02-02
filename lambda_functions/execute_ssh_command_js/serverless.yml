@@ -56,6 +56,11 @@ functions:
       - schedule:
           rate: cron(00 10 ? * SUN *)  # Run every Sunday, at 08:00 pm Canberra time
           enabled: false
+  execute_deploy:
+    handler: handler.execute_ssh_command
+    description: Deploy a new environment module on the NCI
+    environment:
+      cmd: 'execute_deploy <%= module_name %>'
   execute_sync: ${file(execute_sync.yml)}
   execute_coherence: ${file(execute_coherence.yml)}
   execute_notify_on_error_ds: ${file(execute_notify_on_error_ds.yml)}
