@@ -85,7 +85,7 @@ do
   set -x  # echo ON
 
   qsub -N ${JOB_NAME} -q ${QUEUE} -W umask=33 -l wd,walltime=20:00:00,mem=3GB -m abe \
-  -lother=gdata1:gdata2 -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
+  -l storage=gdata/v10+gdata/fk4+gdata/rs0+gdata/if87 -M nci.monitor@dea.ga.gov.au -P ${PROJECT} -o ${WORKDIR} -e ${WORKDIR} \
   -- /bin/bash -l -c "source $HOME/.bashrc; module use /g/data/v10/public/modules/modulefiles/; \
   module load ${MODULE}; dea-sync -vvv --cache-folder ${SYNC_CACHE} -j 1 ${TRASH_ARCHIVED} \
   --update-locations --index-missing ${syncpath}"

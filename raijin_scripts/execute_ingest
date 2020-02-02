@@ -100,7 +100,7 @@ echo "Executing ${PRODUCT} ingest for the ${YEAR}"
 ##################################################################################################
 # Run dea-submit-ingest process
 ##################################################################################################
-yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 5 -t 10 --allow-product-changes \
+yes Y | dea-submit-ingest qsub --project "${PROJECT}" --queue "${QUEUE}" -n 1 -t 15 --allow-product-changes \
   --name "${JOB_NAME}" "${PRODUCT}" "${YEAR}"
 EOF
 
