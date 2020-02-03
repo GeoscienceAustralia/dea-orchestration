@@ -1,4 +1,4 @@
 --pre
--r ../requirements.txt
+-r ../dea/requirements.txt
 cattrs
 ruamel.yaml

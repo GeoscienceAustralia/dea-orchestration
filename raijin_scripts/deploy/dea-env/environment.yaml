@@ -183,7 +183,6 @@ dependencies:
 - structlog
 - tensorflow
 - tornado
-- tmux
 - tqdm
 - tuiview
 - typing
