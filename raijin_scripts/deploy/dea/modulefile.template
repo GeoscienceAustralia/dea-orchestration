@@ -24,8 +24,8 @@ setenv DATACUBE_CONFIG_PATH ${module_path}/datacube.conf
 setenv LC_ALL en_AU.utf8
 setenv LANG C.UTF-8
 
-if {[module-info mode load] && [is-loaded $name/$version]} {
-        puts stderr "Warning: $name/$version exists in the python env ($$env(PYTHONPATH))"
+if {[module-info mode load] && [is-loaded $$name/$$version]} {
+        puts stderr "Warning: $$name/$$version exists in the python env ($$env(PYTHONPATH))"
 }
 
 # To avoid user packages conflicting with Environment Module packages, point the PYTHONUSERBASE and PATH
@@ -50,9 +50,9 @@ prepend-path PYTHONPATH ~/.digitalearthau/${fixed_dea_env}/local/lib/python3.6/s
 if [string match "gadi*" [info hostname]] {
     if {! [file exists ~/.pgpass]} {
         set oldpgpass [lindex [glob -nocomplain ~/raijin_home*/*/.pgpass] 0]
-        if [file exists $oldpgpass] {
+        if [file exists $$oldpgpass] {
             puts "Attempting to copy raijin .pgpass to ~/.pgpass for DEA Database Access"
-            file copy $oldpgpass [pwd]
+            file copy $$oldpgpass [pwd]
         }
     }
 }
@@ -80,6 +80,6 @@ if [module-info mode load] {
 # Log access to this module, so that we know when old versions can
 # safely be removed
 
-set sqlstr "insert into dea_module_loaded (module, username, host) values ('$name/$version', '$env(USER)', '[info hostname]');"
+set sqlstr "insert into dea_module_loaded (module, username, host) values ('$$name/$$version', '$$env(USER)', '[info hostname]');"
 set ::env(PGPASSWORD) guest
 exec psql -X -h dea-db.nci.org.au -c $sqlstr guest guest
