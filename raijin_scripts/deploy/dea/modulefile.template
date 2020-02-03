@@ -82,4 +82,4 @@ if [module-info mode load] {
 
 set sqlstr "insert into dea_module_loaded (module, username, host) values ('$$name/$$version', '$$env(USER)', '[info hostname]');"
 set ::env(PGPASSWORD) guest
-exec psql -X -h dea-db.nci.org.au -c $sqlstr guest guest
+exec psql -X -h dea-db.nci.org.au -c $$sqlstr guest guest
