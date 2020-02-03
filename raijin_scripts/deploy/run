@@ -4,6 +4,10 @@ set -eu
 
 args=( "$@" )
 
+if [[ "${args[0]}" == "dea_unstable" ]]; then
+    rm -rf /g/data/v10/public/modules/dea/unstable
+fi
+
 echo "Deploying Environment Module ${args[0]}"
 module load python3/3.7.4
 
