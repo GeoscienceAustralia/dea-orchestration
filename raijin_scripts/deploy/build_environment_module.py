@@ -355,7 +355,6 @@ def main(config_path):
     ospath = r'%s' % os.getcwd().replace('\\', '/')
 
     logging.basicConfig(level=logging.DEBUG)
-    run_command(f'pip3 install --user pyyaml')
     LOG.info('Reading config file')
     config = read_config(config_path)
     variables = config['variables']
@@ -365,7 +364,8 @@ def main(config_path):
         scriptname = config['dea_env_miniconda3']
         run_command(f'./{scriptname}')
 
-    config['variables']['module_version'] = date()
+    if 'module_version' not in variables:
+        variables['module_version'] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
 
@@ -406,8 +406,8 @@ def main(config_path):
         run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
     else:
         LOG.info('List installed python dependencies and their versions:')
-        module_path = variables['module_path']
-        run_command(f'{module_path}/bin/pip freeze')
+        module = f'{variables["module_name"]}/{variables["module_version"]}'
+        run_command(f'module load {module}; pip freeze')
 
     shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
