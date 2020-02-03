@@ -141,7 +141,7 @@ provider:
     TASK_TIMEOUT: 900  # 15 minutes
     TASK_HEARTBEAT: 60  # Ensure task sends heartbeat notifications in intervals of 60 seconds
     EXECUTE_JOB_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:Execute_Jobs-${self:custom.Stage}"
-    YEAR: 2019
+    YEAR: 2020
     SYNC_CMD: ${self:custom.cmds.SYNC}
     SYNC_PRODUCTS: ${self:custom.products.SYNC}
     INGEST_CMD: ${self:custom.cmds.INGEST}
