@@ -34,8 +34,6 @@ SUBMISSION_LOG="$WORKDIR"/dea-clean_$(date '+%F_%T').log
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
-module use /g/data/v10/public/modules/modulefiles
-module load "${MODULE}"
 
 MIN_TRASH_AGE="--min-trash-age-hours ${TRASH_AGE}"
 
@@ -43,11 +41,14 @@ cd "${WORKDIR}"
 
 echo Submitting PBS job to run dea-clean archived "${MIN_TRASH_AGE}" "${SEARCH_PATHS}"
 
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging into: ${SUBMISSION_LOG}"
 echo ""
 echo Loading module ${MODULE}
 echo ""
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
 
 # Check if we can connect to the database
 datacube -vv system check

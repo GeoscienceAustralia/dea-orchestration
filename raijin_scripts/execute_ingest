@@ -46,8 +46,6 @@ dbname='datacube'
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
-module use /g/data/v10/public/modules/modulefiles
-module load "${MODULE}"
 while read -r LINE; do
   if [[ "$count" -eq 1 ]]
   then
@@ -75,11 +73,14 @@ done  < "$DATACUBE_CONFIG_PATH"
 # Launch the submission in the background, outputting results to a log file
 cd "${WORKDIR}"
 
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
+nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 <<EOF &
 echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
 echo ""
 echo Loading module ${MODULE}
 echo ""
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
 
 # Check if we can connect to the database
 datacube -vv system check

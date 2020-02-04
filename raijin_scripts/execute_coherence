@@ -34,8 +34,6 @@ SUBMISSION_LOG="$WORKDIR"/Coherence_$(date '+%H_%m_%s').log
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
-module use /g/data/v10/public/modules/modulefiles
-module load "${MODULE}"
 
 if [[ "$PRODUCT" =~ ^(All|all)$ ]]; then
     PRODUCT_QUERY=''
@@ -45,11 +43,14 @@ fi
 
 cd "${WORKDIR}"
 
-nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 << EOF &
+nohup "$SHELL" >> "$SUBMISSION_LOG" 2>&1 << EOF &
 echo "Logging into: ${SUBMISSION_LOG}"
 echo ""
 echo Loading module ${MODULE}
 echo ""
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
 
 # Check if we can connect to the database
 datacube -vv system check
