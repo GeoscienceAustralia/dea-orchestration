@@ -33,10 +33,11 @@ END_YEAR=$(echo "$RANGE_EXP" | cut -f 2 -d '-')
 
 mkdir -p "${WORKDIR}"
 
-module use /g/data/v10/public/modules/modulefiles
-module load "${MODULE}"
 
 TIME_RANGE_TO_PROCESS="'time in $END_YEAR'"
+
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
 
 echo "Start time: $(date '+%F-%T')
 

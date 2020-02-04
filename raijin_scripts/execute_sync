@@ -80,7 +80,7 @@ do
   nohup "$SHELL" > "$SUBMISSION_LOG" 2>&1 <<EOF &
   echo "Logging job: ${JOB_NAME} into: ${SUBMISSION_LOG}"
   echo ""
-  echo Loading module ${MODULE}
+  echo Using module ${MODULE}
 
   set -x  # echo ON
 
