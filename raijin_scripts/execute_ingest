@@ -46,6 +46,9 @@ dbname='datacube'
 mkdir -p "${WORKDIR}"
 echo "Start time: " "$(date '+%F-%T')" > "$SUBMISSION_LOG"
 
+module use /g/data/v10/public/modules/modulefiles
+module load "${MODULE}"
+
 while read -r LINE; do
   if [[ "$count" -eq 1 ]]
   then
