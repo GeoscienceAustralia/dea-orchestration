@@ -11,7 +11,7 @@ git reset --hard origin/master
 git pull
 
 ##########################################
-# Update the dea-orchestration Checkout
+# Update the COG-Conversion Checkout
 ##########################################
 COG_REPO="https://github.com/GeoscienceAustralia/COG-Conversion.git"
 COG_CONV_DIR="$HOME/COG-Conversion"
