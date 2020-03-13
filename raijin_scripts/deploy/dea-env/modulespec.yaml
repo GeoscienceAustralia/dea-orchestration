@@ -2,7 +2,7 @@ variables:
   module_name: dea-env
   module_description: DEA Environment Module
   modules_dir: "/g/data/v10/public/modules"
-  conda_path: "/g/data/v10/private/miniconda3-new/bin/conda"
+  conda_path: "/g/data/v10/private/miniconda3/bin/conda"
   python_version: 3.7
 
 # These templated variables are filled and included in the available variables used
