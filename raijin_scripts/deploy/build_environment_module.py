@@ -325,6 +325,7 @@ def run_final_commands_on_module(commands, module_path):
     :param module_path: Module path
     :return: None
     """
+    os.environ['PATH'] = f'{module_path}/bin:{os.environ["PATH"]}'
     for command in commands:
         cmd = f'{module_path}/bin/{command}'
         run_command(cmd)
@@ -358,11 +359,6 @@ def main(config_path):
     LOG.info('Reading config file')
     config = read_config(config_path)
     variables = config['variables']
-
-    if 'dea_env_miniconda3' in config:
-        LOG.info('Re-install miniconda3 before creating new dea-environment module')
-        scriptname = config['dea_env_miniconda3']
-        run_command(f'./{scriptname}')
 
     if 'module_version' not in variables:
         variables['module_version'] = date()
