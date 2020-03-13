@@ -13,12 +13,4 @@ cd "$TMPDIR" || exit
 ./miniconda.sh -b -f -u -p "$MINICONDA_PATH"
 "$MINICONDA_PATH"/bin/conda update -y -c conda-forge --all
 
-if [[ ! -d "$HOME"/.nvm ]]
-then
-    # Install Node Version Manager...
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-else
-    echo "$HOME/.nvm directory already exists"
-fi
-
 chmod -R ug+rwx "$MINICONDA_PATH"
