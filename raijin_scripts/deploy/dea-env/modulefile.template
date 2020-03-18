@@ -23,17 +23,13 @@ setenv PYTHONFAULTHANDLER 1
 # This allows users to install python packages with "pip install --user <package>",
 setenv PYTHONUSERBASE ~/.digitalearthau/${module_name}/${module_version}/local
 setenv GDAL_DATA ${module_path}/share/gdal
-setenv PROJ_LIB ${module_path}/lib/python3.6/site-packages/pyproj/data
+setenv PROJ_LIB ${module_path}/share/proj
 
 if {[module-info mode load] && [info exists env(PYTHONPATH)] && $$env(PYTHONPATH) != ""} {
         puts stderr "Warning: ${module_name}/${module_version} exists in the python env ($$env(PYTHONPATH))"
         puts stderr "Unload all python modules, if you experience any issues."
 }
 
-# Set python path to point to the dea-env path
-setenv PYTHONPATH ${python_path}
-
-prepend-path PYTHONPATH ~/.digitalearthau/${module_name}/${module_version}/local/lib/python3.6/site-packages
 prepend-path PYTHONPATH ${module_path}/share/qgis/python
 
 # Remove duplicate entries for module path dir and prepend again

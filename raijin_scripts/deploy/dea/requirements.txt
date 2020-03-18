@@ -11,6 +11,7 @@ odc-ui
 odc-index
 odc-aws
 odc-geom
+odc-algo
 odc-io
 odc-ppt
 odc-dscache
