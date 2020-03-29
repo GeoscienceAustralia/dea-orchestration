@@ -2,6 +2,7 @@
 datacube
 eodatasets
 eodatasets3
+dea_cogger
 digitalearthau
 datacube-stats
 datacube-alchemist
