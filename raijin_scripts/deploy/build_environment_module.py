@@ -33,15 +33,15 @@ as an where required. With the added benefit of keeping a central cache of
 packages.
 """
 
-
 import datetime
+import logging
 import os
+import shutil
+import string
 import subprocess
 import sys
 from pathlib import Path
-import shutil
-import string
-import logging
+
 import yaml
 
 MODULE_DIR = '/g/data/v10/public/modules'
@@ -119,20 +119,13 @@ def run_command(cmd):
     :param cmd: Command to execute
     :return: None
     """
-    try:
-        LOG.info('Running command: %s', cmd)
-        proc_output = subprocess.run(cmd, shell=True, check=True,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT,
-                                     universal_newlines=True,
-                                     encoding='utf-8',
-                                     errors='replace')
-
-        for line in proc_output.stdout.split(os.linesep):
-            _log_output(line)
-    except subprocess.CalledProcessError as suberror:
-        for line in suberror.stdout.split(os.linesep):
-            _log_output(line)
+    LOG.info('Running command: %s', cmd)
+    return subprocess.run(cmd, shell=True, check=True,
+                          stdout=sys.stdout,
+                          stderr=sys.stderr,
+                          text=True,
+                          encoding='utf-8',
+                          errors='replace')
 
 
 def install_conda_packages(env_file, variables):
@@ -386,9 +379,9 @@ def main(config_path):
     if 'env_test' in config:
         # List installed packages and their versions.
         # And finally, run tests on the new dea module.
-        LOG.info('*'*80)
+        LOG.info('*' * 80)
         LOG.info('List installed packages and their versions:')
-        LOG.info('*'*80)
+        LOG.info('*' * 80)
 
         script_dir = Path(__file__).absolute().parents[2] / 'test_deaenv'
         test_script = config['env_test']['test_script']
@@ -396,9 +389,9 @@ def main(config_path):
         run_command(f'module load {dea_module}; pip freeze')
 
         LOG.info('')
-        LOG.info('*'*80)
+        LOG.info('*' * 80)
         LOG.info('Run regression testing on new DEA Module (%s) ', dea_module)
-        LOG.info('*'*80)
+        LOG.info('*' * 80)
         run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
     else:
         LOG.info('List installed python dependencies and their versions:')
