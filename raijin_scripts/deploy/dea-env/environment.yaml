@@ -210,6 +210,7 @@ dependencies:
   - graphviz
   - hdmedians
   - isort
+  - jupyter-ui-poll
   - jupyterlab-git
   - jupyter-server-proxy  # port forwards, useful for dask dashboards
   - jupyterlab_code_formatter

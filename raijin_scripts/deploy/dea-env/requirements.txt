@@ -1,2 +1,2 @@
---index-url https://packages.dea.gadevs.ga/
+--index-url https://packages.dea.ga.gov.au/
 hdstats
