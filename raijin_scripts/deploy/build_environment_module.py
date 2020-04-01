@@ -258,30 +258,19 @@ def fix_module_permissions(module_path):
 
 def install_pip_packages(pip_conf, variables):
     """
-    Install pip packages as specified in the environment.yaml file
+    Install pip packages
+
+    Runs command ``pip_cmd``
 
     :param pip_conf: Dictionary of pip configurations
     :param variables: Configuration variables as per configuration settings in modulespec yaml file
     :return: None
     """
     fill_templates_from_variables(pip_conf, variables)
-    pip = pip_conf['pip_cmd']
-    prefix = pip_conf.get('prefix', pip_conf.get('dest'))  # 'dest' for backwards compatibility
-    target = pip_conf.get('target')
-    requirements = pip_conf['requirements']
-    if prefix and target is None:
-        dest = prefix
-        arg = f'--prefix {prefix}'
-    elif target and prefix is None:
-        dest = target
-        arg = f'--target {target}'
-    else:  # Either no target or prefix OR target and prefix were in the conf
-        raise Exception('Either prefix: <prefix path> or target: <target path> is required by install_pip_packages:')
+    pip_cmd = pip_conf['pip_cmd']
 
-    LOG.info('Installing pip packages from [ %s ] into directory [ %s ]', requirements, dest)
-
-    # Do not warn when installing scripts outside PATH
-    run_command(f'{pip} install -v --no-warn-script-location --no-deps {arg} --compile --requirement {requirements}')
+    LOG.info(f'Running: "{pip_cmd}"')
+    run_command(pip_cmd)
 
 
 def find_default_version(module_name):
