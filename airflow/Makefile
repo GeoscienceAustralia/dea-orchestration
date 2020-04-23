@@ -1,6 +1,7 @@
 CURRENT_VERSION=1.10.10
 
 build: # Build the Docker image for Airflow
+	docker pull puckel/docker-airflow:latest
 	docker build --tag geoscienceaustralia/airflow .
 
 push: build # Push the Docker image for Airflow
