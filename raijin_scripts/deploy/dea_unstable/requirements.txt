@@ -1,2 +1,4 @@
 --pre
 -r ../dea/requirements.txt
+
+datacube-stats>=1.0.2
