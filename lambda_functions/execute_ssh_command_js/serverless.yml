@@ -45,22 +45,6 @@ provider:
         - "arn:aws:kms:#{AWS::Region}:#{AWS::AccountId}:key/*"
 
 functions:
-  git_pull_prod:
-    handler: handler.execute_ssh_command
-    description: Update the scripts repo stored on the NCI server
-    environment:
-      hostkey: 'orchestrator.raijin.users.git_pull.host'
-      userkey: 'orchestrator.raijin.users.git_pull.user'
-      pkey: 'orchestrator.raijin.users.git_pull.pkey'
-    events:
-      - schedule:
-          rate: cron(00 10 ? * SUN *)  # Run every Sunday, at 08:00 pm Canberra time
-          enabled: false
-  execute_deploy:
-    handler: handler.execute_ssh_command
-    description: Deploy a new environment module on the NCI
-    environment:
-      cmd: 'deploy <%= module_name %>'
   execute_sync: ${file(execute_sync.yml)}
   execute_coherence: ${file(execute_coherence.yml)}
   execute_notify_on_error_ds: ${file(execute_notify_on_error_ds.yml)}
