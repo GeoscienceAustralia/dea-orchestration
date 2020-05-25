@@ -17,6 +17,7 @@ dependencies:
 - cairo
 - cartopy
 - cattrs
+- celery
 - cffi
 - ciso8601
 - click
@@ -42,23 +43,24 @@ dependencies:
 - flake8
 - flask
 - flask-caching
-- fiona
+- fiona==1.8.13
 - folium
 - fontconfig
 - freetype
 - freexl
 - future
-- gdal
+- gdal==3.0.4
 - geopandas
 - geopy
-- geos
+- geos==3.8.1
 - geotiff
 - gettext
-- anaconda::gevent
+- gevent
 - giflib
 - glib
 - glue-geospatial
 - glueviz
+- graphviz
 - gunicorn
 - h5py
 - hdbscan
@@ -88,7 +90,7 @@ dependencies:
 - keras
 - krb5
 - lark-parser
-- libgdal
+- libgdal==3.0.4
 - libgfortran
 - libgfortran-ng
 - libnetcdf
@@ -96,11 +98,11 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-- anaconda::mkl-service
-- intel::mkl
-- mkl_fft
-- anaconda::mkl-include
-- mkl_random
+# - anaconda::mkl-service
+# - intel::mkl
+# - mkl_fft
+# - anaconda::mkl-include
+# - mkl_random
 - mock
 - modernize
 - moto
@@ -120,7 +122,7 @@ dependencies:
 - openmpi
 - pandas
 - parallel
-- anaconda::paramiko
+- paramiko
 - parse
 - pcre
 - pep8
@@ -130,11 +132,10 @@ dependencies:
 - plotly
 - poppler
 - poppler-data
-- proj4
+- proj==7.0.0
 - pyproj
-- prometheus_client
 - psutil
-- psycopg2
+- psycopg2==2.8.5
 - pthread-stubs
 - pudb
 - pyephem
@@ -146,22 +147,22 @@ dependencies:
 - pytables
 - pytest
 - pytest-cov
-- pytorch::pytorch
-- pytorch::torchvision
-- anaconda::cudatoolkit
-- python
+# - pytorch::pytorch           # not working because of mkl
+# - pytorch::torchvision
+- cudatoolkit
+- python=3.6
 - python-dateutil
 - pyyaml
 - qgis
-- bashtage::randomgen
+- randomgen
 - rasterio
 - rasterstats
 - recommonmark
-- anaconda::redis
+- redis
 - redis-py
-- anaconda::requests
+- requests
 - rios
-- rsgislib
+#- rsgislib  # broken because of libgeos dependency
 - rtree
 - s3transfer
 - scikit-image
@@ -169,7 +170,7 @@ dependencies:
 - scipy
 - seaborn
 - setuptools
-- shapely
+- shapely==1.7.0
 - simplejson
 - singledispatch
 - skyfield
@@ -199,20 +200,22 @@ dependencies:
 - yappi
 - yarn
 - zarr
+
+# moved from pip
+- apscheduler
+- dawg
+- ffmpeg-python
+- jupyter-server-proxy
+- isort
+- dask-labextension
+- jupyterlab-git
+
 - pip:
-  - apscheduler
-  - celery
   - checksumdir
   - click-datetime
-  - dask_labextension
-  - DAWG
-  - ffmpeg-python
   - graphviz
   - hdmedians
-  - isort
   - jupyter-ui-poll
-  - jupyterlab-git
-  - jupyter-server-proxy  # port forwards, useful for dask dashboards
   - jupyterlab_code_formatter
   - libtmux
   - meinheld
