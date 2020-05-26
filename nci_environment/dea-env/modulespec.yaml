@@ -27,19 +27,14 @@ template_files:
 finalise_commands:
 # New geomedian/hdstats package from s3
 - pip install -U -v --no-deps --compile --requirement requirements.txt
-- jupyter labextension install --no-build jupyterlab_bokeh
+# bokeh is not working with too recent jupyterlab, might start working in the future
+#- jupyter labextension install --no-build jupyterlab_bokeh
 - jupyter labextension install --no-build @jupyterlab/geojson-extension
 - jupyter labextension install --no-build @jupyterlab/github
-- jupyter labextension install --no-build @jupyterlab/git
 - jupyter labextension install --no-build @jupyterlab/toc
 - jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
-- jupyter labextension install --no-build jupyter-leaflet
-- jupyter labextension install --no-build nbdime-jupyterlab
 - jupyter labextension install --no-build @ryantam626/jupyterlab_code_formatter
-- jupyter labextension install --no-build jupyterlab-dash@0.1.0-alpha.3
-# To Dask-labextension works well only with 'conda-forge/label/broken' conda version of jupyterlab
-- jupyter labextension install --no-build dask-labextension
-# To Dask-labextension works well only with 'conda-forge/label/cf201901' conda version of jupyterlab
+- jupyter labextension install --no-build jupyterlab-dash
 # - jupyter labextension install --no-build jupyterlab-flake8
 - jupyter lab build
 - jupyter serverextension enable --py jupyterlab_git --sys-prefix
