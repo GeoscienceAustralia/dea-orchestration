@@ -90,7 +90,7 @@ dependencies:
 - keras
 - krb5
 - lark-parser
-- libgdal==3.0.4
+- libgdal
 - libgfortran
 - libgfortran-ng
 - libnetcdf
@@ -98,11 +98,6 @@ dependencies:
 - luigi
 - matplotlib
 - memory_profiler
-# - anaconda::mkl-service
-# - intel::mkl
-# - mkl_fft
-# - anaconda::mkl-include
-# - mkl_random
 - mock
 - modernize
 - moto
@@ -132,10 +127,10 @@ dependencies:
 - plotly
 - poppler
 - poppler-data
-- proj==7.0.0
+- proj
 - pyproj
 - psutil
-- psycopg2==2.8.5
+- psycopg2
 - pthread-stubs
 - pudb
 - pyephem
