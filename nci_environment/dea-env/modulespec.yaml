@@ -34,6 +34,7 @@ finalise_commands:
 - jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
 - jupyter labextension install --no-build @ryantam626/jupyterlab_code_formatter
 - jupyter labextension install --no-build jupyterlab-dash
+- jupyter labextension install --no-build @jupyter-widgets/jupyterlab-sidecar
 # - jupyter labextension install --no-build jupyterlab-flake8
 - jupyter lab build
 - jupyter serverextension enable --py jupyterlab_code_formatter --sys-prefix
