@@ -37,8 +37,4 @@ finalise_commands:
 - jupyter labextension install --no-build jupyterlab-dash
 # - jupyter labextension install --no-build jupyterlab-flake8
 - jupyter lab build
-- jupyter serverextension enable --py jupyterlab_git --sys-prefix
-- jupyter serverextension enable --py nbdime --sys-prefix
-- jupyter serverextension enable --py dask_labextension --sys-prefix
 - jupyter serverextension enable --py jupyterlab_code_formatter --sys-prefix
-- jupyter serverextension enable --py jupyter_server_proxy --sys-prefix
