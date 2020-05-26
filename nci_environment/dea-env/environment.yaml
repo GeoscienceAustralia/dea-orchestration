@@ -72,6 +72,8 @@ dependencies:
 - importlib_resources
 - intel-openmp
 - ipdb
+- ipycanvas
+- ipyevents
 - ipyleaflet
 - ipympl
 - ipython-sql
