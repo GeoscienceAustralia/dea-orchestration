@@ -167,6 +167,7 @@ dependencies:
 - seaborn
 - setuptools
 - shapely==1.7.0
+- sidecar
 - simplejson
 - singledispatch
 - skyfield
