@@ -1,6 +1,10 @@
+"""
+
+"""
 import logging
 import urllib
 from os import path
+from operator import itemgetter
 
 import boto3
 
@@ -10,8 +14,8 @@ LOG.setLevel(logging.INFO)
 
 
 def generate_listing(event, context):
-    new_objects = [(record['s3']['bucket']['name'], urllib.parse.unquote(record['s3']['object']['key'])) for record in
-                   event['Records']]
+    new_objects = [(record['s3']['bucket']['name'], urllib.parse.unquote(record['s3']['object']['key']))
+                   for record in event['Records']]
     LOG.info("Changed/new objects: %s", str(new_objects))
     tasks = set()
     for bucket, obj in new_objects:
@@ -38,12 +42,10 @@ def process_directory(bucket, directory):
     s3client = boto3.client('s3')
     response = s3client.list_objects_v2(Bucket=bucket, Prefix=f"{directory}/", Delimiter='/')
 
-    files = [content['Key'] for content in response.get('Contents', [])]
-
     index_path = path.join(directory, 'index.html')
-    LOG.info("Found '%s' in '%s'. Updating '%s'.", len(files), directory, index_path)
+    LOG.info("Found '%s' in '%s'. Updating '%s'.", len(response['Contents']), directory, index_path)
 
-    index_contents = generate_index_html(files)
+    index_contents = generate_index_html(response.get('Contents', []))
     s3client.put_object(Bucket=bucket, Key=index_path, Body=index_contents, ContentType="text/html",
                         CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
 
@@ -63,9 +65,17 @@ def regenerate_root_index(bucket):
 
 
 def generate_index_html(objs):
-    basename_only = [path.basename(obj) for obj in objs]
-    no_index = [obj for obj in basename_only if obj != 'index.html']
-    links = "\n".join(f'    <a href="{obj}">{obj}</a><br>' for obj in no_index)
+    objs = [obj for obj in objs
+            if not obj['Key'].endswith('index.html')]
+    objs = sorted(objs, key=itemgetter('LastModified'))
+    links = "\n".join(f"""
+    <tr>
+        <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="{path.basename(obj['Key'])}"><tt>{path.basename(obj['Key'])}</tt></a></td>
+        <td align="right"><tt>{sizeof_fmt(obj['Size'])}</tt></td>
+        <td align="right"><tt>{obj['LastModified'].isoformat()}</tt></td>
+    </tr>
+    """ for obj in objs)
     index_contents = f"""
 <!DOCTYPE html>
 <html>
@@ -74,11 +84,27 @@ def generate_index_html(objs):
     <title>Package Index</title>
 </head>
 <body>
-    {links}
+<table width="100%" cellspacing="0" cellpadding="5" align="center">
+<tbody><tr>
+<th align="left"><font size="+1">Name</font></th>
+<th align="center"><font size="+1">Size</font></th>
+<th align="right"><font size="+1">Last Modified</font></th>
+</tr><tr>
+{links}
+
+</tbody></table>
 </body>
 </html>
 """
     return index_contents
+
+
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 def main():
