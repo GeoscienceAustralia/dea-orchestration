@@ -138,6 +138,7 @@ dependencies:
 - pudb
 - pyephem
 - pydash
+- pydotplus
 - pylint
 - pyparsing
 - pypeg2
