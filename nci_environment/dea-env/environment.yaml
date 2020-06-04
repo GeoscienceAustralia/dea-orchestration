@@ -160,6 +160,7 @@ dependencies:
 - rios
 #- rsgislib  # broken because of libgeos dependency
 - rtree
+- ruamel.yaml
 - s3transfer
 - scikit-image
 - scikit-learn
@@ -196,6 +197,7 @@ dependencies:
 - yappi
 - yarn
 - zarr
+- zstandard
 
 # moved from pip
 - apscheduler
