@@ -16,8 +16,6 @@ set base          ${module_path}
 
 module-whatis   "${module_description} ${module_version}"
 
-module load udunits
-
 module load ${fixed_dea_env}
 
 setenv DATACUBE_CONFIG_PATH ${module_path}/datacube.conf
