@@ -29,6 +29,3 @@ copy_files:
 template_files:
 - src: modulefile.template
   dest: "{modules_base}/modulefiles/{module_name}/{module_version}"
-
-env_test:
-  test_script: "run"

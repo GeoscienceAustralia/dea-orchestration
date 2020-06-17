@@ -366,27 +366,9 @@ def main(config_path):
 
     fix_module_permissions(variables['module_path'])
 
-    if 'env_test' in config:
-        # List installed packages and their versions.
-        # And finally, run tests on the new dea module.
-        LOG.info('*' * 80)
-        LOG.info('List installed packages and their versions:')
-        LOG.info('*' * 80)
-
-        script_dir = Path(__file__).absolute().parents[2] / 'test_deaenv'
-        test_script = config['env_test']['test_script']
-        dea_module = variables['dea_module']
-        run_command(f'module load {dea_module}; pip freeze')
-
-        LOG.info('')
-        LOG.info('*' * 80)
-        LOG.info('Run regression testing on new DEA Module (%s) ', dea_module)
-        LOG.info('*' * 80)
-        run_command(f'sh {script_dir}/{test_script} --deamodule {dea_module} --testdir {script_dir}')
-    else:
-        LOG.info('List installed python dependencies and their versions:')
-        module = f'{variables["module_name"]}/{variables["module_version"]}'
-        run_command(f'module load {module}; pip freeze')
+    LOG.info('List installed python dependencies and their versions:')
+    module = f'{variables["module_name"]}/{variables["module_version"]}'
+    run_command(f'module load {module}; pip freeze')
 
     # Save the log file for posterity
     shutil.copy(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
