@@ -337,6 +337,7 @@ def main(config_path):
     # To keep the migration consistency across platforms (macOS/Windows/Linux)
     ospath = r'%s' % os.getcwd().replace('\\', '/')
 
+    # Setup Logging
     logging.basicConfig(level=logging.DEBUG)
     LOG.info('Reading config file')
     config = read_config(config_path)
@@ -387,7 +388,8 @@ def main(config_path):
         module = f'{variables["module_name"]}/{variables["module_version"]}'
         run_command(f'module load {module}; pip freeze')
 
-    shutil.move(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
+    # Save the log file for posterity
+    shutil.copy(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
 
 
 if __name__ == '__main__':
