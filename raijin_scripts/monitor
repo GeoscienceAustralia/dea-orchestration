@@ -1,5 +1,0 @@
-#!/bin/bash
-
-args=( "$@" )
-
-nci_account -P "${args[0]}"

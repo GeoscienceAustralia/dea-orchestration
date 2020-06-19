@@ -1,4 +1,0 @@
-elasticsearch
-requests_aws4auth
-paramiko
-requests
