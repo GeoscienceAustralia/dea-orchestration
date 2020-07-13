@@ -27,14 +27,5 @@ template_files:
 finalise_commands:
 # New geomedian/hdstats package from s3
 - pip install -U -v --no-deps --compile --requirement requirements.txt
-- jupyter labextension install --no-build @bokeh/jupyter_bokeh
-- jupyter labextension install --no-build @jupyterlab/geojson-extension
-- jupyter labextension install --no-build @jupyterlab/github
-- jupyter labextension install --no-build @jupyterlab/toc
-- jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
-- jupyter labextension install --no-build @ryantam626/jupyterlab_code_formatter
-- jupyter labextension install --no-build jupyterlab-dash
-- jupyter labextension install --no-build @jupyter-widgets/jupyterlab-sidecar
-# - jupyter labextension install --no-build jupyterlab-flake8
-- jupyter lab build
+- jupyter labextension install @bokeh/jupyter_bokeh @jupyterlab/geojson-extension @jupyterlab/github @jupyterlab/toc @jupyter-widgets/jupyterlab-manager @ryantam626/jupyterlab_code_formatter jupyterlab-dash @jupyter-widgets/jupyterlab-sidecar
 - jupyter serverextension enable --py jupyterlab_code_formatter --sys-prefix
