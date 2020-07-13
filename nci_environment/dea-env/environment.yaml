@@ -155,7 +155,7 @@ dependencies:
 - pyyaml
 - qgis
 - randomgen
-- rasterio
+- rasterio!=1.1.5
 - rasterstats
 - recommonmark
 - redis
