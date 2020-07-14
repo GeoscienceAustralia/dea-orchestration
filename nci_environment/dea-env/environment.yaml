@@ -109,6 +109,7 @@ dependencies:
 - mypy
 - nb_conda_kernels
 - nbdime
+- nbval
 - netcdf4
 - nodejs
 - notebook
