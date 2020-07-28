@@ -22,6 +22,7 @@ from boltons.fileutils import atomic_save
 from pathlib import Path
 
 OLD_DB_HOST = '130.56.244.105'
+CURRENT_DB_HOST = 'dea-db.nci.org.au'
 PASSWORD_LENGTH = 32
 
 DBCreds = namedtuple('DBCreds', ['host', 'port', 'database', 'username', 'password'])
@@ -204,7 +205,7 @@ def test_no_pgpass(tmpdir):
 
     # No pgpass file exists
     with pytest.raises(CredentialsNotFound):
-        find_credentials(path, '130.56.244.105', new_creds)
+        find_credentials(path, CURRENT_DB_HOST, new_creds)
 
     append_credentials(path, new_creds)
 
@@ -217,13 +218,13 @@ def test_no_pgpass(tmpdir):
 
 def test_db_host_doesnot_match_productiondb(tmpdir):
     # Production db credentials
-    existing_line = '130.56.244.105:5432:*:foo_user:asdf'
+    existing_line = f'{CURRENT_DB_HOST}:5432:*:foo_user:asdf'
     pgpass = tmpdir.join('pgpass.txt')
     pgpass.write(existing_line)
 
     path = Path(str(pgpass))
-    hostdbcreds = DBCreds('130.56.244.105', '1234', 'datacube', 'foo_user', 'foo_password')
-    creds = find_credentials(pgpass, '130.56.244.105', hostdbcreds)
+    hostdbcreds = DBCreds(CURRENT_DB_HOST, '1234', 'datacube', 'foo_user', 'foo_password')
+    creds = find_credentials(pgpass, CURRENT_DB_HOST, hostdbcreds)
 
     assert creds is not None
     assert creds.password == 'asdf'
@@ -234,7 +235,7 @@ def test_db_host_doesnot_match_productiondb(tmpdir):
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
+    expected = existing_line + '\n' + existing_line.replace(f'{CURRENT_DB_HOST}:5432', '*:*') + '\n'
     assert contents == expected
 
 
@@ -260,14 +261,14 @@ def test_pgpass_empty(tmpdir):
 
 
 def test_db_host_matches_productiondb(tmpdir):
-    existing_line = '130.56.244.105:5432:*:foo_user:asdf'
+    existing_line = f'{CURRENT_DB_HOST}:5432:*:foo_user:asdf'
     pgpass = tmpdir.join('pgpass.txt')
     pgpass.write(existing_line)
 
     path = Path(str(pgpass))
-    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
+    creds = DBCreds(CURRENT_DB_HOST, '1234', '*', 'foo_user', 'asdf')
 
-    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
+    newcreds = find_credentials(pgpass, CURRENT_DB_HOST, creds)
 
     assert newcreds is not None
     assert newcreds.password == 'asdf'
@@ -277,16 +278,16 @@ def test_db_host_matches_productiondb(tmpdir):
     with path.open() as src:
         contents = src.read()
 
-    expected = existing_line + '\n' + existing_line.replace('130.56.244.105:5432', '*:*') + '\n'
+    expected = existing_line + '\n' + existing_line.replace(f'{CURRENT_DB_HOST}:5432', '*:*') + '\n'
     assert contents == expected
 
 
 def test_against_emptylines_in_pgpass(tmpdir):
-    existing_pgpass = dedent('''
+    existing_pgpass = dedent(f'''
 
-            130.56.244.105:5432:*:foo_user:asdf
+            {CURRENT_DB_HOST}:5432:*:foo_user:asdf
 
-            agdc-db.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}:*:*:foo_user:asdf
             agdcdev-db.nci.org.au:*:*:foo_user:asdf
             agdcstaging-db.nci.org.au:*:*:foo_user:asdf
 
@@ -295,9 +296,9 @@ def test_against_emptylines_in_pgpass(tmpdir):
     pgpass.write(existing_pgpass)
 
     path = Path(str(pgpass))
-    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
+    creds = DBCreds(CURRENT_DB_HOST, '1234', '*', 'foo_user', 'asdf')
 
-    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
+    newcreds = find_credentials(pgpass, CURRENT_DB_HOST, creds)
 
     assert newcreds is not None
     assert newcreds.password == 'asdf'
@@ -312,12 +313,12 @@ def test_against_emptylines_in_pgpass(tmpdir):
 
 
 def test_against_comment_in_pgpass(tmpdir):
-    existing_pgpass = dedent('''
+    existing_pgpass = dedent(f'''
             # test comment 1 #
-            130.56.244.105:5432:*:foo_user:asdf
+            {CURRENT_DB_HOST}:5432:*:foo_user:asdf
 
             # test comments 2
-            agdc-db.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}:*:*:foo_user:asdf
 
             # 'test comments 3'
             agdcdev-db.nci.org.au:*:*:foo_user:asdf
@@ -329,9 +330,9 @@ def test_against_comment_in_pgpass(tmpdir):
     pgpass.write(existing_pgpass)
 
     path = Path(str(pgpass))
-    creds = DBCreds('130.56.244.105', '1234', '*', 'foo_user', 'asdf')
+    creds = DBCreds(CURRENT_DB_HOST, '1234', '*', 'foo_user', 'asdf')
 
-    newcreds = find_credentials(pgpass, '130.56.244.105', creds)
+    newcreds = find_credentials(pgpass, CURRENT_DB_HOST, creds)
 
     assert newcreds is not None
     assert newcreds.password == 'asdf'
