@@ -22,30 +22,44 @@ from odc.aws import make_s3_client
 from odc.aws.inventory import list_inventory
 from stac_utils import yamls_in_inventory_list, parse_date
 
-FORMAT = '%(asctime)-15s %(message)s'
+FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
-YAML = ruamel.yaml.YAML(typ='safe')
+YAML = ruamel.yaml.YAML(typ="safe")
 
 
 @click.command(help=__doc__)
-@click.option('--config', type=click.Path(exists=True), default='stac_config.yaml', help='The config file')
-@click.option('--inventory-manifest', '-i',
-              default='s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/',
-              help="The manifest of AWS inventory list")
-@click.option('--queue-url', '-q', default='https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue',
-              help="AWS sqs url")
-@click.option('--bucket', '-b', required=True, help="AWS bucket")
-@click.option('--from-date', callback=parse_date, help="The date from which to update the catalog")
-@click.argument('s3-keys', nargs=-1, type=str)
+@click.option(
+    "--config",
+    type=click.Path(exists=True),
+    default="stac_config.yaml",
+    help="The config file",
+)
+@click.option(
+    "--inventory-manifest",
+    "-i",
+    default="s3://dea-public-data-inventory/dea-public-data/dea-public-data-csv-inventory/",
+    help="The manifest of AWS inventory list",
+)
+@click.option(
+    "--queue-url",
+    "-q",
+    default="https://sqs.ap-southeast-2.amazonaws.com/451924316694/static-stac-queue",
+    help="AWS sqs url",
+)
+@click.option("--bucket", "-b", required=True, help="AWS bucket")
+@click.option(
+    "--from-date", callback=parse_date, help="The date from which to update the catalog"
+)
+@click.argument("s3-keys", nargs=-1, type=str)
 def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys=None):
     """
     Send messages (yaml s3 keys) to stac_queue
     """
 
-    with open(config, 'r') as cfg_file:
+    with open(config, "r") as cfg_file:
         cfg = YAML.load(cfg_file)
 
     if not s3_keys:
@@ -62,13 +76,13 @@ def cli(config, inventory_manifest, queue_url, bucket, from_date, s3_keys=None):
         s3_keys = yamls_in_inventory_list(inventory_items, cfg)
     else:
         # Filter out non yaml keys
-        s3_keys = [item for item in s3_keys if item.endswith('.yaml')]
+        s3_keys = [item for item in s3_keys if item.endswith(".yaml")]
 
-    LOG.info('Sending %s update messages', len(s3_keys))
+    LOG.info("Sending %s update messages", len(s3_keys))
 
     messages_to_sqs(s3_keys, bucket, queue_url)
 
-    LOG.info('Done')
+    LOG.info("Done")
 
 
 def messages_to_sqs(s3_keys, bucket, queue_url):
@@ -76,18 +90,18 @@ def messages_to_sqs(s3_keys, bucket, queue_url):
     Send messages to stac queue for all the s3 keys in the given list
     """
 
-    sqs = boto3.client('sqs')
+    sqs = boto3.client("sqs")
 
     for batch in chunks(s3_keys, 10):
 
-        batch_request = [dict(Id=str(n), MessageBody=s3_key_event(bucket, key)) for n, key in enumerate(batch)]
-        response = sqs.send_message_batch(
-            QueueUrl=queue_url,
-            Entries=batch_request
-        )
+        batch_request = [
+            dict(Id=str(n), MessageBody=s3_key_event(bucket, key))
+            for n, key in enumerate(batch)
+        ]
+        response = sqs.send_message_batch(QueueUrl=queue_url, Entries=batch_request)
 
-        if 'Failed' in response:
-            LOG.error('Failed messages: %s', response['Failed'])
+        if "Failed" in response:
+            LOG.error("Failed messages: %s", response["Failed"])
 
 
 def s3_key_event(bucket, s3_key):
@@ -95,7 +109,9 @@ def s3_key_event(bucket, s3_key):
     Send a message typical to s3 object put event to stac queue corresponding to the given s3 key
     """
 
-    return json.dumps({"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]})
+    return json.dumps(
+        {"Records": [{"s3": {"bucket": {"name": bucket}, "object": {"key": s3_key}}}]}
+    )
 
 
 def chunks(iterable, chunk_size):
@@ -110,9 +126,9 @@ def chunks(iterable, chunk_size):
     """
     try:
         if int(chunk_size) != chunk_size or chunk_size < 1:
-            raise ValueError('chunk_size must be an integer greater than zero!')
+            raise ValueError("chunk_size must be an integer greater than zero!")
     except TypeError:
-        raise ValueError('chunk_size must be an integer greater than zero!')
+        raise ValueError("chunk_size must be an integer greater than zero!")
 
     try:
         # try efficient version for sequences
@@ -125,7 +141,7 @@ def chunks(iterable, chunk_size):
             yield iterable
         else:
             for start in range(0, n, chunk_size):
-                yield iterable[start:start + chunk_size]
+                yield iterable[start : start + chunk_size]
     except (TypeError, AttributeError):  # may be thrown by len() or the slicing
         # use generic version which works on all iterables
         iterator = iter(iterable)
@@ -136,5 +152,5 @@ def chunks(iterable, chunk_size):
             yield chunk
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

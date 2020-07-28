@@ -5,20 +5,20 @@ from urllib.request import urlopen
 
 import dateutil.parser
 
-del os.environ['http_proxy']
+del os.environ["http_proxy"]
 
 URLS = [
-    'http://gsky.nci.org.au/ows?service=WMS&version=1.3.0&request=GetCapabilities',
-    'https://ows.services.dea.ga.gov.au/?service=WMS&version=1.3.0&request=GetCapabilities'
+    "http://gsky.nci.org.au/ows?service=WMS&version=1.3.0&request=GetCapabilities",
+    "https://ows.services.dea.ga.gov.au/?service=WMS&version=1.3.0&request=GetCapabilities",
 ]
 
-NS = {'wms': 'http://www.opengis.net/wms'}
+NS = {"wms": "http://www.opengis.net/wms"}
 
 
 def layer_name_and_age(node, now):
-    layer_name = node.find('wms:Name', NS).text
-    dates = node.find('wms:Dimension', NS).text
-    latest = dates.split(',')[-1]
+    layer_name = node.find("wms:Name", NS).text
+    dates = node.find("wms:Dimension", NS).text
+    latest = dates.split(",")[-1]
     latest_date = dateutil.parser.parse(latest)
 
     delta = now - latest_date
@@ -33,7 +33,7 @@ def get_ages_gsky(url):
 
     now = datetime.now(timezone.utc)
 
-    for node in tree.findall('.//wms:Layer/wms:Layer', NS):
+    for node in tree.findall(".//wms:Layer/wms:Layer", NS):
         layer_name_and_age(node, now)
 
 
@@ -44,12 +44,13 @@ def get_ages_dea_nrt(url):
     now = datetime.now()
 
     nrt_node = tree.find('.//wms:Layer[wms:Title="Near Real-Time"]', NS)
-    for node in nrt_node.findall('wms:Layer', NS):
+    for node in nrt_node.findall("wms:Layer", NS):
         layer_name_and_age(node, now)
+
 
 get_ages_dea_nrt(URLS[1])
 
-#for url in URLS:
+# for url in URLS:
 #    print(url)
 #    get_ages(url)
 #    print('\n\n')
