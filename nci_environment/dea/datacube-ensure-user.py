@@ -288,8 +288,8 @@ def test_against_emptylines_in_pgpass(tmpdir):
             {CURRENT_DB_HOST}:5432:*:foo_user:asdf
 
             {CURRENT_DB_HOST}:*:*:foo_user:asdf
-            agdcdev-db.nci.org.au:*:*:foo_user:asdf
-            agdcstaging-db.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}.org.au:*:*:foo_user:asdf
 
             ''')
     pgpass = tmpdir.join('pgpass.txt')
@@ -321,9 +321,9 @@ def test_against_comment_in_pgpass(tmpdir):
             {CURRENT_DB_HOST}:*:*:foo_user:asdf
 
             # 'test comments 3'
-            agdcdev-db.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}.nci.org.au:*:*:foo_user:asdf
 
-            agdcstaging-db.nci.org.au:*:*:foo_user:asdf
+            {CURRENT_DB_HOST}.nci.org.au:*:*:foo_user:asdf
 
             ''')
     pgpass = tmpdir.join('pgpass.txt')

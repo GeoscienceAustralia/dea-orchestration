@@ -56,7 +56,7 @@ echo ""
 datacube -vv system check
 
 echo "Read previous agdc_dataset product names and count before fractional cover process"
-psql -h agdcdev-db.nci.org.au -p 6432 -d "$DBNAME" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
+psql -h dea-db.nci.org.au -p 6432 -d "$DBNAME" -c 'select name, count(*) FROM agdc.dataset a, agdc.dataset_type b where a.dataset_type_ref = b.id group by b.name'
 echo "**********************************************************************"
 
 datacube-stats --help
