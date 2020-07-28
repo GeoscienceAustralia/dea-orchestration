@@ -67,7 +67,7 @@ export DATACUBE_CONFIG_PATH="$CONFIGFILE"
 dea-test-env -C "$CONFIGFILE" teardown
 
 # Create a database file for testing purpose
-createdb -h agdcdev-db.nci.org.au -p 6432 "$databasename"
+createdb -h dea-db.nci.org.au -p 6432 "$databasename"
 
 # Run the initialise Test Database Script
 # Dea-System Init adds all the products to the database (i.e., No need to do datacube product add)
