@@ -2,7 +2,7 @@ variables:
   module_name: dea
   module_description: DEA tools for the NCI
   modules_base: "/g/data/v10/public/modules"
-  dbhost: 130.56.244.105
+  dbhost: dea-db.nci.org.au
   dbport: 6432
   python_version: 3.6
   module_version: unstable
