@@ -44,20 +44,20 @@ from pathlib import Path
 
 import yaml
 
-MODULE_DIR = '/g/data/v10/public/modules'
+MODULE_DIR = "/g/data/v10/public/modules"
 
 LOG_NAME = "build_dea_module.log"
-FILE_HANDLER = logging.FileHandler(filename=LOG_NAME, mode='w', encoding='utf-8')
+FILE_HANDLER = logging.FileHandler(filename=LOG_NAME, mode="w", encoding="utf-8")
 STDOUT_HANDLER = logging.StreamHandler(sys.stdout)
 HANDLERS = [FILE_HANDLER, STDOUT_HANDLER]
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format=u'[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s',
-    handlers=HANDLERS
+    format="[%(asctime)s] {%(filename)30s:%(lineno)3d} %(levelname)s: %(message)s",
+    handlers=HANDLERS,
 )
 
-LOG = logging.getLogger('build-dea-module')
+LOG = logging.getLogger("build-dea-module")
 
 
 def pre_check(config):
@@ -67,14 +67,18 @@ def pre_check(config):
     :param config: Configuration parameters
     :return: None
     """
-    LOG.info('Performing pre-check before installing module')
+    LOG.info("Performing pre-check before installing module")
     if "PYTHONPATH" in os.environ:
-        raise Exception("The PYTHONPATH environment variable must NOT be set when creating modules.")
+        raise Exception(
+            "The PYTHONPATH environment variable must NOT be set when creating modules."
+        )
 
-    module_path = Path(config['variables']['module_path'])
+    module_path = Path(config["variables"]["module_path"])
     if module_path.exists():
-        raise Exception(f"The destination path {module_path} already exists, "
-                        f"please remove it and try again.")
+        raise Exception(
+            f"The destination path {module_path} already exists, "
+            f"please remove it and try again."
+        )
 
 
 def prep(config_path):
@@ -84,15 +88,15 @@ def prep(config_path):
     :param config_path: Configuration Path
     :return: None
     """
-    LOG.info('Preparing environment variables')
+    LOG.info("Preparing environment variables")
     # Write files as group and world readable
     os.umask(0o22)
     os.chdir(config_path.parent)
-    os.environ['LC_ALL'] = 'en_AU.utf8'
-    os.environ['LANG'] = 'C.UTF-8'
+    os.environ["LC_ALL"] = "en_AU.utf8"
+    os.environ["LANG"] = "C.UTF-8"
 
     # make sure no ~/.local stuff interferes with the install
-    os.environ['PYTHONNOUSERSITE'] = 'true'
+    os.environ["PYTHONNOUSERSITE"] = "true"
 
 
 def date(date_format="%Y%m%d") -> str:
@@ -109,7 +113,7 @@ def _log_output(line):
     try:
         LOG.info(line)
     except UnicodeEncodeError:
-        LOG.warning("UnicodeEncodeError: %s", line.encode('ascii', 'replace'))
+        LOG.warning("UnicodeEncodeError: %s", line.encode("ascii", "replace"))
 
 
 def run_command(cmd):
@@ -119,13 +123,17 @@ def run_command(cmd):
     :param cmd: Command to execute
     :return: None
     """
-    LOG.info('Running command: %s', cmd)
-    return subprocess.run(cmd, shell=True, check=True,
-                          stdout=sys.stdout,
-                          stderr=sys.stderr,
-                          text=True,
-                          encoding='utf-8',
-                          errors='replace')
+    LOG.info("Running command: %s", cmd)
+    return subprocess.run(
+        cmd,
+        shell=True,
+        check=True,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
 
 
 def install_conda_packages(env_file, variables):
@@ -136,10 +144,10 @@ def install_conda_packages(env_file, variables):
     :param variables: Configuration variables as per configuration settings in modulespec yaml file
     :return: None
     """
-    LOG.info('Installing conda packages from %s', env_file)
+    LOG.info("Installing conda packages from %s", env_file)
 
-    conda_path = variables['conda_path']
-    module_path = variables['module_path']
+    conda_path = variables["conda_path"]
+    module_path = variables["module_path"]
 
     run_command(f"{conda_path} env create -p {module_path} -v --file {env_file}")
 
@@ -153,8 +161,8 @@ def write_template(template_file, variables, output_file):
     :param output_file: New dea module file
     :return: None
     """
-    LOG.info('Filling template file %s to %s', template_file, output_file)
-    LOG.info('Ensuring parent dir %s exists', output_file.parent)
+    LOG.info("Filling template file %s to %s", template_file, output_file)
+    LOG.info("Ensuring parent dir %s exists", output_file.parent)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     template_contents = template_file.read_text()
@@ -184,18 +192,18 @@ def copy_files(copy_tasks, variables):
     """
     for task in copy_tasks:
         fill_templates_from_variables(task, variables)
-        src = Path(task['src'])
-        dest = Path(task['dest'])
+        src = Path(task["src"])
+        dest = Path(task["dest"])
 
-        LOG.info('Copying %s to %s', src, dest)
-        LOG.info('Ensuring parent dir %s exists', dest.parent)
+        LOG.info("Copying %s to %s", src, dest)
+        LOG.info("Ensuring parent dir %s exists", dest.parent)
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         shutil.copy(src, dest)
 
-        if 'chmod' in task:
-            perms = int(task['chmod'], base=8)
-            LOG.info('Setting %s permissions to %s', dest, oct(perms))
+        if "chmod" in task:
+            perms = int(task["chmod"], base=8)
+            LOG.info("Setting %s permissions to %s", dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -220,15 +228,15 @@ def copy_and_fill_templates(template_tasks, variables):
     for task in template_tasks:
         fill_templates_from_variables(task, variables)
 
-        src = Path(task['src'])
-        dest = Path(task['dest'])
-        LOG.info('Copy and fill dea-env modulefile %s in %s', src, dest)
+        src = Path(task["src"])
+        dest = Path(task["dest"])
+        LOG.info("Copy and fill dea-env modulefile %s in %s", src, dest)
         # Write the module file template to modulefiles/dea-env directory
         write_template(src, variables, dest)
 
-        if 'chmod' in task:
-            perms = int(task['chmod'], base=8)
-            LOG.info('Setting %s permissions to %s', dest, oct(perms))
+        if "chmod" in task:
+            perms = int(task["chmod"], base=8)
+            LOG.info("Setting %s permissions to %s", dest, oct(perms))
             dest.chmod(perms)
 
 
@@ -239,10 +247,10 @@ def include_templated_vars(config):
     :param config: Dictionary of configuration variables
     :return: None
     """
-    fill_templates_from_variables(config['templated_variables'], config['variables'])
-    config['variables'].update(config['templated_variables'])
+    fill_templates_from_variables(config["templated_variables"], config["variables"])
+    config["variables"].update(config["templated_variables"])
 
-    del config['templated_variables']
+    del config["templated_variables"]
 
 
 def fix_module_permissions(module_path):
@@ -267,7 +275,7 @@ def install_pip_packages(pip_conf, variables):
     :return: None
     """
     fill_templates_from_variables(pip_conf, variables)
-    pip_cmd = pip_conf['pip_cmd']
+    pip_cmd = pip_conf["pip_cmd"]
 
     LOG.info(f'Running: "{pip_cmd}"')
     run_command(pip_cmd)
@@ -282,20 +290,28 @@ def find_default_version(module_name):
     """
     cmd = f"module --terse avail {module_name}"
     LOG.info("Running command: %s", cmd)
-    output = subprocess.run(cmd, shell=True, check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            universal_newlines=True,
-                            encoding='ascii')
-    versions = [version for version in output.stdout.splitlines() if f'{module_name}/' in version]
-    default_version = [version for version in versions if '(default)' in version]
+    output = subprocess.run(
+        cmd,
+        shell=True,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        encoding="ascii",
+    )
+    versions = [
+        version
+        for version in output.stdout.splitlines()
+        if f"{module_name}/" in version
+    ]
+    default_version = [version for version in versions if "(default)" in version]
 
     if default_version:
-        ret_val = default_version[0].replace('(default)', '')
+        ret_val = default_version[0].replace("(default)", "")
     elif len(versions) > 0:
         ret_val = versions[-1]
     else:
-        raise Exception('No version of module %s is available.' % module_name)
+        raise Exception("No version of module %s is available." % module_name)
     return ret_val
 
 
@@ -307,9 +323,9 @@ def run_final_commands_on_module(commands, module_path):
     :param module_path: Module path
     :return: None
     """
-    os.environ['PATH'] = f'{module_path}/bin:{os.environ["PATH"]}'
+    os.environ["PATH"] = f'{module_path}/bin:{os.environ["PATH"]}'
     for command in commands:
-        cmd = f'{module_path}/bin/{command}'
+        cmd = f"{module_path}/bin/{command}"
         run_command(cmd)
 
 
@@ -320,11 +336,11 @@ def include_stable_module_dep_versions(config):
     :param config: Dictionary of configuration variables
     :return: None
     """
-    stable_module_deps = config.get('stable_module_deps', [])
+    stable_module_deps = config.get("stable_module_deps", [])
     for dep in stable_module_deps:
         default_version = find_default_version(dep)
-        dep = dep.replace('-', '_')
-        config['variables'][f'fixed_{dep}'] = default_version
+        dep = dep.replace("-", "_")
+        config["variables"][f"fixed_{dep}"] = default_version
 
 
 def main(config_path):
@@ -335,44 +351,46 @@ def main(config_path):
     :return: None
     """
     # To keep the migration consistency across platforms (macOS/Windows/Linux)
-    ospath = r'%s' % os.getcwd().replace('\\', '/')
+    ospath = r"%s" % os.getcwd().replace("\\", "/")
 
     # Setup Logging
     logging.basicConfig(level=logging.DEBUG)
-    LOG.info('Reading config file')
+    LOG.info("Reading config file")
     config = read_config(config_path)
-    variables = config['variables']
+    variables = config["variables"]
 
-    if 'module_version' not in variables:
-        variables['module_version'] = date()
+    if "module_version" not in variables:
+        variables["module_version"] = date()
     include_templated_vars(config)
     include_stable_module_dep_versions(config)
 
     pre_check(config)
     prep(config_path)
 
-    if 'install_conda_packages' in config:
-        install_conda_packages(config['install_conda_packages'], variables)
+    if "install_conda_packages" in config:
+        install_conda_packages(config["install_conda_packages"], variables)
 
-    if 'install_pip_packages' in config:
-        install_pip_packages(config['install_pip_packages'], variables)
+    if "install_pip_packages" in config:
+        install_pip_packages(config["install_pip_packages"], variables)
 
-    copy_files(config.get('copy_files', []), variables)
-    copy_and_fill_templates(config.get('template_files', []), variables)
+    copy_files(config.get("copy_files", []), variables)
+    copy_and_fill_templates(config.get("template_files", []), variables)
 
-    LOG.info('Run final commands on module')
-    if 'finalise_commands' in config and config['finalise_commands']:
-        run_final_commands_on_module(config['finalise_commands'], variables['module_path'])
+    LOG.info("Run final commands on module")
+    if "finalise_commands" in config and config["finalise_commands"]:
+        run_final_commands_on_module(
+            config["finalise_commands"], variables["module_path"]
+        )
 
-    fix_module_permissions(variables['module_path'])
+    fix_module_permissions(variables["module_path"])
 
-    LOG.info('List installed python dependencies and their versions:')
+    LOG.info("List installed python dependencies and their versions:")
     module = f'{variables["module_name"]}/{variables["module_version"]}'
-    run_command(f'module load {module}; pip freeze')
+    run_command(f"module load {module}; pip freeze")
 
     # Save the log file for posterity
-    shutil.copy(ospath + '/' + LOG_NAME, variables['module_path'] + '/' + LOG_NAME)
+    shutil.copy(ospath + "/" + LOG_NAME, variables["module_path"] + "/" + LOG_NAME)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(Path(sys.argv[1]))
