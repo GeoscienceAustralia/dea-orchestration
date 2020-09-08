@@ -66,19 +66,23 @@ def process_directory(bucket, directory):
         CacheControl="public, must-revalidate, proxy-revalidate, max-age=0",
     )
 
+
 def generate_links(objs):
-    objs = [obj for obj in objs[1:]
-            if not obj['Key'].endswith('index.html')]
-    objs = sorted(objs, key=itemgetter('LastModified'))
-    links = "\n".join(f"""
+    objs = [obj for obj in objs[1:] if not obj["Key"].endswith("index.html")]
+    objs = sorted(objs, key=itemgetter("LastModified"))
+    links = "\n".join(
+        f"""
     <tr>
         <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <a href="{path.basename(obj['Key'])}"><tt>{path.basename(obj['Key'])}</tt></a></td>
         <td align="right"><tt>{sizeof_fmt(obj['Size'])}</tt></td>
         <td align="right"><tt>{obj['LastModified'].isoformat()}</tt></td>
     </tr>
-    """ for obj in objs)
+    """
+        for obj in objs
+    )
     return links
+
 
 def regenerate_root_index(bucket):
     LOG.info("Regenerating root index in s3://%s", bucket)
@@ -89,17 +93,26 @@ def regenerate_root_index(bucket):
     LOG.info("Found '%s' folders.", len(folders))
     LOG.info("Folders: %s.", folders)
 
-    links = "\n".join(f"""
+    links = "\n".join(
+        f"""
     <tr>
         <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <a href="{folder}"><tt>{folder}</tt></a></td>
         <td align="right"><tt></tt></td>
         <td align="right"><tt></tt></td>
     </tr>
-    """ for folder in folders if folder)
+    """
+        for folder in folders
+        if folder
+    )
     index_contents = generate_index_html(links, top_level=True)
-    s3client.put_object(Bucket=bucket, Key='index.html', Body=index_contents, ContentType="text/html",
-                        CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
+    s3client.put_object(
+        Bucket=bucket,
+        Key="index.html",
+        Body=index_contents,
+        ContentType="text/html",
+        CacheControl="public, must-revalidate, proxy-revalidate, max-age=0",
+    )
 
 
 def generate_index_html(links, top_level=False):
