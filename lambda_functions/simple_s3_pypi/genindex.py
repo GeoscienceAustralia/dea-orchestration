@@ -57,7 +57,7 @@ def process_directory(bucket, directory):
         index_path,
     )
 
-    index_contents = generate_index_html(response.get("Contents", []))
+    index_contents = generate_index_html(generate_links(response.get("Contents", [])))
     s3client.put_object(
         Bucket=bucket,
         Key=index_path,
@@ -66,6 +66,19 @@ def process_directory(bucket, directory):
         CacheControl="public, must-revalidate, proxy-revalidate, max-age=0",
     )
 
+def generate_links(objs):
+    objs = [obj for obj in objs[1:]
+            if not obj['Key'].endswith('index.html')]
+    objs = sorted(objs, key=itemgetter('LastModified'))
+    links = "\n".join(f"""
+    <tr>
+        <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="{path.basename(obj['Key'])}"><tt>{path.basename(obj['Key'])}</tt></a></td>
+        <td align="right"><tt>{sizeof_fmt(obj['Size'])}</tt></td>
+        <td align="right"><tt>{obj['LastModified'].isoformat()}</tt></td>
+    </tr>
+    """ for obj in objs)
+    return links
 
 def regenerate_root_index(bucket):
     LOG.info("Regenerating root index in s3://%s", bucket)
@@ -74,38 +87,44 @@ def regenerate_root_index(bucket):
 
     folders = [prefix["Prefix"][:-1] for prefix in response.get("CommonPrefixes", [])]
     LOG.info("Found '%s' folders.", len(folders))
+    LOG.info("Folders: %s.", folders)
 
-    index_contents = generate_index_html(folders)
-    print(index_contents)
-    s3client.put_object(
-        Bucket=bucket,
-        Key="index.html",
-        Body=index_contents,
-        ContentType="text/html",
-        CacheControl="public, must-revalidate, proxy-revalidate, max-age=0",
-    )
-
-
-def generate_index_html(objs):
-    objs = [obj for obj in objs if not obj["Key"].endswith("index.html")]
-    objs = sorted(objs, key=itemgetter("LastModified"))
-    links = "\n".join(
-        f"""
+    links = "\n".join(f"""
     <tr>
         <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="{path.basename(obj['Key'])}"><tt>{path.basename(obj['Key'])}</tt></a></td>
-        <td align="right"><tt>{sizeof_fmt(obj['Size'])}</tt></td>
-        <td align="right"><tt>{obj['LastModified'].isoformat()}</tt></td>
+            <a href="{folder}"><tt>{folder}</tt></a></td>
+        <td align="right"><tt></tt></td>
+        <td align="right"><tt></tt></td>
     </tr>
-    """
-        for obj in objs
-    )
+    """ for folder in folders if folder)
+    index_contents = generate_index_html(links, top_level=True)
+    s3client.put_object(Bucket=bucket, Key='index.html', Body=index_contents, ContentType="text/html",
+                        CacheControl='public, must-revalidate, proxy-revalidate, max-age=0')
+
+
+def generate_index_html(links, top_level=False):
+    if top_level:
+        up_dir = ""
+    else:
+        up_dir = """
+        <tr>
+            <td align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="../"><tt>../</tt></a></td>
+            <td align="right"></td>
+            <td align="right"></td>
+        </tr>
+        """
     index_contents = f"""
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>Package Index</title>
+    <style type="text/css">
+        table tr:nth-child(2n) {{
+            background: #e8e8e8;
+        }}
+    </style>
 </head>
 <body>
 <table width="100%" cellspacing="0" cellpadding="5" align="center">
@@ -113,7 +132,8 @@ def generate_index_html(objs):
 <th align="left"><font size="+1">Name</font></th>
 <th align="center"><font size="+1">Size</font></th>
 <th align="right"><font size="+1">Last Modified</font></th>
-</tr><tr>
+</tr>
+{up_dir}
 {links}
 
 </tbody></table>
