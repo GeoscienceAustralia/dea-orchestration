@@ -141,7 +141,7 @@ def chunks(iterable, chunk_size):
             yield iterable
         else:
             for start in range(0, n, chunk_size):
-                yield iterable[start : start + chunk_size]
+                yield iterable[start:start + chunk_size]
     except (TypeError, AttributeError):  # may be thrown by len() or the slicing
         # use generic version which works on all iterables
         iterator = iter(iterable)
