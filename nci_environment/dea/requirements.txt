@@ -7,7 +7,7 @@ digitalearthau
 datacube-stats
 datacube-alchemist
 fc
-wofs
+wofs>1.5,<1.6,!=1.5.5,!=1.5.6
 odc-ui
 odc-index
 odc-aws
