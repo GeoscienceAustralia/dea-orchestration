@@ -18,3 +18,4 @@ odc-ppt
 odc-dscache
 odc-dtools
 odc-apps-dc-tools
+hdstats
