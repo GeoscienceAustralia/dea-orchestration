@@ -4,8 +4,13 @@
 .. role:: py(code)
    :language: python
 
-.. warning:: This repository is no longer used or updated. It *might* be interesting for historical purposes only,
-    eg. looking at `lambda_functions/s3stat-automation/` for viewing S3 data retrievals based on geolocation.
+
+#############
+ Repo Closed
+#############
+
+This repository is no longer used or updated. It *might*be interesting for historical purposes only, eg.
+looking at `lambda_functions/s3stat-automation/` for viewing S3 data retrievals based on geolocation.
 
 ##############
  Introduction
