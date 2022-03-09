@@ -1,3 +1,0 @@
-#!/bin/bash
-cd /g/data2/v10/private/dea-orchestration/raijin_scripts || exit 1
-ls
